@@ -32,6 +32,19 @@ async function main() {
           'https://pbs.twimg.com/profile_images/1506792347840888834/dS-r50Je_400x400.jpg',
       },
     }),
+    await prisma.users.upsert({
+      where: { email: 'jeremy@vercel.com' },
+      update: {
+        image:
+          'https://pbs.twimg.com/profile_images/1644182572170362880/uNXJouoO_400x400.jpg',
+      },
+      create: {
+        name: 'Jeremy Liberman',
+        email: 'jeremy@vercel.com',
+        image:
+          'https://pbs.twimg.com/profile_images/1644182572170362880/uNXJouoO_400x400.jpg',
+      },
+    }),
   ])
   console.log(response)
 }
