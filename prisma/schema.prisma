@@ -2,14 +2,14 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["jsonProtocol"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
-  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  provider          = "postgresql"
+  url               = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl         = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
   shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLING") // used for migrations
 }
 
@@ -19,4 +19,104 @@ model users {
   email     String   @unique
   image     String
   createdAt DateTime @default(now())
+}
+
+model lca_disclosures {
+  id                          String   @id
+  caseStatus                  String
+  receivedDate                DateTime
+  decisionDate                DateTime
+  originalCertifiedDate       DateTime
+  visaClass                   String
+  jobTitle                    String
+  socCode                     String // to maintain list of soc codes (& titles
+  socTitle                    String
+  fullTimePosition            Boolean
+  beginDate                   DateTime
+  endDate                     DateTime
+  totalWorkerPositions        Int
+  nNewEmployment              Int
+  nContinuedEmployment        Int
+  nChangePreviousEmployment   Int
+  nNewConcurrentEmployment    Int
+  nChangeEmployer             Int
+  nAmendedPetition            Int
+  employerName                String
+  tradeNameDba                String
+  employerAddress1            String
+  employerAddress2            String
+  employerCity                String
+  employerState               String
+  employerPostalCode          String
+  employerCountry             String
+  employerProvince            String
+  employerPhone               String
+  employerPhoneExt            String
+  naicsCode                   String
+  employerPocLastName         String
+  employerPocFirstName        String
+  employerPocMiddleName       String
+  employerPocJobTitle         String
+  employerPocAddress1         String
+  employerPocAddress2         String
+  employerPocCity             String
+  employerPocState            String
+  employerPocPostalCode       String
+  employerPocCountry          String
+  employerPocProvince         String
+  employerPocPhone            String
+  employerPocPhoneExt         String
+  employerPocEmail            String
+  agentRepresentingEmployer   Boolean
+  agentAttorneyLastName       String
+  agentAttorneyFirstName      String
+  agentAttorneyMiddleName     String
+  agentAttorneyAddress1       String
+  agentAttorneyAddress2       String
+  agentAttorneyCity           String
+  agentAttorneyState          String
+  agentAttorneyPostalCode     String
+  agentAttorneyCountry        String
+  agentAttorneyProvince       String
+  agentAttorneyPhone          String
+  agentAttorneyPhoneExt       String
+  agentAttorneyEmail          String
+  lawfirmNameBusinessName     String
+  stateOfHighestCourt         String
+  nameOfHighestStateCourt     String
+  nWorksiteWorkers            Int
+  secondaryEntity             Boolean
+  secondaryEntityBusinessName String
+  worksiteAddress1            String
+  worksiteAddress2            String
+  worksiteCity                String
+  worksiteCounty              String
+  worksiteState               String
+  worksitePostalCode          String
+  wageRateOfPayFrom           Decimal
+  wageRateOfPayTo             Decimal
+  wageUnitOfPay               String
+  prevailingWage              Decimal
+  pwUnitOfPay                 String
+  pwTrackingNumber            String
+  pwWageLeve                  String
+  pwOesYearStartDate          DateTime
+  pwOesYearEndDate            DateTime
+  pwOtherSource               String
+  pwOtherYear                 Int
+  pwSurveyPublisher           String
+  pwSurveyName                String
+  totalWorksiteLocations      Int
+  agreeToLcStatement          Boolean
+  h1bDependent                Boolean
+  willfulViolator             Boolean
+  supportH1b                  Boolean
+  statutoryBasis              String
+  appendixAAttached           Boolean
+  publicDisclosure            String
+  preparerLastName            String
+  preparerFirstName           String
+  preparerMiddleInitial       String
+  preparerBusinessName        String
+  preparerEmail               String
 }
