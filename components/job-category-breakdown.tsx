@@ -10,8 +10,6 @@ interface JobCategoryBreakdownProps {
 }
 
 const JobCategoryBreakdown = (props: JobCategoryBreakdownProps) => {
-    console.log(props)
-
     ChartJS.register(ArcElement, Tooltip, Legend);
 
     const socTitleCount = new Map();
