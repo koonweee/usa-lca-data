@@ -249,6 +249,7 @@ const columns = [
 
 export default async function TableWrapper() {
   const startTime = Date.now()
+  // TODO: the fetching of data needs to be in a server component, refactored into a purely data fetching function
   // const users = await prisma.users.findMany()
   const users: users[] = [];
   const duration = Date.now() - startTime
