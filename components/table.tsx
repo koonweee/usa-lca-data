@@ -10,7 +10,7 @@ const dataSource = [
   {
     key: '1',
     status: 'Withdrawn',
-    age: 32,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/31/23',
     lcaCaseNumber: 'xxx'
@@ -18,14 +18,14 @@ const dataSource = [
   {
     key: '2',
     status: 'Approved',
-    age: 42,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/34/1234'
   },
   {
     key: '3',
     status: 'Withdrawn',
-    age: 32,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/31/23',
     lcaCaseNumber: 'xxx'
@@ -33,14 +33,14 @@ const dataSource = [
   {
     key: '4',
     status: 'Approved',
-    age: 42,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/34/1234'
   },
   {
     key: '5',
     status: 'Withdrawn',
-    age: 32,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/31/23',
     lcaCaseNumber: 'xxx'
@@ -48,14 +48,14 @@ const dataSource = [
   {
     key: '6',
     status: 'Approved',
-    age: 42,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/34/1234'
   },
   {
     key: '7',
     status: 'Withdrawn',
-    age: 32,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/31/23',
     lcaCaseNumber: 'xxx'
@@ -63,14 +63,14 @@ const dataSource = [
   {
     key: '8',
     status: 'Approved',
-    age: 42,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/34/1234'
   },
   {
     key: '9',
     status: 'Withdrawn',
-    age: 32,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/31/23',
     lcaCaseNumber: 'xxx'
@@ -78,14 +78,14 @@ const dataSource = [
   {
     key: '10',
     status: 'Approved',
-    age: 42,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/34/1234'
   },
   {
     key: '11',
     status: 'Withdrawn',
-    age: 32,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/31/23',
     lcaCaseNumber: 'xxx'
@@ -93,14 +93,14 @@ const dataSource = [
   {
     key: '12',
     status: 'Approved',
-    age: 42,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/34/1234'
   },
   {
     key: '13',
     status: 'Withdrawn',
-    age: 32,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/31/23',
     lcaCaseNumber: 'xxx'
@@ -108,14 +108,14 @@ const dataSource = [
   {
     key: '14',
     status: 'Approved',
-    age: 42,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/34/1234'
   },
   {
     key: '15',
     status: 'Withdrawn',
-    age: 32,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/31/23',
     lcaCaseNumber: 'xxx'
@@ -123,14 +123,14 @@ const dataSource = [
   {
     key: '16',
     status: 'Approved',
-    age: 42,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/34/1234'
   },
   {
     key: '17',
     status: 'Withdrawn',
-    age: 32,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/31/23',
     lcaCaseNumber: 'xxx'
@@ -138,14 +138,14 @@ const dataSource = [
   {
     key: '18',
     status: 'Approved',
-    age: 42,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/34/1234'
   },
   {
     key: '19',
     status: 'Withdrawn',
-    age: 32,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/31/23',
     lcaCaseNumber: 'xxx'
@@ -153,14 +153,14 @@ const dataSource = [
   {
     key: '20',
     status: 'Approved',
-    age: 42,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/34/1234'
   },
   {
     key: '21',
     status: 'Withdrawn',
-    age: 32,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/31/23',
     lcaCaseNumber: 'xxx'
@@ -168,14 +168,14 @@ const dataSource = [
   {
     key: '22',
     status: 'Approved',
-    age: 42,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/34/1234'
   },
   {
     key: '23',
     status: 'Withdrawn',
-    age: 32,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/31/23',
     lcaCaseNumber: 'xxx'
@@ -183,14 +183,14 @@ const dataSource = [
   {
     key: '24',
     status: 'Approved',
-    age: 42,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/34/1234'
   },
   {
     key: '25',
     status: 'Withdrawn',
-    age: 32,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/31/23',
     lcaCaseNumber: 'xxx'
@@ -198,14 +198,14 @@ const dataSource = [
   {
     key: '26',
     status: 'Approved',
-    age: 42,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/34/1234'
   },
   {
     key: '27',
     status: 'Withdrawn',
-    age: 32,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/31/23',
     lcaCaseNumber: 'xxx'
@@ -213,7 +213,7 @@ const dataSource = [
   {
     key: '28',
     status: 'Approved',
-    age: 42,
+    jobTitle: 'Software Engineer',
     baseSalary: '100000',
     startDate: '12/34/1234'
   },
@@ -231,9 +231,9 @@ const columns = [
     key: 'status',
   },
   {
-    title: 'Age',
-    dataIndex: 'age',
-    key: 'age',
+    title: 'Job title',
+    dataIndex: 'jobTitle',
+    key: 'jobTitle',
   },
   {
     title: 'Base Salary (USD)',
