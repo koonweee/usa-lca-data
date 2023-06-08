@@ -21,6 +21,7 @@
     "@vercel/postgres": "^0.3.0",
     "antd": "^5.5.2",
     "autoprefixer": "10.4.14",
+    "chart.js": "^4.3.0",
     "eslint": "8.38.0",
     "eslint-config-next": "13.3.0",
     "exceljs": "^4.3.0",
