@@ -4,11 +4,31 @@ import { Suspense } from 'react'
 import Table from '@/components/table'
 import TablePlaceholder from '@/components/table-placeholder'
 import ExpandingArrow from '@/components/expanding-arrow'
+import JobCategoryBreakdown from "@/components/job-category-breakdown";
+import {lca_disclosures} from ".prisma/client";
 
 // Prisma does not support Edge without the Data Proxy currently
 // export const runtime = 'edge'
 export const preferredRegion = 'home'
 export const dynamic = 'force-dynamic'
+
+
+// mock some lca_disclosures data
+const lcaDisclosuresData: lca_disclosures[] = [
+    {
+        id: '1',
+        socTitle: "Software Engineer",
+    },
+    {
+        id: '2',
+        socTitle: "Software Engineer",
+    },
+    {
+        id: '3',
+        socTitle: "Juchi Photographer",
+    }
+]
+
 
 export default function Home() {
   return (
@@ -20,31 +40,10 @@ export default function Home() {
         {/* @ts-expect-error Async Server Component */}
         <Table />
       </Suspense>
-      <p className="font-light text-gray-600 w-full max-w-lg text-center mt-6">
-        Built with{' '}
-        <Link
-          href="https://vercel.com/postgres"
-          className="font-medium underline underline-offset-4 hover:text-black transition-colors"
-        >
-          Vercel Postgres
-        </Link>
-        ,{' '}
-        <Link
-          href="https://prisma.io"
-          className="font-medium underline underline-offset-4 hover:text-black transition-colors"
-        >
-          Prisma
-        </Link>{' '}
-        and{' '}
-        <Link
-          href="https://nextjs.org/docs"
-          className="font-medium underline underline-offset-4 hover:text-black transition-colors"
-        >
-          Next.js
-        </Link>
-        .
-      </p>
 
+      <Suspense fallback={null}>
+          <JobCategoryBreakdown lca_disclosures={lcaDisclosuresData}/>
+      </Suspense>
     </main>
   )
 }
