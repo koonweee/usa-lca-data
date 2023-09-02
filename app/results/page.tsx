@@ -14,20 +14,7 @@ export const dynamic = 'force-dynamic'
 
 
 // mock some lca_disclosures data
-const lcaDisclosuresData: lca_disclosures[] = [
-    {
-        id: '1',
-        socTitle: "Software Engineer",
-    },
-    {
-        id: '2',
-        socTitle: "Software Engineer",
-    },
-    {
-        id: '3',
-        socTitle: "Juchi Photographer",
-    }
-]
+const lcaDisclosuresData: lca_disclosures[] = []
 
 
 export default function Home() {
