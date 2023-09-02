@@ -1,59 +1,29 @@
-// import prisma from '../lib/prisma'
-//
-// async function main() {
-//   const response = await Promise.all([
-//     prisma.users.upsert({
-//       where: { email: 'rauchg@vercel.com' },
-//       update: {},
-//       create: {
-//         name: 'Guillermo Rauch',
-//         email: 'rauchg@vercel.com',
-//         image:
-//           'https://pbs.twimg.com/profile_images/1576257734810312704/ucxb4lHy_400x400.jpg',
-//       },
-//     }),
-//     prisma.users.upsert({
-//       where: { email: 'lee@vercel.com' },
-//       update: {},
-//       create: {
-//         name: 'Lee Robinson',
-//         email: 'lee@vercel.com',
-//         image:
-//           'https://pbs.twimg.com/profile_images/1587647097670467584/adWRdqQ6_400x400.jpg',
-//       },
-//     }),
-//     await prisma.users.upsert({
-//       where: { email: 'stey@vercel.com' },
-//       update: {},
-//       create: {
-//         name: 'Steven Tey',
-//         email: 'stey@vercel.com',
-//         image:
-//           'https://pbs.twimg.com/profile_images/1506792347840888834/dS-r50Je_400x400.jpg',
-//       },
-//     }),
-//     await prisma.users.upsert({
-//       where: { email: 'jeremy@vercel.com' },
-//       update: {
-//         image:
-//           'https://pbs.twimg.com/profile_images/1644182572170362880/uNXJouoO_400x400.jpg',
-//       },
-//       create: {
-//         name: 'Jeremy Liberman',
-//         email: 'jeremy@vercel.com',
-//         image:
-//           'https://pbs.twimg.com/profile_images/1644182572170362880/uNXJouoO_400x400.jpg',
-//       },
-//     }),
-//   ])
-//   console.log(response)
-// }
-// main()
-//   .then(async () => {
-//     await prisma.$disconnect()
-//   })
-//   .catch(async (e) => {
-//     console.error(e)
-//     await prisma.$disconnect()
-//     process.exit(1)
-//   })
+import { PrismaClient } from '@prisma/client'
+
+import {getLCAData, LCA_2023_Q3_FILENAME, DATA_DIR} from '../data-preprocess/injest'
+
+const prisma = new PrismaClient()
+
+async function main() {
+  const data = await getLCAData(DATA_DIR, LCA_2023_Q3_FILENAME)
+  const response = await prisma.lca_disclosures.createMany(
+    {
+      data: data.map((d) => ({
+        ...d,
+        pwOesYearStartDate: d.pwOesYear?.from,
+        pwOesYearEndDate: d.pwOesYear?.to,
+      })),
+    }
+  );
+  console.log('response', response)
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect()
+  })
+  .catch(async (e) => {
+    console.error(e)
+    await prisma.$disconnect()
+    process.exit(1)
+  })
