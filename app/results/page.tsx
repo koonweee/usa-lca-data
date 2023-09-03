@@ -8,8 +8,9 @@ import ExpandingArrow from '@/components/expanding-arrow'
 import JobCategoryBreakdown from "@/components/job-category-breakdown";
 import {lca_disclosures} from ".prisma/client";
 import { LCATable } from '@/components/lca-table'
-import {lcaDataFormatter } from '@/pages/api/get_lca_data'
+import {lcaDataFormatter } from '@/hooks/get_lca_data'
 import prisma from '@/lib/prisma'
+import { Spin } from 'antd';
 import { LCAData } from '@/hooks/get_lca_data'
 
 // Prisma does not support Edge without the Data Proxy currently
@@ -21,6 +22,8 @@ export const dynamic = 'force-dynamic'
 export default function Home() {
   //call prisma in a useEffect hook and store its state to a useState hook
   const [lcaData, setLcaData] = useState<LCAData[]>([]);
+  //show loading state while waiting for data to load
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/fetch-lca-data',{
@@ -30,6 +33,7 @@ export default function Home() {
       .then((data) => {
         const LCAData = data.LCAData;
         setLcaData(LCAData);
+        setLoading(false);
       })
   }, [])
 
@@ -39,7 +43,8 @@ export default function Home() {
         H1B1 Visa Data
       </h1>
       <Suspense fallback={<TablePlaceholder />}>
-        <LCATable lcaData={lcaData} />
+        {loading && <Spin size='large' />}
+        {!loading && <LCATable lcaData={lcaData} />}
       </Suspense>
     </main>
   )

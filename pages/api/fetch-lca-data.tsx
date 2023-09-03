@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { lca_disclosures } from "@prisma/client";
-import { lcaDataFormatter } from "@/pages/api/get_lca_data";
+import { lcaDataFormatter } from "@/hooks/get_lca_data";
 
 
 const getLcaValues = async (): Promise<lca_disclosures[]> => {
