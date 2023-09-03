@@ -2,8 +2,8 @@
 import { Button, Select, Space } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation'
-import { NextRouter } from 'next/router';
 import { useState } from 'react';
+import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context';
 
 
 
@@ -21,7 +21,7 @@ export function CustomSelectSearch(){
         console.log(`selected ${searchValues}`);
       };
     
-    const handleSearch = (router: NextRouter) => {
+    const handleSearch = (router: AppRouterInstance) => {
         console.log('search with the selected values');
         //hit the new page with the query params based
         router.push(`/results?query=${searchValues.join("+")}`);

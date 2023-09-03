@@ -13,23 +13,6 @@ export const preferredRegion = 'home'
 export const dynamic = 'force-dynamic'
 
 
-// mock some lca_disclosures data
-const lcaDisclosuresData: lca_disclosures[] = [
-    {
-        id: '1',
-        socTitle: "Software Engineer",
-    },
-    {
-        id: '2',
-        socTitle: "Software Engineer",
-    },
-    {
-        id: '3',
-        socTitle: "Juchi Photographer",
-    }
-]
-
-
 export default function Home() {
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center">
@@ -39,10 +22,6 @@ export default function Home() {
       <Suspense fallback={<TablePlaceholder />}>
         {/* @ts-expect-error Async Server Component */}
         <Table />
-      </Suspense>
-
-      <Suspense fallback={null}>
-          <JobCategoryBreakdown lca_disclosures={lcaDisclosuresData}/>
       </Suspense>
     </main>
   )
