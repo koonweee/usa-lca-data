@@ -1,6 +1,7 @@
+'use client'
 import { LCA_TABLE_COLUMNS } from "@/components/lca-table/consts";
 import { LCADataToTableDataSource } from "@/components/lca-table/formatters";
-import { LCAData } from "@/hooks/get_lca_data";
+import { LCAData } from "@/pages/api/get_lca_data";
 import { Table } from "antd";
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 export function LCATable({ lcaData }: Props) {
   // format lcaData as a dataSource
   const lcaDataSource = LCADataToTableDataSource(lcaData);
+
   return (
     <div className="bg-white/30 p-12 shadow-xl ring-1 ring-gray-900/5 rounded-lg backdrop-blur-lg max-w-5xl mx-auto w-full">
       <div className="flex justify-between items-center mb-4">
@@ -19,7 +21,7 @@ export function LCATable({ lcaData }: Props) {
       </div>
       <div className="divide-y divide-gray-900/5">
           <div>
-            <Table dataSource={lcaDataSource} columns={LCA_TABLE_COLUMNS} />
+            <Table dataSource={[]} columns={[]} />
           </div>
       </div>
     </div>

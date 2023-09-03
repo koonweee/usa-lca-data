@@ -1,4 +1,4 @@
-import { LCAData } from "@/hooks/get_lca_data";
+import { LCAData } from "@/pages/api/get_lca_data";
 
 
 export function LCADataToTableDataSource(lcaData: LCAData[]): any[] {
