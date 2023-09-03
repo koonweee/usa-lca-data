@@ -49,7 +49,7 @@ export type LCADisclosure = {
     caseStatus: CaseStatus;
     receivedDate: Date;
     decisionDate: Date;
-    originalCertifiedDate: Date;
+    originalCertifiedDate?: Date;
     visaClass: VisaClass;
     jobTitle: string;
     socCode: string; // to maintain list of soc codes (& titles?
@@ -58,12 +58,12 @@ export type LCADisclosure = {
     beginDate: Date;
     endDate: Date;
     totalWorkerPositions: number;
-    nNewEmployment: number;
-    nContinuedEmployment: number;
-    nChangePreviousEmployment: number;
-    nNewConcurrentEmployment: number;
-    nChangeEmployer: number;
-    nAmendedPetition: number;
+    nNewEmployment?: number;
+    nContinuedEmployment?: number;
+    nChangePreviousEmployment?: number;
+    nNewConcurrentEmployment?: number;
+    nChangeEmployer?: number;
+    nAmendedPetition?: number;
     employerName: string;
     tradeNameDba?: string;
     employerAddress1: string;

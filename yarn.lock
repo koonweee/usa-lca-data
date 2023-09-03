@@ -2172,6 +2172,11 @@ js-yaml@^4.1.0:
   dependencies:
     argparse "^2.0.1"
 
+jsbi@^3.1.1:
+  version "3.2.5"
+  resolved "https://registry.yarnpkg.com/jsbi/-/jsbi-3.2.5.tgz#b37bb90e0e5c2814c1c2a1bcd8c729888a2e37d6"
+  integrity sha512-aBE4n43IPvjaddScbvWRA2YlTzKEynHzu7MqOyTipdHucf/VxS63ViCjxYRg86M8Rxwbt/GfzHl1kKERkt45fQ==
+
 json-schema-traverse@^0.4.1:
   version "0.4.1"
   resolved "https://registry.npmjs.org/json-schema-traverse/-/json-schema-traverse-0.4.1.tgz"
@@ -2413,6 +2418,13 @@ minimist@^1.2.0, minimist@^1.2.6:
   dependencies:
     minimist "^1.2.6"
 
+money-types@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/money-types/-/money-types-0.2.0.tgz#b0319babb6392fb26eaf05c095730148e3204786"
+  integrity sha512-uFqPHjSOVefmwDgAWCFqPjpGy4jRyE5Ip3BCZbpc2kslw3OVhbfTgsrcAXj/lpKAgA46yc+RN55Q/VBZjZOgNg==
+  dependencies:
+    numeric-types "^0.3.1"
+
 ms@2.1.2:
   version "2.1.2"
   resolved "https://registry.npmjs.org/ms/-/ms-2.1.2.tgz"
@@ -2497,6 +2509,14 @@ npm-run-path@^5.1.0:
   integrity sha512-sJOdmRGrY2sjNTRMbSvluQqg+8X7ZK61yvzBEIDhz4f8z1TZFYABsqjjCBd/0PUNE9M6QDgHJXQkGUEm7Q+l9Q==
   dependencies:
     path-key "^4.0.0"
+
+numeric-types@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/numeric-types/-/numeric-types-0.3.1.tgz#f59d787b4205f9c1f0d69942023f28b8b88c1ba6"
+  integrity sha512-jPSBY1iTbBgHjDcmRTRRpfdxCsUmhxGKtmd9D6MkZL5zo7s7Z5nfa/AyKtKrfyY4wBmRXTij5CI6p7dXE7dYkA==
+  dependencies:
+    jsbi "^3.1.1"
+    ts-custom-error "^3.1.1"
 
 object-assign@^4.0.1, object-assign@^4.1.1:
   version "4.1.1"
@@ -3714,6 +3734,11 @@ toggle-selection@^1.0.6:
   version "0.3.9"
   resolved "https://registry.yarnpkg.com/traverse/-/traverse-0.3.9.tgz#717b8f220cc0bb7b44e40514c22b2e8bbc70d8b9"
   integrity sha512-iawgk0hLP3SxGKDfnDJf8wTz4p2qImnyihM5Hh/sGvQ3K37dPi/w8sRhdNIxYA1TwFwc5mDhIJq+O0RsvXBKdQ==
+
+ts-custom-error@^3.1.1:
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/ts-custom-error/-/ts-custom-error-3.3.1.tgz#8bd3c8fc6b8dc8e1cb329267c45200f1e17a65d1"
+  integrity sha512-5OX1tzOjxWEgsr/YEUWSuPrQ00deKLh6D7OTWcvNHm12/7QPyRh8SYpyWvA4IZv8H/+GQWQEh/kwo95Q9OVW1A==
 
 ts-interface-checker@^0.1.9:
   version "0.1.13"

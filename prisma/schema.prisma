@@ -26,7 +26,7 @@ model lca_disclosures {
   caseStatus                  String
   receivedDate                DateTime
   decisionDate                DateTime
-  originalCertifiedDate        DateTime
+  originalCertifiedDate        DateTime?
   visaClass                   String
   jobTitle                    String
   socCode                     String // to maintain list of soc codes (& titles
@@ -35,12 +35,12 @@ model lca_disclosures {
   beginDate                   DateTime
   endDate                     DateTime
   totalWorkerPositions        Int
-  nNewEmployment              Int
-  nContinuedEmployment        Int
-  nChangePreviousEmployment   Int
-  nNewConcurrentEmployment    Int
-  nChangeEmployer             Int
-  nAmendedPetition            Int
+  nNewEmployment              Int?
+  nContinuedEmployment        Int?
+  nChangePreviousEmployment   Int?
+  nNewConcurrentEmployment    Int?
+  nChangeEmployer             Int?
+  nAmendedPetition            Int?
   employerName                String
   tradeNameDba                String?
   employerAddress1            String
