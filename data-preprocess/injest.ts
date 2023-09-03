@@ -133,7 +133,7 @@ export async function getLCAData(dataDir: string, filename: string): Promise<LCA
     const rowStartIndex = 2; // 0th row is header
     const nRows = worksheet.rowCount;
     // limit to first 20 rows
-    const nRowsLimit = 20;
+    const nRowsLimit = 50;
     console.log('start reading rows')
     const dataRows = worksheet.getRows(rowStartIndex, nRows < nRowsLimit ? nRows : nRowsLimit) ?? [];
     console.log('end reading rows')
