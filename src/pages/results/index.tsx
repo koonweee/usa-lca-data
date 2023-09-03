@@ -14,7 +14,7 @@ export default function Page() {
 
   return (
     <ConfigProvider theme={{algorithm: darkAlgorithm}}>
-        <Layout style={{height:"100%", width: '100%', background: "black"}}>
+        <Layout style={{height:"100vh", width: '100%', background: "black"}}>
           <Content>
             <Title style={{textAlign: "left", margin: "24px 32px"}}>H1B1 Visa</Title>
             <div style={{ padding: 24, minHeight: 360, background: "black"}}>
