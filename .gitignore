@@ -39,4 +39,7 @@ yarn-error.log*
 *.tsbuildinfo
 
 # xlsx
-/data-preprocess/data
+/data-preprocess/data/*
+
+# package lock
+package-lock.json
