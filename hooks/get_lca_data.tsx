@@ -1,34 +1,40 @@
 import prisma from '@/lib/prisma'
 import { Money } from 'money-types/money';
 import { USD } from 'money-types/currency';
-import { CaseStatus, LCADisclosure, WageUnitOfPay } from '@/data-preprocess/lca_types';
+import { CaseStatus, WageUnitOfPay } from '@/data-preprocess/lca_types';
 import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime';
 
-export interface LCATableDisplayData {
+export interface LCAData {
   lcaCaseNumber: string;
-  applicationData: LCAApplicationDisplayData;
-  jobData: LCAJobDisplayData;
-  employerData: EmployerDisplayData;
+  applicationData: ApplicationData;
+  jobData: JobData;
+  employerData: EmployerData;
+  legalData?: LegalData;
 }
 
-export interface LCAJobDisplayData {
+export interface JobData {
   jobTitle: string;
   socTitle: string;
   baseAnnualSalary: Money;
 }
 
-export interface LCAApplicationDisplayData {
+export interface ApplicationData {
   caseNumber: string;
   caseStatus: CaseStatus;
   receivedDate: Date;
   decisionDate: Date;
 }
 
-export interface EmployerDisplayData {
+export interface EmployerData {
   name: string;
   city: string;
   state: string;
+}
+
+export interface LegalData {
+  attorneyName: string;
+  attorneyFirmName?: string;
 }
 
 type PrismaLCAData =  Prisma.lca_disclosuresGetPayload<{}>
@@ -59,7 +65,13 @@ function calculateBaseAnnualSalary(wageRateOfPayFrom: Decimal, wageUnitOfPay: st
   return Money.fromNumber(yearlyWage, USD);
 }
 
-function lcaTableDisplayDataFormatter(lca_disclosure: PrismaLCAData): LCATableDisplayData {
+function getCombinedName(firstName?: string, middleName?: string, lastName?: string): string {
+  const nameParts = [firstName, middleName, lastName];
+  return nameParts.filter((namePart) => namePart !== undefined).join(' ');
+}
+
+function lcaTableDisplayDataFormatter(lca_disclosure: PrismaLCAData): LCAData {
+  const agentRepresentingEmployer = lca_disclosure.agentRepresentingEmployer
   return {
     lcaCaseNumber: lca_disclosure.id,
     applicationData: {
@@ -78,13 +90,21 @@ function lcaTableDisplayDataFormatter(lca_disclosure: PrismaLCAData): LCATableDi
       city: lca_disclosure.worksiteCity,
       state: lca_disclosure.worksiteState,
     },
+    legalData: agentRepresentingEmployer ? {
+      attorneyName: getCombinedName(
+        lca_disclosure.agentAttorneyFirstName ?? undefined,
+        lca_disclosure.agentAttorneyMiddleName ?? undefined,
+        lca_disclosure.agentAttorneyLastName ?? undefined),
+      attorneyFirmName: lca_disclosure.lawfirmNameBusinessName ?? undefined,
+    } : undefined
   }
 }
 
 
-export async function getTableData(): Promise<LCATableDisplayData[]> {
+export async function getLCAData(): Promise<LCAData[]> {
   const lca_disclosures = await prisma.lca_disclosures.findMany()
   // map to display format
-  const lcaTableDisplayData = lca_disclosures.map(lcaTableDisplayDataFormatter);
-  return lcaTableDisplayData;
+  const LCAData = lca_disclosures.map(lcaTableDisplayDataFormatter);
+  return LCAData;
 }
+

@@ -60,7 +60,7 @@ model lca_disclosures {
   employerPocAddress1         String
   employerPocAddress2         String?
   employerPocCity             String
-  employerPocState            String
+  employerPocState            String?
   employerPocPostalCode       String
   employerPocCountry          String
   employerPocProvince         String?
