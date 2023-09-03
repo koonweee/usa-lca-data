@@ -1,4 +1,4 @@
 {
-  "buildCommand": "node build",
+  "buildCommand": "next build",
   "ignoreCommand": "git diff --quiet HEAD^ HEAD ./"
 }
