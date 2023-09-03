@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { lca_disclosures } from "@prisma/client";
+import { lcaDataFormatter } from "@/pages/api/get_lca_data";
 
 
 const getLcaValues = async (): Promise<lca_disclosures[]> => {
@@ -14,7 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // get the LCA values
-    const lcaData = await getLcaValues();
-      
-    res.status(200).json({ lcaData })
+    const prismaLCAData = await getLcaValues();
+
+    // format the LCA values
+    const LCAData = prismaLCAData.map(lcaDataFormatter)
+
+    res.status(200).json({ LCAData })
 }

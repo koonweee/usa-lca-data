@@ -4,8 +4,6 @@ import { USD } from 'money-types/currency';
 import { CaseStatus, WageUnitOfPay } from '@/data-preprocess/lca_types';
 import { Prisma } from '@prisma/client';
 
-
-import { PrismaClient } from '@prisma/client/edge'
 import { Decimal } from '@prisma/client/runtime/library';
 
 export interface LCAData {
