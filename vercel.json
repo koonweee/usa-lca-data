@@ -1,4 +1,15 @@
 {
   "buildCommand": "next build",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./"
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "access-control-allow-origin",
+          "value": "*"
+        }
+      ]
+    }
+  ]
 }
