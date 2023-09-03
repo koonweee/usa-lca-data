@@ -1,7 +1,15 @@
 import { LcaTableData } from "./formatters";
-import type { ColumnsType,  } from 'antd/es/table';
+import type { ColumnsType, ColumnType } from 'antd/es/table';
+import { Button, DatePicker, DatePickerProps, Space } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
+import { RangePickerProps } from "antd/es/date-picker";
+import { FilterConfirmProps } from "antd/es/table/interface";
+import { DataIndex } from ".";
 
-export const LCA_TABLE_COLUMNS: ColumnsType<LcaTableData> = [
+
+
+
+export const BASE_LCA_TABLE_COLUMNS: ColumnsType<LcaTableData> = [
   {
     title: 'LCA Case Number',
     dataIndex: 'lcaCaseNumber',
@@ -21,6 +29,10 @@ export const LCA_TABLE_COLUMNS: ColumnsType<LcaTableData> = [
     title: 'Status',
     dataIndex: 'caseStatus',
     key: 'caseStatus',
+    filters: [],
+    filterMode: 'tree',
+    filterSearch: true,
+    onFilter: (value, record) => record.caseStatus.startsWith(value as string), //type assertion because we know the values have to be strings
   },
   {
     title: 'Job title',
@@ -64,9 +76,8 @@ export const LCA_TABLE_COLUMNS: ColumnsType<LcaTableData> = [
   },
 ];
 
-
 // this function pulls the current column types and adds the filters to them based on the data
-export const formatColumnTypesWithFilters = (columns: ColumnsType<LcaTableData>, data: LcaTableData[]): ColumnsType<LcaTableData> => {
+export const formatColumnTypesWithFilters = (columns: ColumnsType<LcaTableData>, data: LcaTableData[], getColumnSearchProps:(dataIndex: DataIndex) => ColumnType<LcaTableData>): ColumnsType<LcaTableData> => {
    //function that takes all values for specific attribute in lca data and returns an array of unique values
     const getUniqueValuesFromLcaTableData = (attribute: keyof LcaTableData): (string| number)[] => {
       const values = data.map((d) => d[attribute]).filter((v) => v !== undefined);
@@ -74,9 +85,19 @@ export const formatColumnTypesWithFilters = (columns: ColumnsType<LcaTableData>,
     }
 
     //pulls for one specific attribute, in this case its the job title
-    columns.map((column) => {
+    columns.map((column, index) => {
       if (column.filterMode === 'tree') {
         column.filters = getUniqueValuesFromLcaTableData(column.key as keyof LcaTableData).map((value) => ({ text: value , value: value }));
+      }
+
+      /**
+       * Hacky approach to fix the date filter not being able to show values -> should file this as a bug to Antd
+       */
+      if (column.key === 'receivedDate' || column.key === 'decisionDate') {
+        //add all columnSearchProps to the column
+        column = {...column, ...getColumnSearchProps(column.key)};
+        columns[index] = column;
+
       }
     })
 
