@@ -1,6 +1,4 @@
 
-import { Money } from 'money-types/money';
-import { USD } from 'money-types/currency';
 import { CaseStatus, WageUnitOfPay } from '@/data-preprocess/lca_types';
 import { Prisma } from '@prisma/client';
 
