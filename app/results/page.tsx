@@ -1,14 +1,15 @@
 'use client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, use, useEffect, useState } from 'react'
 import Table from '@/components/table'
 import TablePlaceholder from '@/components/table-placeholder'
 import ExpandingArrow from '@/components/expanding-arrow'
 import JobCategoryBreakdown from "@/components/job-category-breakdown";
 import {lca_disclosures} from ".prisma/client";
 import { LCATable } from '@/components/lca-table'
-import { getLCAData, LCAData } from '@/pages/api/get_lca_data'
+import {lcaDataFormatter } from '@/pages/api/get_lca_data'
+import prisma from '@/lib/prisma'
 
 // Prisma does not support Edge without the Data Proxy currently
 // export const runtime = 'edge'
@@ -17,23 +18,9 @@ export const dynamic = 'force-dynamic'
 
 
 export default async function Home() {
-  const [data, setData] = useState<LCAData[]>([]);
-  useEffect( () => {
-
-    const fetchData = async () => {
-      const LCAData = await getLCAData();
-      
-      setData(LCAData);
-    }
-  
-    // call the function
-    fetchData()
-      // make sure to catch any error
-      .catch(console.error);
-    
-  }, [])
-
-  console.log(data);
+  // const testData = await getLCAData();
+  const prismaLCAData = await prisma.lca_disclosures.findMany()
+  const LCAData = prismaLCAData.map(lcaDataFormatter);
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center">
@@ -41,7 +28,7 @@ export default async function Home() {
         H1B1 Visa Data
       </h1>
       <Suspense fallback={<TablePlaceholder />}>
-        <LCATable lcaData={data} />
+        <LCATable lcaData={LCAData} />
       </Suspense>
     </main>
   )

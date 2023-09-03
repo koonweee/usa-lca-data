@@ -1,9 +1,13 @@
-import prisma from '@/lib/prisma'
+
 import { Money } from 'money-types/money';
 import { USD } from 'money-types/currency';
 import { CaseStatus, WageUnitOfPay } from '@/data-preprocess/lca_types';
 import { Prisma } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime';
+
+
+import { PrismaClient } from '@prisma/client/edge'
+import { Decimal } from '@prisma/client/runtime/library';
+const prisma = new PrismaClient()
 
 export interface LCAData {
   lcaCaseNumber: string;
@@ -70,7 +74,7 @@ function getCombinedName(firstName?: string, middleName?: string, lastName?: str
   return nameParts.filter((namePart) => namePart !== undefined).join(' ');
 }
 
-function lcaTableDisplayDataFormatter(lca_disclosure: PrismaLCAData): LCAData {
+export function lcaDataFormatter(lca_disclosure: PrismaLCAData): LCAData {
   const agentRepresentingEmployer = lca_disclosure.agentRepresentingEmployer
   return {
     lcaCaseNumber: lca_disclosure.id,
@@ -98,13 +102,5 @@ function lcaTableDisplayDataFormatter(lca_disclosure: PrismaLCAData): LCAData {
       attorneyFirmName: lca_disclosure.lawfirmNameBusinessName ?? undefined,
     } : undefined
   }
-}
-
-
-export async function getLCAData(): Promise<LCAData[]> {
-  const lca_disclosures = await prisma.lca_disclosures.findMany()
-  // map to display format
-  const LCAData = lca_disclosures.map(lcaTableDisplayDataFormatter);
-  return LCAData;
 }
 
