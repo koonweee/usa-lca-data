@@ -33,7 +33,7 @@ function getCombinedName(firstName?: string, middleName?: string, lastName?: str
   return nameParts.filter((namePart) => namePart !== undefined).join(' ');
 }
 
-export function lcaDataFormatter(lca_disclosure: PrismaLCAData): LCAData {
+export function prismaLcaDataFormatter(lca_disclosure: PrismaLCAData): LCAData {
   const agentRepresentingEmployer = lca_disclosure.agentRepresentingEmployer
   return {
     lcaCaseNumber: lca_disclosure.id,

@@ -1,4 +1,3 @@
-'use client'
 import { formatColumnTypesWithFilters, BASE_LCA_TABLE_COLUMNS } from "@/components/lca-table/column-type";
 import { LCADataToTableDataSource } from "@/components/lca-table/formatters";
 import { Layout, Table } from "antd";
