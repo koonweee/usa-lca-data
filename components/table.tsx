@@ -1,5 +1,4 @@
 'use client'
-import prisma from '@/lib/prisma'
 import { timeAgo } from '@/lib/utils'
 import { users } from '@prisma/client'
 import Image from 'next/image'
@@ -224,7 +223,7 @@ const columns = [
     title: 'CASE number',
     dataIndex: 'lcaCaseNumber',
     key: 'lcaCaseNumber',
-    filterSearch: true, // filterSearch is used to enable search of filter items, 
+    filterSearch: true, // filterSearch is used to enable search of filter items,
     //and you can set a custom filter method through filterSearch:(input, record) => boolean.
     filters:[ //needs to be dynamically built
       {

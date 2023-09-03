@@ -10,12 +10,12 @@
 //     return disclosure;
 // }
 
-import { CaseStatus,  VisaClass, WageUnitOfPay, PrevailingWageLevel, DateRange, StatutoryBasis, PublicDisclosure, LCADisclosure} from "./lca_types";
 
 export const DATA_DIR = "data-preprocess/data"
 export const LCA_2022_Q1_FILENAME = "LCA_Disclosure_Data_FY2022_Q1.xlsx"
 export const LCA_2023_Q3_FILENAME = "LCA_Disclosure_Data_FY2023_Q3_H1B1.xlsx"
 
+import { CaseStatus, VisaClass, WageUnitOfPay, PrevailingWageLevel, DateRange, StatutoryBasis, PublicDisclosure, LCADisclosure } from "@/types/lca";
 import Excel from "exceljs";
 
 const getCellValue = (row: Excel.Row, cellIndex: number) => {

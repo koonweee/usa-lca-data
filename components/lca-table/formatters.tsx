@@ -1,4 +1,4 @@
-import { LCAData } from "@/pages/api/get_lca_data";
+import { LCAData } from "@/types/lca";
 
 const DATE_FORMAT_OPTIONS = {  year: "numeric", month: 'short', day: 'numeric' } as const;
 const DATE_LOCALE = 'en-SG';

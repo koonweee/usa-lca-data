@@ -1,46 +1,10 @@
-
-import { CaseStatus, WageUnitOfPay } from '@/data-preprocess/lca_types';
-import { Prisma } from '@prisma/client';
-
-import { Decimal } from '@prisma/client/runtime/library';
-
-export interface LCAData {
-  lcaCaseNumber: string;
-  applicationData: ApplicationData;
-  jobData: JobData;
-  employerData: EmployerData;
-  legalData?: LegalData;
-}
-
-export interface JobData {
-  jobTitle: string;
-  socTitle: string;
-  baseAnnualSalary: number;
-}
-
-export interface ApplicationData {
-  caseNumber: string;
-  caseStatus: CaseStatus;
-  receivedDate: Date;
-  decisionDate: Date;
-}
-
-export interface EmployerData {
-  name: string;
-  city: string;
-  state: string;
-}
-
-export interface LegalData {
-  attorneyName: string;
-  attorneyFirmName?: string;
-}
-
-type PrismaLCAData =  Prisma.lca_disclosuresGetPayload<{}>
+import { WageUnitOfPay, LCAData, CaseStatus } from "@/types/lca";
+import { PrismaLCAData } from "@/types/prisma";
+import { Decimal } from "@prisma/client/runtime/library";
 
 function calculateBaseAnnualSalary(wageRateOfPayFrom: Decimal, wageUnitOfPay: string): number {
   // convert prisma decimal to number
-  const wageRateOfPayFromNumber = wageRateOfPayFrom.toNumber();
+  const wageRateOfPayFromNumber = Number(wageRateOfPayFrom)
   let yearlyWage: number;
   switch (wageUnitOfPay) {
     case WageUnitOfPay.YEAR:
@@ -98,4 +62,3 @@ export function lcaDataFormatter(lca_disclosure: PrismaLCAData): LCAData {
     } : undefined
   }
 }
-

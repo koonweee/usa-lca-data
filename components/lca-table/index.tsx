@@ -1,7 +1,6 @@
 'use client'
 import { formatColumnTypesWithFilters, BASE_LCA_TABLE_COLUMNS } from "@/components/lca-table/column-type";
 import { LCADataToTableDataSource } from "@/components/lca-table/formatters";
-import { LCAData } from "@/pages/api/get_lca_data";
 import { Layout, Table } from "antd";
 
 import type { ColumnsType, ColumnType } from 'antd/es/table';
@@ -12,6 +11,7 @@ import { FilterConfirmProps } from "antd/es/table/interface";
 import { LcaTableData } from '@/components/lca-table/formatters';
 import { useEffect, useState } from "react";
 import compareAsc from "date-fns/compareAsc";
+import { LCAData } from "@/types/lca";
 interface Props {
   lcaData: LCAData[];
 }
@@ -25,7 +25,7 @@ function isDateBetween(dateToBeComparedTo: Date, firstDate: Date, secondDate: Da
 
   }
 
-  // `compareAsc` compares the two dates and return 1 if the first date is after the second, 
+  // `compareAsc` compares the two dates and return 1 if the first date is after the second,
   // -1 if the first date is before the second or 0 if dates are equal.
   const isDateAfterFirstDate = compareAsc(dateToBeComparedTo,firstDate) >=0;
   const isDateBeforeSecondDate = compareAsc(dateToBeComparedTo,secondDate)<=0;
@@ -46,7 +46,7 @@ export function LCATable({ lcaData }: Props) {
 
   const [receivedDateFilter, setReceivedDateFilter] = useState<string[]>([]);
   const [decisionDateFilter, setDecisionDateFilter] = useState<string[]>([]);
-  
+
   const handleDateFilter = (
     confirm: (param?: FilterConfirmProps) => void,
   ) => {
@@ -55,8 +55,8 @@ export function LCATable({ lcaData }: Props) {
 
   /**
    * This function is used to customize the filter drop down for the date columns
-   * @param dataIndex 
-   * @returns 
+   * @param dataIndex
+   * @returns
    */
   const getDateColumnSearchProps = (dataIndex: DataIndex): ColumnType<LcaTableData> => ({
     filterDropdown: ({ setSelectedKeys, confirm, close }) => {
@@ -65,12 +65,12 @@ export function LCATable({ lcaData }: Props) {
           <RangePicker onChange={(
               value: DatePickerProps['value'] | RangePickerProps['value'],
               dateString: [string, string] ,
-            ) =>{                
+            ) =>{
                 /**
                  * Hacky approach to set filter state because onFilter does not expose the values of the stored filters
                  */
                 if (dataIndex === "receivedDate"){
-                  setReceivedDateFilter(dateString);                  
+                  setReceivedDateFilter(dateString);
                   console.log("receivedDateFilter is set to: ", dateString);
                 } else if (dataIndex === "decisionDate"){
                   setDecisionDateFilter(dateString);
@@ -109,9 +109,9 @@ export function LCATable({ lcaData }: Props) {
         return true;
       }
   })
-  
+
   // format table columns with filters based on pulled data
-  const [formattedColumnsWithFilter, setFormattedColumnsWithFilter] = 
+  const [formattedColumnsWithFilter, setFormattedColumnsWithFilter] =
         useState<ColumnsType<LcaTableData>>(
           formatColumnTypesWithFilters(BASE_LCA_TABLE_COLUMNS, lcaDataSource, getDateColumnSearchProps));
 
@@ -129,7 +129,7 @@ export function LCATable({ lcaData }: Props) {
       if (!isDatestringValid(receivedDateFilter[0]) && !isDatestringValid(receivedDateFilter[1])){
         return true
       }
-      
+
       return isDateBetween(new Date(record['receivedDate']), new Date(receivedDateFilter[0]), new Date(receivedDateFilter[1]));
     };
     newColumns[2].onFilter = (value, record) => {
