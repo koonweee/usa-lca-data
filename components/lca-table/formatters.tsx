@@ -3,7 +3,20 @@ import { LCAData } from "@/pages/api/get_lca_data";
 const DATE_FORMAT_OPTIONS = {  year: "numeric", month: 'short', day: 'numeric' } as const;
 const DATE_LOCALE = 'en-SG';
 
-export function LCADataToTableDataSource(lcaData: LCAData[]): any[] {
+export interface LcaTableData {
+  key: number;
+  lcaCaseNumber: string;
+  receivedDate: string;
+  decisionDate: string;
+  status: string;
+  jobTitle: string;
+  baseSalary: string;
+  employerName: string;
+  employerCity: string;
+  employerState: string;
+}
+
+export function LCADataToTableDataSource(lcaData: LCAData[]): LcaTableData[] {
   return lcaData.map((lca, index) => {
     const receivedDate = new Date(lca.applicationData.receivedDate);
     const decisionDate = new Date(lca.applicationData.decisionDate);
