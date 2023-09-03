@@ -1,17 +1,10 @@
 'use client'
-import Image from 'next/image'
-import Link from 'next/link'
-import { Suspense, use, useEffect, useMemo, useState } from 'react'
-import Table from '@/components/table'
+
+import { Suspense, useEffect, useState } from 'react'
 import TablePlaceholder from '@/components/table-placeholder'
-import ExpandingArrow from '@/components/expanding-arrow'
-import JobCategoryBreakdown from "@/components/job-category-breakdown";
-import {lca_disclosures} from ".prisma/client";
 import { LCATable } from '@/components/lca-table'
-import {lcaDataFormatter } from '@/hooks/get_lca_data'
-import prisma from '@/lib/prisma'
 import { Spin } from 'antd';
-import { LCAData } from '@/hooks/get_lca_data'
+import { LCAData } from '@/pages/api/get_lca_data';
 
 // Prisma does not support Edge without the Data Proxy currently
 // export const runtime = 'edge'

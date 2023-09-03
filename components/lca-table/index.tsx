@@ -1,9 +1,8 @@
 'use client'
 import { LCA_TABLE_COLUMNS } from "@/components/lca-table/consts";
 import { LCADataToTableDataSource } from "@/components/lca-table/formatters";
-import { LCAData } from "@/hooks/get_lca_data";
+import { LCAData } from "@/pages/api/get_lca_data";
 import { Table } from "antd";
-import { useEffect, useState } from "react";
 
 interface Props {
   lcaData: LCAData[];
