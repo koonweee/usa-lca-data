@@ -8,7 +8,7 @@ const getLcaValues = async (): Promise<lca_disclosures[]> => {
     return await prisma.lca_disclosures.findMany();
 }
 
-export async function POST(req: NextApiRequest, res: NextApiResponse) {
+export async function GET(req: NextApiRequest, res: NextApiResponse) {
     // get the LCA values
     const prismaLCAData = await getLcaValues();
 

@@ -25,7 +25,7 @@ export default function Home() {
 
   useEffect(() => {
     fetch('/api/fetch-lca-data',{
-      method: 'POST',
+      method: 'GET',
     })
       .then((res) => res.json())
       .then((data) => {
