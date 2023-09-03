@@ -21,7 +21,7 @@ export function LCATable({ lcaData }: Props) {
       </div>
       <div className="divide-y divide-gray-900/5">
           <div>
-            <Table dataSource={[]} columns={[]} />
+            <Table dataSource={lcaDataSource} columns={LCA_TABLE_COLUMNS} />
           </div>
       </div>
     </div>

@@ -22,7 +22,7 @@ export default async function Home() {
 
     const fetchData = async () => {
       const LCAData = await getLCAData();
-      console.log(LCAData);
+      
       setData(LCAData);
     }
   
@@ -32,6 +32,8 @@ export default async function Home() {
       .catch(console.error);
     
   }, [])
+
+  console.log(data);
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center">
