@@ -8,7 +8,7 @@ export interface LcaTableData {
   lcaCaseNumber: string;
   receivedDate: string;
   decisionDate: string;
-  status: string;
+  caseStatus: string;
   jobTitle: string;
   baseSalary: string;
   employerName: string;
