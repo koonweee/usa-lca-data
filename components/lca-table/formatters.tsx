@@ -25,7 +25,7 @@ export function LCADataToTableDataSource(lcaData: LCAData[]): LcaTableData[] {
       lcaCaseNumber: lca.lcaCaseNumber,
       receivedDate: receivedDate.toLocaleDateString(DATE_LOCALE, DATE_FORMAT_OPTIONS),
       decisionDate: decisionDate.toLocaleDateString(DATE_LOCALE, DATE_FORMAT_OPTIONS),
-      status: lca.applicationData.caseStatus,
+      caseStatus: lca.applicationData.caseStatus,
       jobTitle: lca.jobData.jobTitle,
       baseSalary: formatAsUSD(lca.jobData.baseAnnualSalary),
       employerName: lca.employerData.name,
