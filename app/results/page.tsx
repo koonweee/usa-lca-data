@@ -5,6 +5,7 @@ import TablePlaceholder from '@/components/table-placeholder'
 import { LCATable } from '@/components/lca-table'
 import { Spin } from 'antd';
 import { LCAData } from '@/pages/api/get_lca_data';
+import { ConfigProvider, theme } from "antd";
 
 // Prisma does not support Edge without the Data Proxy currently
 // export const runtime = 'edge'
@@ -17,6 +18,7 @@ export default function Home() {
   const [lcaData, setLcaData] = useState<LCAData[]>([]);
   //show loading state while waiting for data to load
   const [loading, setLoading] = useState(true);
+  const { darkAlgorithm, defaultAlgorithm } = theme;
 
   useEffect(() => {
     fetch('/api/fetch-lca-data',{
@@ -31,14 +33,16 @@ export default function Home() {
   }, [])
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center">
-      <h1 className="pt-4 pb-8 bg-gradient-to-br from-black via-[#171717] to-[#575757] bg-clip-text text-center text-4xl font-medium tracking-tight text-transparent md:text-7xl">
-        H1B1 Visa Data
-      </h1>
-      <Suspense fallback={<TablePlaceholder />}>
-        {loading && <Spin size='large' />}
-        {!loading && <LCATable lcaData={lcaData} />}
-      </Suspense>
-    </main>
+    <ConfigProvider theme={{algorithm: defaultAlgorithm}}>
+      <main className="relative flex min-h-screen flex-col items-center justify-center">
+        <h1 className="pt-4 pb-8 bg-gradient-to-br from-black via-[#171717] to-[#575757] bg-clip-text text-center text-4xl font-medium tracking-tight text-transparent md:text-7xl">
+          H1B1 Visa Data
+        </h1>
+        <Suspense fallback={<TablePlaceholder />}>
+          {loading && <Spin size='large' />}
+          {!loading && <LCATable lcaData={lcaData} />}
+        </Suspense>
+      </main>
+    </ConfigProvider>
   )
 }
