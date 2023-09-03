@@ -1,12 +1,6 @@
 import { LcaTableData } from "./formatters";
 import type { ColumnsType, ColumnType } from 'antd/es/table';
-import { Button, DatePicker, DatePickerProps, Space } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
-import { RangePickerProps } from "antd/es/date-picker";
-import { FilterConfirmProps } from "antd/es/table/interface";
 import { DataIndex } from ".";
-
-
 
 
 export const BASE_LCA_TABLE_COLUMNS: ColumnsType<LcaTableData> = [

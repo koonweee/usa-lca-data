@@ -41,11 +41,11 @@ export default function Home() {
 
   return (
     <ConfigProvider theme={{algorithm: darkAlgorithm}}>
-        <Layout style={{height:"100vh"}}>
-          <Content style={{ margin: '32px 24px 0' }}>
+        <Layout style={{height:"100%", width: '100%', background: "black"}}>
+          <Content>
             <Title style={{textAlign: "left", margin: "24px 32px"}}>H1B1 Visa</Title>
             <div style={{ padding: 24, minHeight: 360, background: "black"}}>
-                {loading && <Spin size='large' />}
+                {loading && <div style={{height:"100vh", width: '100%', background: "black"}}><Spin size='large' /></div>}
                 {!loading && <LCATable lcaData={lcaData} />}
             </div>
           </Content>

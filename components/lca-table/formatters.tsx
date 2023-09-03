@@ -42,3 +42,17 @@ function formatAsUSD(amount: number): string {
   const formattedAmount = `$${amountString} USD`;
   return formattedAmount;
 }
+
+
+export function extractNumberFromUSDString(amount: string): number {
+  // remove $ and USD
+  const amountString = amount.replace('$', '').replace(' USD', '');
+  // convert to number
+  const amountNumber = Number(amountString);
+  return amountNumber;
+}
+
+export function formatDateStringAsDate(dateString: string): Date {
+  const date = new Date(dateString);
+  return date;
+}
