@@ -1,6 +1,5 @@
+import { DATA_DIR, LCA_2023_Q3_FILENAME, getLCAData } from '@/data-preprocess/injest';
 import { PrismaClient } from '@prisma/client'
-
-import {getLCAData, LCA_2023_Q3_FILENAME, DATA_DIR} from '../data-preprocess/injest'
 
 const prisma = new PrismaClient()
 
@@ -12,6 +11,10 @@ async function main() {
         const pwOesYearStartDate = d.pwOesYear?.from
         const pwOesYearEndDate = d.pwOesYear?.to
         delete d.pwOesYear
+        // if type of employerPhoneExt is not string or null, console.log
+        if (d.employerPhoneExt && typeof d.employerPhoneExt !== 'string') {
+          console.log('employerPhoneExt', d.employerPhoneExt)
+        }
         return {
           ...d,
           pwOesYearStartDate,
