@@ -9,6 +9,10 @@ async function main() {
     {
       data: data.map((d) => {
         const pwOesYearStartDate = d.pwOesYear?.from
+        // if date is not Date, console.log
+        if (pwOesYearStartDate && !(pwOesYearStartDate instanceof Date)) {
+          console.log('pwOesYearStartDate', pwOesYearStartDate)
+        }
         const pwOesYearEndDate = d.pwOesYear?.to
         delete d.pwOesYear
         // if type of employerPhoneExt is not string or null, console.log

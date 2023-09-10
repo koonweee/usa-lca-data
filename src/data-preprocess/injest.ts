@@ -38,7 +38,7 @@ const toCaseStatus = (str: string): CaseStatus => {
         case "Certified - Withdrawn":
             return CaseStatus.CERTIFIED_WITHDRAWN;
         default:
-            throw new Error(`Unknown case status: ${str}`);
+            return CaseStatus.NOT_SPECIFIED;
     }
 }
 
@@ -85,11 +85,17 @@ const toPrevailingWageLevel = (str: string): PrevailingWageLevel => {
         case "IV":
             return PrevailingWageLevel.IV;
         default:
-            throw new Error(`Unknown prevailing wage level: ${str}`);
+            return PrevailingWageLevel.NOT_SPECIFIED;
     }
 }
 
 const toDateRange = (str: string): DateRange => {
+    if (str.includes(" - ") === false) {
+        return {
+            from: undefined,
+            to: undefined,
+        }
+    }
     const [from, to] = str.split(" - ");
     return {
         from: new Date(from),
@@ -119,7 +125,7 @@ const toPublicDisclosure = (str: string): PublicDisclosure => {
         case 'Disclose Business and Employment':
             return PublicDisclosure.DISCLOSE_BUSINESS_AND_EMPLOYMENT;
         default:
-            throw new Error(`Unknown public disclosure: ${str}`);
+            return PublicDisclosure.NOT_SPECIFIED;
     }
 }
 
@@ -131,20 +137,20 @@ export async function getLCAData(dataDir: string, filename: string): Promise<LCA
     )
     console.log('start reading worksheet')
     const worksheet = content.worksheets[0];
-    const rowStartIndex = 2; // 0th row is header
-    const nRows = worksheet.rowCount;
-    // limit to first 20 rows
-    const nRowsLimit = nRows;
+    const rowStartIndex = 2; // 1st row is header
+    const nDataRows = worksheet.actualRowCount;
     console.log('start reading rows')
-    const dataRows = worksheet.getRows(rowStartIndex, nRows < nRowsLimit ? nRows : nRowsLimit) ?? [];
+    const dataRows = worksheet.getRows(rowStartIndex, nDataRows - 1) ?? [];
     console.log('end reading rows')
     if (dataRows.length === 0) {
         console.error("No data rows found");
         return [];
     }
     console.log('start mapping LCA')
+    console.log('n rows', dataRows.length)
 
     const LCAs = dataRows.map((row) => {
+        // console.log('row', row.values)
 
         const lcaDisclosure: LCADisclosure = {
             id: String(getCellValue(row, 1)),

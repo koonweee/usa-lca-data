@@ -2,7 +2,8 @@ export enum CaseStatus {
   CERTIFIED = 'Certified',
   DENIED = 'Denied',
   WITHDRAWN = 'Withdrawn',
-  CERTIFIED_WITHDRAWN = 'Certified - Withdrawn'
+  CERTIFIED_WITHDRAWN = 'Certified - Withdrawn',
+  NOT_SPECIFIED = 'Not Specified'
 }
 
 export enum VisaClass {
@@ -24,7 +25,8 @@ export enum PrevailingWageLevel {
   I = 'I',
   II = 'II',
   III = 'III',
-  IV = 'IV'
+  IV = 'IV',
+  NOT_SPECIFIED = 'Not Specified'
 }
 
 export enum StatutoryBasis {
@@ -36,12 +38,13 @@ export enum StatutoryBasis {
 export enum PublicDisclosure {
   DISCLOSE_BUSINESS = 'Disclose Business',
   DISCLOSE_EMPLOYMENT = 'Disclose Employment',
-  DISCLOSE_BUSINESS_AND_EMPLOYMENT = 'Disclose Business and Employment'
+  DISCLOSE_BUSINESS_AND_EMPLOYMENT = 'Disclose Business and Employment',
+  NOT_SPECIFIED = 'Not Specified'
 }
 
 export type DateRange = {
-  from: Date;
-  to: Date;
+  from?: Date;
+  to?: Date;
 }
 
 export type LCADisclosure = {
