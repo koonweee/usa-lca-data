@@ -2,6 +2,7 @@ import { AppType } from 'next/app'
 import './globals.css'
 import { withTRPC } from "@trpc/next";
 import { ServerRouter } from '@/server/router';
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata = {
   title: 'H1B1 Data Explorer',
@@ -11,7 +12,7 @@ export const metadata = {
 
 const App: AppType = ({ Component, pageProps }) => {
   return (
-      <Component {...pageProps} />
+      <><Component {...pageProps} /><Analytics /></>
   )
 }
 
