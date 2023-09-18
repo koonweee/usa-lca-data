@@ -46,6 +46,10 @@ export function LCATableMobile({ lcaData }: Props) {
     //return a list of p elements with the data
     return (
       <div>
+        <p>LCA case number: {data.lcaCaseNumber}</p>
+        <p>Received Date: {data.receivedDate}</p>
+        <p>Decision Date: {data.decisionDate}</p>
+        <br/>
         <p>Employer Name: {data.employerName}</p>
         <p>Case Status: {data.caseStatus} {data.caseStatus.includes('Certified') ? "✅" : "🚫" }</p>
         <p>Employer City: {data.employerCity}</p>
@@ -75,7 +79,7 @@ export function LCATableMobile({ lcaData }: Props) {
           }
         >
           {loadedItems.map((i) => (
-            <Card style={{ width: '100%', marginTop: 16 }} >
+            <Card style={{ width: '100%', marginTop: 16, borderColor: 'white' }} key={i.lcaCaseNumber} >
               <Meta
               style = {{ textOverflow: 'break-word', whiteSpace: 'normal', overflowWrap: 'break-word'}}
                 title={`${titleCase(i.jobTitle)}`}
