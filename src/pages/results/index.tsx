@@ -13,7 +13,7 @@ const { darkAlgorithm, defaultAlgorithm } = theme;
 export default function Page() {
   const { data: lcaData, isLoading } = trpc.useQuery(['lca.findAll']);
   const isMobile = true;
-  
+
   return (
     <ConfigProvider theme={{algorithm: darkAlgorithm}}>
         <Layout style={{height:"100vh", width: '100%', background: "black"}}>
@@ -22,7 +22,10 @@ export default function Page() {
             <div style={{ padding: 24, minHeight: 360, background: "black"}}>
                 {isLoading && <div style={{height:"100vh", width: '100%', background: "black"}}><Spin size='large' /></div>}
                 {!isMobile && !isLoading && lcaData && <LCATable lcaData={lcaData} />}
-                {isMobile && !isLoading && lcaData && <LCATableMobile lcaData={lcaData} />}
+                {isMobile && !isLoading && lcaData &&
+                <div style={{  margin: 'auto', maxWidth: '85%'}}>
+                  <LCATableMobile lcaData={lcaData} />
+                </div>}
             </div>
           </Content>
           <Footer style={{ textAlign: 'center' }}>Built by{' '}
