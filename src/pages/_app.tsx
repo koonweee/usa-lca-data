@@ -24,5 +24,5 @@ export default withTRPC<ServerRouter>({
 
     return { url };
   },
-  ssr: true,
+  ssr: false,
 })(App);
