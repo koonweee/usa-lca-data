@@ -4,6 +4,7 @@ import { trpc } from '@/lib/trpc';
 import { Layout, Spin, Typography } from 'antd';
 import { ConfigProvider, theme } from "antd";
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 const { Content, Footer } = Layout;
 const { Title } = Typography;
@@ -12,7 +13,20 @@ const { darkAlgorithm, defaultAlgorithm } = theme;
 
 export default function Page() {
   const { data: lcaData, isLoading } = trpc.useQuery(['lca.findAll']);
-  const isMobile = true;
+
+  const [isMobile, setIsMobile] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone/i.test(
+        navigator.userAgent
+      )
+    ) {
+      setIsMobile(true);
+    } else {
+      setIsMobile(false);
+    }
+  }, []);
 
   return (
     <ConfigProvider theme={{algorithm: darkAlgorithm}}>
@@ -23,7 +37,7 @@ export default function Page() {
                 {isLoading && <div style={{height:"100vh", width: '100%', background: "black"}}><Spin size='large' /></div>}
                 {!isMobile && !isLoading && lcaData && <LCATable lcaData={lcaData} />}
                 {isMobile && !isLoading && lcaData &&
-                <div style={{  margin: 'auto', maxWidth: '85%'}}>
+                <div style={{  margin: 'auto', maxWidth: '95%'}}>
                   <LCATableMobile lcaData={lcaData} />
                 </div>}
             </div>
