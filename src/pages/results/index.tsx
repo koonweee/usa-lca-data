@@ -1,4 +1,5 @@
 import { LCATable } from '@/components/lca-table'
+import { LCATableMobile } from '@/components/lca-table-mobile';
 import { trpc } from '@/lib/trpc';
 import { Layout, Spin, Typography } from 'antd';
 import { ConfigProvider, theme } from "antd";
@@ -11,7 +12,8 @@ const { darkAlgorithm, defaultAlgorithm } = theme;
 
 export default function Page() {
   const { data: lcaData, isLoading } = trpc.useQuery(['lca.findAll']);
-
+  const isMobile = true;
+  
   return (
     <ConfigProvider theme={{algorithm: darkAlgorithm}}>
         <Layout style={{height:"100vh", width: '100%', background: "black"}}>
@@ -19,7 +21,8 @@ export default function Page() {
             <Title style={{textAlign: "left", margin: "24px 32px"}}>H1B1 Visa</Title>
             <div style={{ padding: 24, minHeight: 360, background: "black"}}>
                 {isLoading && <div style={{height:"100vh", width: '100%', background: "black"}}><Spin size='large' /></div>}
-                {!isLoading && lcaData && <LCATable lcaData={lcaData} />}
+                {!isMobile && !isLoading && lcaData && <LCATable lcaData={lcaData} />}
+                {isMobile && !isLoading && lcaData && <LCATableMobile lcaData={lcaData} />}
             </div>
           </Content>
           <Footer style={{ textAlign: 'center' }}>Built by{' '}

@@ -8,11 +8,18 @@ interface Props {
 }
 
 
-export function LCATable({ lcaData }: Props) {
+export function LCATableMobile({ lcaData }: Props) {
 
   // format lcaData as a dataSource
   const lcaDataSource = LCADataToTableDataSource(lcaData);
 
+
+  // render the infinite scroll
+
+  //on reach end of page, load more cards or data
+
+  // if there is no more data, show a message that we reached the end
+  
   return (
     <Layout>
       <Table dataSource={lcaDataSource} columns={BASE_LCA_TABLE_COLUMNS} />
