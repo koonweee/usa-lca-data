@@ -37,7 +37,7 @@ export default function Page() {
                 {isLoading && <div style={{height:"100vh", width: '100%', background: "black"}}><Spin size='large' /></div>}
                 {!isMobile && !isLoading && lcaData && <LCATable lcaData={lcaData} />}
                 {isMobile && !isLoading && lcaData &&
-                <div style={{  margin: 'auto', maxWidth: '95%'}}>
+                <div style={{  margin: 'auto', maxWidth: '95%', maxHeight: '95%'}}>
                   <LCATableMobile lcaData={lcaData} />
                 </div>}
             </div>
