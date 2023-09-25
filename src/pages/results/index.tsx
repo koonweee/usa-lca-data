@@ -28,7 +28,7 @@ export default function Page() {
     } else {
       setIsMobile(false);
     }
-  }, [navigator.userAgent]);
+  }, []);
 
   const onSearch = (value: string) => {
     router.push({
