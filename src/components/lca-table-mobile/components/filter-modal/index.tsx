@@ -1,61 +1,73 @@
 
 import { OptionType } from "@/components/lca-table-mobile/hooks/types";
-import { FiltersConfig } from "@/components/lca-table-mobile/hooks/use-filters-bar";
+import { DateRangeInput, FiltersConfig, MultiSelectInput, NumberRangeInput } from "@/components/lca-table-mobile/hooks/use-filters-bar";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import { Modal, DatePicker, Select, SelectProps, Space, Col, InputNumber, Row, Slider } from "antd";
 import { useState } from "react";
 const { RangePicker } = DatePicker;
 
 interface Props {
-  filterConfig?: FiltersConfig;
+  filterConfig: FiltersConfig;
   onCancel: () => void;
 }
 
 export function FilterModal({filterConfig, onCancel}: Props) {
+  const modalInputs = getModalInputHelper(filterConfig);
+  const { inputComponent, onSubmit, clearFilter } = modalInputs!;
+  const wrappedOnOk = () => {
+    onSubmit();
+    onCancel();
+  }
   return (
-    <Modal title = "Filters" open={filterConfig !== undefined} onCancel={onCancel}>
+    <Modal title = "Filters" open onCancel={onCancel} onOk={wrappedOnOk}>
       <Space direction = "vertical" size ='middle' style={{ display: 'flex' }}>
       <p>Select a {filterConfig?.displayName}</p>
-      {
-        filterConfig !== undefined ? getModalInputs(filterConfig.options, filterConfig.type) : null
-      }
+      {inputComponent}
       </Space>
     </Modal>
   )
 }
 
-function getModalInputs(options: any[], inputsType: OptionType): JSX.Element | null {
-  switch(inputsType) {
+
+
+function getModalInputHelper(filterConfig: FiltersConfig) {
+  const { type } = filterConfig;
+  switch(type) {
     case OptionType.CURRENCY_RANGE:
-      return getCurrencyRangeInputs(options);
+      return getCurrencyRangeInputHelper(filterConfig);
     case OptionType.DATE_RANGE:
-      return getDateRangeInputs(options);
+      return getDateRangeInputHelper(filterConfig);
     case OptionType.MULTI_SELECT:
-      return getMultiSelectInputs(options);
-    default:
-      return null;
+      return getMultiSelectInputHelper(filterConfig);
+    // default:
+    //   return null;
   }
 }
 
-function getCurrencyRangeInputs(options: any[]): JSX.Element {
+function getCurrencyRangeInputHelper(filterConfig: FiltersConfig) {
+  const { options, setFilterInput, clearFilter, filterInput } = filterConfig;
+  const castedFilterInput = filterInput as NumberRangeInput;
+  const castedSetFilterInput = setFilterInput as (newFilterInput: NumberRangeInput | undefined) => void;
   const moneyOptions = options as number[];
   const min = moneyOptions[0];
   const max = moneyOptions[1];
 
-  const [minValue, setMinValue] = useState<number | null>(1);
-  const [maxValue, setMaxValue] = useState<number | null>(max);
+  const [minValue, setMinValue] = useState(castedFilterInput?.min ?? min);
+  const [maxValue, setMaxValue] = useState(castedFilterInput?.max ?? max);
 
   const minOnChange = (newValue: number | null) => {
-    setMinValue(newValue);
-    if (newValue !== null && maxValue !== null && newValue > maxValue) {
-      setMaxValue(newValue);
+    const newMinValue = newValue ?? 0
+    setMinValue(newMinValue);
+    if (!maxValue || newMinValue > maxValue) {
+      setMaxValue(newMinValue);
     }
   };
 
   const maxOnChange = (newValue: number | null) => {
-    setMaxValue(newValue);
-    if (newValue !== null && minValue !== null && newValue < minValue) {
-      setMinValue(newValue);
+    const newMaxValue = newValue ?? 0
+    setMaxValue(newMaxValue);
+    if (!minValue || newMaxValue < minValue) {
+      setMinValue(newMaxValue);
     }
   }
 
@@ -63,10 +75,10 @@ function getCurrencyRangeInputs(options: any[]): JSX.Element {
     if (value === null || value === undefined) {
       return value;
     }
-    return `$${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
-  return (
+  const inputComponent = (
     <Space direction="vertical" size="middle" style={{display: 'flex',
     marginBottom: 24}}>
       <>
@@ -77,7 +89,7 @@ function getCurrencyRangeInputs(options: any[]): JSX.Element {
             min={1}
             max={max}
             onChange={minOnChange}
-            value={typeof minValue === 'number' ? minValue : 0}
+            value={minValue}
             tooltip={{
               formatter: numberToMoneyFormatter
             }}
@@ -106,7 +118,7 @@ function getCurrencyRangeInputs(options: any[]): JSX.Element {
           min={1}
           max={max}
           onChange={maxOnChange}
-          value={typeof maxValue === 'number' ? maxValue : 0}
+          value={maxValue}
           tooltip={{
             formatter: numberToMoneyFormatter
           }}
@@ -129,13 +141,28 @@ function getCurrencyRangeInputs(options: any[]): JSX.Element {
       </>
     </Space>
   );
+
+  const onSubmit = () => {
+    castedSetFilterInput((minValue !== min || maxValue !== max) ? {
+      min: minValue,
+      max: maxValue
+    } : undefined);
+  }
+  return {
+    inputComponent,
+    onSubmit,
+    clearFilter
+  }
 }
 
-function getDateRangeInputs(options: any[]): JSX.Element {
-  const dateOptions = options as Date[];
-  const min = dateOptions[0];
-  const max = dateOptions[1];
-  return (
+function getDateRangeInputHelper(filterConfig: FiltersConfig) {
+  const { options, setFilterInput, clearFilter, filterInput } = filterConfig;
+  const castedFilterInput = filterInput as DateRangeInput;
+  const castedSetFilterInput = setFilterInput as (newFilterInput: DateRangeInput | undefined) => void;
+
+  const [minDate, setMinDate] = useState(castedFilterInput?.min ?? null);
+  const [maxDate, setMaxDate] = useState(castedFilterInput?.max ?? null);
+  const component = (
     <Row gutter={0} align={'middle'}>
       <Col className="gutter-row" span={11} style={
         {
@@ -143,7 +170,9 @@ function getDateRangeInputs(options: any[]): JSX.Element {
           display: 'flex'
         }
       }>
-      <DatePicker picker="month" />
+      <DatePicker value={minDate} picker="month" onChange={(date, dateString) => {
+        setMinDate(date);
+      }}/>
       </Col>
       <Col className="gutter-row" span={2} style={{
         justifyContent: 'center',
@@ -157,23 +186,59 @@ function getDateRangeInputs(options: any[]): JSX.Element {
           display: 'flex'
         }
       }>
-      <DatePicker picker="month" />
+      <DatePicker value={maxDate} picker="month" onChange={(date, dateString) => {
+        setMaxDate(date)
+      }}/>
       </Col>
     </Row>
-)
+  )
+  const onSubmit = () => {
+
+    castedSetFilterInput((minDate || maxDate) ? {
+      min: minDate ?? undefined,
+      max: maxDate ?? undefined
+    } : undefined);
+  }
+  return {
+    inputComponent: component,
+    onSubmit,
+    clearFilter
+  }
 }
 
+function multiSelectOptionsToPropOptions(options: string[]): SelectProps['options'] {
+  return [...options.map((option) => ({label: option, value: option}))];
+}
 
-function getMultiSelectInputs(options: any[]): JSX.Element {
+function getMultiSelectInputHelper(filterConfig: FiltersConfig) {
+  const { options, setFilterInput, clearFilter, filterInput } = filterConfig;
   const strOptions = options as string[];
-  const propOptions: SelectProps['options'] = [...strOptions.map((option) => ({label: option, value: option}))];
-  return (
+  const castedFilterInput = filterInput as MultiSelectInput;
+  const castedSetFilterInput = setFilterInput as (newFilterInput: MultiSelectInput | undefined) => void;
+
+  const [selectedOptions, setSelectedOptions] = useState(castedFilterInput?.selectedOptions ?? []);
+
+  const component = (
     <Select
       mode="multiple"
       allowClear
       style={{ width: '100%' }}
       placeholder="Please select"
-      options={propOptions}
+      value={selectedOptions}
+      options={multiSelectOptionsToPropOptions(strOptions)}
+      onChange={setSelectedOptions}
     />
   )
+
+  const onSubmit = () => {
+    castedSetFilterInput(selectedOptions.length > 0 ? {
+      selectedOptions: selectedOptions
+    } : undefined);
+  }
+
+  return {
+    inputComponent: component,
+    onSubmit,
+    clearFilter
+  }
 }

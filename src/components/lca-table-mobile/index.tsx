@@ -17,24 +17,7 @@ const { Meta } = Card;
 
 
 export function LCATableMobile({ lcaData }: Props) {
-  // format lcaData as a dataSource
-  const lcaDataSource = LCADataToTableDataSource(lcaData);
 
-  const [loadedItems, setLoadedItems] = useState(lcaDataSource.slice(0, 20));
-  const [hasMore, setHasMore] = useState(true);
-
-  //on reach end of page, load more cards or data
-  const fetchMoreData = () => {
-    if (loadedItems.length >= 500) {
-      setHasMore(false);
-      return;
-    }
-    // a fake async api call like which adds
-    // 20 more records in 1 secs
-    setTimeout(() => {
-      setLoadedItems(loadedItems.concat(lcaDataSource.slice(loadedItems.length, loadedItems.length + 20)));
-    }, 1000);
-  };
 
   //change all caps string to title case
   const titleCase = (str: string): string => {
@@ -68,12 +51,33 @@ export function LCATableMobile({ lcaData }: Props) {
   // setup hook and states for filters
   const filtersConfig = useFiltersBar({ setFilterModalConfig });
 
+  // format lcaData as a dataSource
+  const lcaDataSource = LCADataToTableDataSource(lcaData);
+
+  const [loadedItems, setLoadedItems] = useState(lcaDataSource.slice(0, 20));
+  const [hasMore, setHasMore] = useState(true);
+
+  //on reach end of page, load more cards or data
+  const fetchMoreData = () => {
+    if (loadedItems.length >= 500) {
+      setHasMore(false);
+      return;
+    }
+    // a fake async api call like which adds
+    // 20 more records in 1 secs
+    setTimeout(() => {
+      setLoadedItems(loadedItems.concat(lcaDataSource.slice(loadedItems.length, loadedItems.length + 20)));
+    }, 1000);
+  };
+
   return (
     <Layout>
+      {filterModalConfig &&
       <FilterModal
         filterConfig={filterModalConfig}
         onCancel={() => setFilterModalConfig(undefined)}
       />
+}
       <FiltersBar filtersConfig={filtersConfig}/>
       <Divider/>
       <InfiniteScroll

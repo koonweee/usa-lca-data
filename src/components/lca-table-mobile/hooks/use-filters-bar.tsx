@@ -1,6 +1,7 @@
 import { FilterChipsConfig } from "@/components/filters-bar";
 import { OptionType } from "@/components/lca-table-mobile/hooks/types";
 import { LcaTableData } from "@/components/lca-table/formatters";
+import dayjs, { Dayjs } from "dayjs";
 import { useState } from "react";
 
 interface UseFiltersBarProps {
@@ -16,43 +17,43 @@ interface UseFiltersBarReturnType {
 const filters = [
   {
     displayName: '💰 Salary',
-    dataKey: 'baseSalary',
+    dataKey: 'jobData.baseAnnualSalary',
     type: OptionType.CURRENCY_RANGE,
-    options: [0, 10000000]
+    options: [1, 10000000]
   },
   {
     displayName: '👨‍💻 Job title',
-    dataKey: 'jobTitle',
+    dataKey: 'jobData.jobTitle',
     type: OptionType.MULTI_SELECT,
     options: ['Software Engineer', 'Product Manager', 'CEO']
   },
   {
     displayName: '🏢 Employer',
-    dataKey: 'employerName',
+    dataKey: 'employerData.name',
     type: OptionType.MULTI_SELECT,
     options: ['Google', 'Facebook', 'Amazon']
   },
   {
     displayName: '🌎 State',
-    dataKey: 'employerState',
+    dataKey: 'employerData.state',
     type: OptionType.MULTI_SELECT,
     options: ['California', 'New York', 'Washington']
   },
   {
     displayName: '🌃 City',
-    dataKey: 'employerCity',
+    dataKey: 'employerData.city',
     type: OptionType.MULTI_SELECT,
     options: ['San Francisco', 'New York City', 'Seattle']
   },
   {
     displayName: '📅 Application year',
-    dataKey: 'receivedDate',
+    dataKey: 'applicationData.receivedDate',
     type: OptionType.DATE_RANGE,
-    options: [new Date('2019-01-01'), new Date('2024-01-01')]
+    options: [dayjs('2010-01-01'), dayjs('2024-01-01')]
   },
   {
     displayName: '📝 Case status',
-    dataKey: 'caseStatus',
+    dataKey: 'applicationData.caseStatus',
     type: OptionType.MULTI_SELECT,
     options: ['Certified', 'Denied', 'Withdrawn']
   },
@@ -60,17 +61,33 @@ const filters = [
 
 export type FiltersConfig = ReturnType<typeof useFiltersBar>[number];
 
+export interface NumberRangeInput {
+  min: number | undefined;
+  max: number | undefined;
+}
+
+export interface DateRangeInput {
+  min: Dayjs | undefined;
+  max: Dayjs | undefined;
+}
+
+export interface MultiSelectInput {
+  selectedOptions: string[];
+}
+
+export type PossibleInput = NumberRangeInput | DateRangeInput | MultiSelectInput | undefined;
+
 export function useFiltersBar(props: UseFiltersBarProps) {
   const { setFilterModalConfig } = props;
   // create a toggleModal and filterInput state for each filter
   const filtersBarConfig = filters.map((filter) => {
-    const [filterInput, setFilterInput] = useState<string | undefined>(undefined);
+    const [filterInput, setFilterInput] = useState<PossibleInput>(undefined);
     const [isFilterActive, setFilterActive] = useState<boolean>(false);
     const clearFilter = () => {
       setFilterInput(undefined);
       setFilterActive(false);
     }
-    const wrappedSetFilterInput = (input: string | undefined) => {
+    const wrappedSetFilterInput = (input: PossibleInput) => {
       setFilterInput(input);
       setFilterActive(input !== undefined)
     }
