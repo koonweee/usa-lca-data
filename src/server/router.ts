@@ -15,7 +15,7 @@ const fuseOptions = {
 	findAllMatches: true,
 	// minMatchCharLength: 1,
 	// location: 0,
-	threshold: 0.6,
+	threshold: 0.1,
 	// distance: 100,
 	// useExtendedSearch: false,
 	// ignoreLocation: false,
