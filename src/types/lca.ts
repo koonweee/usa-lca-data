@@ -144,6 +144,7 @@ export type LCADisclosure = {
   preparerMiddleInitial?: string;
   preparerBusinessName?: string;
   preparerEmail?: string;
+  searchableText: string;
 }
 
 export interface LCAData {
@@ -152,6 +153,7 @@ export interface LCAData {
   jobData: JobData;
   employerData: EmployerData;
   legalData?: LegalData;
+  searchableText: string;
 }
 
 export interface JobData {

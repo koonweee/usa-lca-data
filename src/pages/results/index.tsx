@@ -1,18 +1,20 @@
 import { LCATable } from '@/components/lca-table'
 import { LCATableMobile } from '@/components/lca-table-mobile';
 import { trpc } from '@/lib/trpc';
-import { Layout, Spin, Typography } from 'antd';
-import { ConfigProvider, theme } from "antd";
+import { Input, Layout, Spin, Typography } from 'antd';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 const { Content, Footer } = Layout;
 const { Title } = Typography;
-
-const { darkAlgorithm, defaultAlgorithm } = theme;
+const { Search } = Input;
 
 export default function Page() {
-  const { data: lcaData, isLoading } = trpc.useQuery(['lca.findAll']);
+  const router = useRouter();
+  const { query } = router.query;
+  const [searchQuery, setSearchQuery] = useState<string | undefined>('');
+  const { data: lcaData, isLoading } = trpc.useQuery(['lca.findAll', { searchQuery: query as string | undefined }]);
 
   const [isMobile, setIsMobile] = useState<boolean>(true);
 
@@ -26,18 +28,53 @@ export default function Page() {
     } else {
       setIsMobile(false);
     }
-  }, []);
+  }, [navigator.userAgent]);
+
+  const onSearch = (value: string) => {
+    router.push({
+      pathname: router.asPath.split('?')[0],
+      query: value? 
+            { query: value }:
+            undefined,
+    });
+  };
+
+
+  useEffect(() => {
+    setSearchQuery(query as string);
+  }, [query]);
 
   return (
-    <ConfigProvider theme={{algorithm: darkAlgorithm}}>
-        <Layout style={{height:"100vh", width: '100%', background: "black"}}>
-          <Content>
-            <Title style={{textAlign: "left", margin: "24px 32px"}}>H1B1 Visa</Title>
-            <div style={{ padding: 24, minHeight: 360, background: "black"}}>
-                {isLoading && <div style={{height:"100vh", width: '100%', background: "black"}}><Spin size='large' /></div>}
-                {!isMobile && !isLoading && lcaData && <LCATable lcaData={lcaData} />}
+        <Layout style={{height:"100vh", width: '100vw', background: "black"}}>
+          <Content style={{display: 'flex', flexDirection: 'column', minHeight: '100vh'}}>
+            <Title level={1} style={{textAlign: "left", margin: "12px 32px"}}>
+              <div className="animation-text">
+                Search H1B1 data, explore insights.
+              </div>
+            </Title>
+            <div style={{padding: isMobile? '0% 2.5%' : '0%', maxWidth: isMobile? '92%': '100%', margin: '0% 2.5%'}}>
+              <Search
+                placeholder="Search by 'Software Engineer' or 'Google' here"
+                allowClear
+                enterButton="Search"
+                size="large"
+                onSearch={onSearch}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchQuery}
+                style={{ width: '100%', borderColor: 'white', borderWidth: '2px', borderRadius: '10px', margin: '2% 0%'}}
+              />
+            </div>
+            {isLoading && <div style={{height: "100%", width: '100%', background: "black", display: 'flex', justifyContent: 'center', alignItems: 'center'}}><Spin size='large' /></div>}
+            
+            {!isMobile &&
+              <div style={{ flexGrow: 1, background: "black", padding: '0% 2.5%', overflowY: 'auto'}}>
+              {!isMobile && !isLoading && lcaData && <LCATable lcaData={lcaData} />}
+              </div>
+            }
+
+            <div style={{ maxHeight: '72%', background: "black", padding: '0% 2.5%', overflowY: 'hidden'}}>
                 {isMobile && !isLoading && lcaData &&
-                <div style={{  margin: 'auto', maxWidth: '95%', maxHeight: '95%'}}>
+                <div style={{ padding: '0% 2.5%', maxWidth: '95%', maxHeight: '80%'}}>
                   <LCATableMobile lcaData={lcaData} />
                 </div>}
             </div>
@@ -65,6 +102,5 @@ export default function Page() {
             </Link>
           </Footer>
         </Layout>
-    </ConfigProvider>
   )
 }

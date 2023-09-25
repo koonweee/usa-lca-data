@@ -26,7 +26,7 @@ model lca_disclosures {
   caseStatus                  String
   receivedDate                DateTime
   decisionDate                DateTime
-  originalCertifiedDate        DateTime?
+  originalCertifiedDate       DateTime?
   visaClass                   String
   jobTitle                    String
   socCode                     String // to maintain list of soc codes (& titles
@@ -119,4 +119,5 @@ model lca_disclosures {
   preparerMiddleInitial       String?
   preparerBusinessName        String?
   preparerEmail               String?
+  searchableText              String
 }
