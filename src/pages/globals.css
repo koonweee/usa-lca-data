@@ -17,3 +17,11 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+/* Apply the animation to the flipping text */
+.animation-text {
+  background: linear-gradient(180deg, #ff6cff, #33ccff); /* Neon purple-blue background */
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent; /* Make text transparent */
+}

@@ -3,6 +3,8 @@ import './globals.css'
 import { withTRPC } from "@trpc/next";
 import { ServerRouter } from '@/server/router';
 import { Analytics } from '@vercel/analytics/react';
+import { ConfigProvider, theme } from 'antd';
+const { darkAlgorithm, defaultAlgorithm } = theme;
 
 export const metadata = {
   title: 'H1B1 Data Explorer',
@@ -12,7 +14,10 @@ export const metadata = {
 
 const App: AppType = ({ Component, pageProps }) => {
   return (
+    <ConfigProvider theme={{algorithm: darkAlgorithm}}>
+
       <><Component {...pageProps} /><Analytics /></>
+    </ConfigProvider>
   )
 }
 

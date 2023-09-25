@@ -16,6 +16,7 @@ export const LCA_2022_Q1_FILENAME = "LCA_Disclosure_Data_FY2022_Q1.xlsx"
 export const LCA_2023_Q3_FILENAME = "LCA_Disclosure_Data_FY2023_Q3_H1B1.xlsx"
 
 import { CaseStatus, VisaClass, WageUnitOfPay, PrevailingWageLevel, DateRange, StatutoryBasis, PublicDisclosure, LCADisclosure } from "@/types/lca";
+import { Decimal } from "@prisma/client/runtime/library";
 import Excel from "exceljs";
 import { exit } from "process";
 
@@ -129,6 +130,44 @@ const toPublicDisclosure = (str: string): PublicDisclosure => {
     }
 }
 
+//copy pasted from formatters/lca.ts
+function calculateBaseAnnualSalary(wageRateOfPayFrom: number, wageUnitOfPay: string): number {
+    // convert prisma decimal to number
+    const wageRateOfPayFromNumber = wageRateOfPayFrom;
+    let yearlyWage: number;
+    switch (wageUnitOfPay) {
+      case WageUnitOfPay.YEAR:
+        yearlyWage = wageRateOfPayFromNumber;
+        break;
+      case WageUnitOfPay.MONTH:
+        yearlyWage = wageRateOfPayFromNumber * 12;
+        break;
+      case WageUnitOfPay.BI_WEEKLY:
+        yearlyWage = wageRateOfPayFromNumber * 26;
+        break;
+      case WageUnitOfPay.WEEK:
+        yearlyWage = wageRateOfPayFromNumber * 52;
+        break;
+      case WageUnitOfPay.HOUR:
+        yearlyWage = wageRateOfPayFromNumber * 2080;
+        break;
+      default:
+        throw new Error(`Unknown wage unit of pay: ${wageUnitOfPay}`);
+    }
+    return yearlyWage
+}
+
+// convert mon jan 03 2022 16:00:00 gmt-0800 (pacific standard time) to Jan 3 2022
+function convertDateToMDYformat(date: Date): string {
+    const dateStr = date.toString()
+    const dateArr = dateStr.split(' ')
+    const month = dateArr[1]
+    const day = dateArr[2]
+    const year = dateArr[3]
+    return `${month} ${day} ${year}`
+    
+}
+
 export async function getLCAData(dataDir: string, filename: string): Promise<LCADisclosure[]> {
     const workbook = new Excel.Workbook();
     console.log('start reading file')
@@ -151,15 +190,28 @@ export async function getLCAData(dataDir: string, filename: string): Promise<LCA
 
     const LCAs = dataRows.map((row) => {
         // console.log('row', row.values)
+        const receivedDate = getCellValue(row, 3) as Date;
+        const decisionDate = getCellValue(row, 4) as Date;
+        const jobTitle =  String(getCellValue(row, 7));
+        const status = toCaseStatus(String(getCellValue(row, 2)));
+        const employerName = String(getCellValue(row, 20));
+        const employerCity = String(getCellValue(row, 24));
+        const employerState = String(getCellValue(row, 25));
 
+        const wageRateOfPayFrom = getCellValue(row, 72) as number;
+        const wageUnitOfPay = toWageUnitOfPay(String(getCellValue(row, 74)));
+
+        //combine all above values into one searchable text and apply all as lowercase string
+        const searchableText =  `${String(convertDateToMDYformat(receivedDate))} ${String(convertDateToMDYformat(decisionDate))} ${jobTitle} ${status} ${String(calculateBaseAnnualSalary(wageRateOfPayFrom, wageUnitOfPay))} ${employerName} ${employerCity} ${employerState}`.toLowerCase(); 
+                
         const lcaDisclosure: LCADisclosure = {
             id: String(getCellValue(row, 1)),
-            caseStatus: toCaseStatus(String(getCellValue(row, 2))),
-            receivedDate: getCellValue(row, 3) as Date,
-            decisionDate: getCellValue(row, 4) as Date,
-            originalCertifiedDate: getCellValue(row, 5) as Date,
+            caseStatus: status,
+            receivedDate: receivedDate,
+            decisionDate: decisionDate,
+            originalCertifiedDate: getCellValue(row, 5) as Date | undefined,
             visaClass: toVisaClass(String(getCellValue(row, 6))),
-            jobTitle: String(getCellValue(row, 7)),
+            jobTitle: jobTitle,
             socCode: String(getCellValue(row, 8)),
             socTitle: String(getCellValue(row, 9)),
             fullTimePosition: getCellValue(row, 10) === "Y",
@@ -172,12 +224,12 @@ export async function getLCAData(dataDir: string, filename: string): Promise<LCA
             nNewConcurrentEmployment: getCellValue(row, 17) as number,
             nChangeEmployer: getCellValue(row, 18) as number,
             nAmendedPetition: getCellValue(row, 19) as number,
-            employerName: String(getCellValue(row, 20)),
+            employerName: employerName,
             tradeNameDba: String(getCellValue(row, 21)),
             employerAddress1: String(getCellValue(row, 22)),
             employerAddress2: String(getCellValue(row, 23)),
-            employerCity: String(getCellValue(row, 24)),
-            employerState: String(getCellValue(row, 25)),
+            employerCity: employerCity,
+            employerState: employerState,
             employerPostalCode: String(getCellValue(row, 26)),
             employerCountry: String(getCellValue(row, 27)),
             employerProvince: String(getCellValue(row, 28)),
@@ -249,6 +301,7 @@ export async function getLCAData(dataDir: string, filename: string): Promise<LCA
             preparerMiddleInitial: String(getCellValue(row, 94)),
             preparerBusinessName: String(getCellValue(row, 95)),
             preparerEmail: String(getCellValue(row, 96)),
+            searchableText: searchableText,
         }
         // print type of each field
         // Object.keys(lcaDisclosure).forEach((key) => {

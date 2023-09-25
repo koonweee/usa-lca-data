@@ -59,6 +59,7 @@ export function prismaLcaDataFormatter(lca_disclosure: PrismaLCAData): LCAData {
         lca_disclosure.agentAttorneyMiddleName ?? undefined,
         lca_disclosure.agentAttorneyLastName ?? undefined),
       attorneyFirmName: lca_disclosure.lawfirmNameBusinessName ?? undefined,
-    } : undefined
+    } : undefined,
+    searchableText: lca_disclosure.searchableText,
   }
 }
