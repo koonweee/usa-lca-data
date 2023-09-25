@@ -34,7 +34,7 @@ export default function Page() {
     router.push({
       pathname: router.asPath.split('?')[0],
       query: value? 
-            { query: value }:
+            { query: value.toLowerCase() }:
             undefined,
     });
   };

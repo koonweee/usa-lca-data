@@ -195,15 +195,17 @@ export async function getLCAData(dataDir: string, filename: string): Promise<LCA
         const jobTitle =  String(getCellValue(row, 7));
         const status = toCaseStatus(String(getCellValue(row, 2)));
         const employerName = String(getCellValue(row, 20));
-        const employerCity = String(getCellValue(row, 24));
-        const employerState = String(getCellValue(row, 25));
+        const worksiteCity = String(getCellValue(row, 68));
+        const worksiteState = String(getCellValue(row, 70));
 
         const wageRateOfPayFrom = getCellValue(row, 72) as number;
         const wageUnitOfPay = toWageUnitOfPay(String(getCellValue(row, 74)));
 
         //combine all above values into one searchable text and apply all as lowercase string
-        const searchableText =  `${String(convertDateToMDYformat(receivedDate))} ${String(convertDateToMDYformat(decisionDate))} ${jobTitle} ${status} ${String(calculateBaseAnnualSalary(wageRateOfPayFrom, wageUnitOfPay))} ${employerName} ${employerCity} ${employerState}`.toLowerCase(); 
-                
+        const searchableText =  `${String(convertDateToMDYformat(receivedDate))} ${String(convertDateToMDYformat(decisionDate))} ${jobTitle} ${status} ${String(calculateBaseAnnualSalary(wageRateOfPayFrom, wageUnitOfPay))} ${employerName} ${worksiteCity} ${worksiteState}`.toLowerCase(); 
+        
+        console.log(searchableText);
+        
         const lcaDisclosure: LCADisclosure = {
             id: String(getCellValue(row, 1)),
             caseStatus: status,
@@ -228,8 +230,8 @@ export async function getLCAData(dataDir: string, filename: string): Promise<LCA
             tradeNameDba: String(getCellValue(row, 21)),
             employerAddress1: String(getCellValue(row, 22)),
             employerAddress2: String(getCellValue(row, 23)),
-            employerCity: employerCity,
-            employerState: employerState,
+            employerCity: String(getCellValue(row, 24)),
+            employerState: String(getCellValue(row, 25)),
             employerPostalCode: String(getCellValue(row, 26)),
             employerCountry: String(getCellValue(row, 27)),
             employerProvince: String(getCellValue(row, 28)),
