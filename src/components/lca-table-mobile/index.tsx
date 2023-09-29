@@ -73,11 +73,11 @@ export function LCATableMobile({ lcaData }: Props) {
   return (
     <Layout>
       {filterModalConfig &&
-      <FilterModal
-        filterConfig={filterModalConfig}
-        onCancel={() => setFilterModalConfig(undefined)}
-      />
-}
+        <FilterModal
+          filterConfig={filterModalConfig}
+          onCancel={() => setFilterModalConfig(undefined)}
+        />
+      }
       <FiltersBar filtersConfig={filtersConfig}/>
       <Divider/>
       <InfiniteScroll

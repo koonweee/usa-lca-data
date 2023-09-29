@@ -5,7 +5,7 @@ const { Content } = Layout;
 const { Search } = Input;
 
 export function CustomSelectSearch(){
-      const router = useRouter();
+    const router = useRouter();
     const { query } = router.query;
 
 
