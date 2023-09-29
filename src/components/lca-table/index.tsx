@@ -1,6 +1,6 @@
 import { BASE_LCA_TABLE_COLUMNS } from "@/components/lca-table/column-type";
 import { LCADataToTableDataSource } from "@/components/lca-table/formatters";
-import { Layout, Table } from "antd";
+import { Divider, Layout, Table } from "antd";
 
 import { LCAData } from "@/types/lca";
 import { FilterModal } from "../lca-table-mobile/components/filter-modal";
@@ -27,6 +27,7 @@ export function LCATable({ lcaData }: Props) {
         />
       )}
       <FiltersBar filtersConfig={filtersConfig}/>
+      <Divider/>
       <Table dataSource={lcaDataSource} columns={BASE_LCA_TABLE_COLUMNS} />
     </Layout>
   )
