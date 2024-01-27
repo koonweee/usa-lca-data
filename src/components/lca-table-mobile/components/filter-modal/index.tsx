@@ -4,6 +4,7 @@ import { DateRangeInput, FiltersConfig, MultiSelectInput, NumberRangeInput } fro
 import { ArrowRightOutlined } from "@ant-design/icons";
 import { Modal, DatePicker, Select, SelectProps, Space, Col, InputNumber, Row, Slider } from "antd";
 import { useState } from "react";
+import dayjs, { Dayjs } from "dayjs";
 const { RangePicker } = DatePicker;
 
 interface Props {
@@ -86,7 +87,7 @@ function getCurrencyRangeInputHelper(filterConfig: FiltersConfig) {
       <Row style={{display: 'flex'}} gutter={24} wrap>
         <Col xs={12} sm={16}>
           <Slider
-            min={1}
+            min={min}
             max={max}
             onChange={minOnChange}
             value={minValue}
@@ -100,7 +101,7 @@ function getCurrencyRangeInputHelper(filterConfig: FiltersConfig) {
           justifyContent: 'flex-end'
         }}>
           <InputNumber
-            min={1}
+            min={min}
             max={max}
             value={minValue}
             onChange={minOnChange}
@@ -157,11 +158,14 @@ function getCurrencyRangeInputHelper(filterConfig: FiltersConfig) {
 
 function getDateRangeInputHelper(filterConfig: FiltersConfig) {
   const { options, setFilterInput, clearFilter, filterInput } = filterConfig;
+  const dateOptions = options as Dayjs[];
+  const min = dateOptions[0];
+  const max = dateOptions[1];
   const castedFilterInput = filterInput as DateRangeInput;
   const castedSetFilterInput = setFilterInput as (newFilterInput: DateRangeInput | undefined) => void;
 
-  const [minDate, setMinDate] = useState(castedFilterInput?.min ?? null);
-  const [maxDate, setMaxDate] = useState(castedFilterInput?.max ?? null);
+  const [minDate, setMinDate] = useState<null | Dayjs>(castedFilterInput?.min ?? min);
+  const [maxDate, setMaxDate] = useState<null | Dayjs>(castedFilterInput?.max ?? max);
   const component = (
     <Row gutter={0} align={'middle'}>
       <Col className="gutter-row" span={11} style={

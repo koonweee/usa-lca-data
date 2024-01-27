@@ -1,14 +1,17 @@
 import { OptionType } from "@/components/lca-table-mobile/hooks/types";
 import { DateRangeInput, FiltersConfig, MultiSelectInput, NumberRangeInput } from "@/components/lca-table-mobile/hooks/use-filters-bar";
 import { LCAData } from "@/types/lca";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
+import isBetween from 'dayjs/plugin/isBetween'
+
+dayjs.extend(isBetween)
 
 export function filterLcaData(filterConfigs: FiltersConfig[], data: LCAData[]) {
   // filters are applied as AND filters
   let filteredData = data;
   filterConfigs.forEach((filterConfig) => {
-    const { dataKey, filterInput, type } = filterConfig;
-    if (filterInput !== undefined) {
+    const { dataKey, filterInput, type, isFilterActive } = filterConfig;
+    if (isFilterActive && filterInput !== undefined) {
       if (type === OptionType.CURRENCY_RANGE) {
         // cast filter input
         const castedFilterInput = filterInput as NumberRangeInput;
@@ -39,7 +42,7 @@ export function filterLcaData(filterConfigs: FiltersConfig[], data: LCAData[]) {
         filteredData = filteredData.filter((lca) => {
           const date = findValueMatchingKey(lca, dataKey);
           const dayjsDate = dayjs(date);
-          return (!min || date >= min) && (!max || date <= max);
+          return dayjsDate.isBetween(min, max)
         });
       }
     }
@@ -54,7 +57,8 @@ function findValueMatchingKey(lcaData: LCAData, dataKey: string) {
   const keys = dataKey.split('.');
   let value: any = lcaData;
   keys.forEach((key) => {
-    value = Object.entries(value).find(([k, v]) => k === key);
+    const keyValue = Object.entries(value).find(([k, v]) => k === key);
+    value = keyValue ? keyValue[1] : undefined;
   });
   return value;
 }
