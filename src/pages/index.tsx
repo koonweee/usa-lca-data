@@ -9,17 +9,17 @@ export default function Page(): JSX.Element {
 
   const [isMobile, setIsMobile] = useState<boolean>(true);
 
-  useEffect(() => {
-    if (
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone/i.test(
-        navigator.userAgent
-      )
-    ) {
-      setIsMobile(true);
-    } else {
-      setIsMobile(false);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (
+  //     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone/i.test(
+  //       navigator.userAgent
+  //     )
+  //   ) {
+  //     setIsMobile(true);
+  //   } else {
+  //     setIsMobile(false);
+  //   }
+  // }, []);
 
   return (
     <Layout style={{height:"100vh", width: '100vw', background: "black"}}>

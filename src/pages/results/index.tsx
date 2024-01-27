@@ -18,22 +18,22 @@ export default function Page() {
 
   const [isMobile, setIsMobile] = useState<boolean>(true);
 
-  useEffect(() => {
-    if (
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone/i.test(
-        navigator.userAgent
-      )
-    ) {
-      setIsMobile(true);
-    } else {
-      setIsMobile(false);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (
+  //     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone/i.test(
+  //       navigator.userAgent
+  //     )
+  //   ) {
+  //     setIsMobile(true);
+  //   } else {
+  //     setIsMobile(false);
+  //   }
+  // }, []);
 
   const onSearch = (value: string) => {
     router.push({
       pathname: router.asPath.split('?')[0],
-      query: value? 
+      query: value?
             { query: value.toLowerCase() }:
             undefined,
     });
@@ -45,7 +45,7 @@ export default function Page() {
   }, [query]);
 
   return (
-        <Layout style={{height:"100vh", width: '100vw', background: "black"}}>
+        <Layout style={{ background: "black"}}>
           <Content style={{display: 'flex', flexDirection: 'column', minHeight: '100vh'}}>
             <Title level={1} style={{textAlign: "left", margin: "12px 32px"}}>
               <div className="animation-text">
@@ -65,7 +65,7 @@ export default function Page() {
               />
             </div>
             {isLoading && <div style={{height: "100%", width: '100%', background: "black", display: 'flex', justifyContent: 'center', alignItems: 'center'}}><Spin size='large' /></div>}
-            
+
             {!isMobile &&
               <div style={{ flexGrow: 1, background: "black", padding: '0% 2.5%', overflowY: 'auto'}}>
               {!isMobile && !isLoading && lcaData && <LCATable lcaData={lcaData} />}
