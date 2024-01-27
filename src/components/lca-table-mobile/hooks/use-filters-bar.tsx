@@ -12,7 +12,7 @@ dayjs.extend(minMax)
 interface UseFiltersBarProps {
   allLcaData: LCAData[];
   setFilterModalConfig: (filterModalConfig?: FiltersConfig) => void;
-  setLoadedItems: (loadedItems: LcaTableData[]) => void;
+  setLoadedItems?: (loadedItems: LcaTableData[]) => void;
 }
 
 export interface FiltersConfig {
@@ -145,7 +145,7 @@ export function useFiltersBar(props: UseFiltersBarProps) {
     useEffect(() => {
       const filteredData = filterLcaData(filtersBarConfig, allLcaData)
       setFilteredLcaData(filteredData)
-      setLoadedItems(LCADataToTableDataSource(filteredData.slice(0, 20)));
+      setLoadedItems?.(LCADataToTableDataSource(filteredData.slice(0, 20)));
     }, [filterInput, isFilterActive])
 
     const config = {

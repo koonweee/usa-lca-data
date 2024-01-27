@@ -13,10 +13,10 @@ interface Props {
 
 export function LCATable({ lcaData }: Props) {
   const [filterModalConfig, setFilterModalConfig] = useState<FiltersConfig | undefined>(undefined);
-  const filtersConfig = useFiltersBar({ setFilterModalConfig });
+  const {filtersBarConfig, filteredLcaData} = useFiltersBar({ setFilterModalConfig, allLcaData: lcaData });
 
   // format lcaData as a dataSource
-  const lcaDataSource = LCADataToTableDataSource(lcaData);
+  const lcaDataSource = LCADataToTableDataSource(filteredLcaData);
 
   return (
     <Layout>
@@ -26,7 +26,7 @@ export function LCATable({ lcaData }: Props) {
         onCancel={() => setFilterModalConfig(undefined)}
         />
       )}
-      <FiltersBar filtersConfig={filtersConfig}/>
+      <FiltersBar filtersConfig={filtersBarConfig}/>
       <Divider/>
       <Table dataSource={lcaDataSource} columns={BASE_LCA_TABLE_COLUMNS} />
     </Layout>
