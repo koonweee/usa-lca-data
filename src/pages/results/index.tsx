@@ -9,8 +9,13 @@ import { useEffect, useState } from 'react';
 const { Content, Footer, Header } = Layout;
 const { Title } = Typography;
 const { Search } = Input;
+import React, { useLayoutEffect } from 'react'
+
 
 export default function Page() {
+  useLayoutEffect(() => {
+    document.body.style.backgroundColor = "black"
+});
   const router = useRouter();
   const { query } = router.query;
   const [searchQuery, setSearchQuery] = useState<string | undefined>('');
