@@ -91,7 +91,7 @@ export function LCATableMobile({ lcaData }: Props) {
         next={fetchMoreData}
         hasMore={hasMore}
         loader={
-          <Card style={{ width: '100%', marginTop: 16 }} loading >
+          <Card style={{ width: '100%', marginTop: 8 }} loading >
             <Meta
               title="Card title"
               description="dummy description"
@@ -105,12 +105,12 @@ export function LCATableMobile({ lcaData }: Props) {
           </p>
         }
       >
-        {loadedItems.map((i) => (
-          <Card style={{ width: '100%', marginTop: 16, borderColor: 'white' }} key={i.lcaCaseNumber} >
+        {loadedItems.map((data, index) => (
+          <Card style={{ width: '100%', marginTop: index === 0 ? 0 : 16, borderColor: 'white' }} key={data.lcaCaseNumber} >
             <Meta
-              title={`${titleCase(i.jobTitle)}`}
+              title={`${titleCase(data.jobTitle)}`}
               description            />
-            {buildCardDescription(i)}
+            {buildCardDescription(data)}
           </Card>
         ))}
       </InfiniteScroll>

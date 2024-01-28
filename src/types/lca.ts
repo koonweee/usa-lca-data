@@ -18,7 +18,8 @@ export enum WageUnitOfPay {
   MONTH = 'Month',
   BI_WEEKLY = 'Bi-Weekly',
   WEEK = 'Week',
-  HOUR = 'Hour'
+  HOUR = 'Hour',
+  NOT_SPECIFIED = 'Not Specified'
 }
 
 export enum PrevailingWageLevel {

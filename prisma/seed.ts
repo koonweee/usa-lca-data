@@ -1,10 +1,13 @@
-import { DATA_DIR, LCA_2023_Q3_FILENAME, getLCAData } from '@/data-preprocess/injest';
+import { LCA_2023_Q3_FILENAME, getAllLCAData, getLCAData } from '@/data-preprocess/injest';
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
+export const DATA_DIR = "src/data-preprocess/filtered-data"
+
 async function main() {
-  const data = await getLCAData(DATA_DIR, LCA_2023_Q3_FILENAME)
+  const data = await getAllLCAData(DATA_DIR)
+
   const response = await prisma.lca_disclosures.createMany(
     {
       data: data.map((d) => {
@@ -23,6 +26,9 @@ async function main() {
           ...d,
           pwOesYearStartDate,
           pwOesYearEndDate,
+          nWorksiteWorkers: d.nWorksiteWorkers ? d.nWorksiteWorkers : 0,
+          totalWorksiteLocations: d.totalWorksiteLocations ? d.totalWorksiteLocations : 0,
+          prevailingWage: d.prevailingWage ? d.prevailingWage : d.wageRateOfPayFrom ?? d.wageRateOfPayTo ?? 0 ,
         }
 
       }),

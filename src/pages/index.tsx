@@ -22,7 +22,7 @@ export default function Page(): JSX.Element {
   // }, []);
 
   return (
-    <Layout style={{height:"100vh", width: '100vw', background: "black"}}>
+    <Layout style={{background: "black"}}>
         <main className="relative flex min-h-screen flex-col items-center justify-center" >
         <Title style={{textAlign: "center", margin: "20% 10% 10% 10%", fontSize: isMobile? '6vh' : '10vh'}}>
           <div className="animation-text">
@@ -33,28 +33,28 @@ export default function Page(): JSX.Element {
             <CustomSelectSearch />
         </div>
         <p className="font-light text-gray-600 w-full max-w-lg text-center mt-6">
-        Built by{' '}
-        <Link
-          href="https://github.com/koonweee"
-          className="font-medium underline underline-offset-4 hover:text-black transition-colors"
-        >
-          Jeremy Tan
-        </Link>
-        ,{' '}
-        <Link
-          href="https://github.com/chuyouchia"
-          className="font-medium underline underline-offset-4 hover:text-black transition-colors"
-        >
-          Jacob Chia
-        </Link>{' '}
-        and{' '}
-        <Link
-          href="https://github.com/iamgenechua"
-          className="font-medium underline underline-offset-4 hover:text-black transition-colors"
-        >
-          Gene Chua
-        </Link>
-        .
+          Built by{' '}
+          <Link
+            href="https://github.com/koonweee"
+            className="font-medium underline underline-offset-4 hover:text-black transition-colors"
+          >
+            Jeremy Tan
+          </Link>
+          ,{' '}
+          <Link
+            href="https://github.com/chuyouchia"
+            className="font-medium underline underline-offset-4 hover:text-black transition-colors"
+          >
+            Jacob Chia
+          </Link>{' '}
+          and{' '}
+          <Link
+            href="https://github.com/iamgenechua"
+            className="font-medium underline underline-offset-4 hover:text-black transition-colors"
+          >
+            Gene Chua
+          </Link>
+          .
         </p>
         </main>
       </Layout>
