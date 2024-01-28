@@ -18,17 +18,17 @@ export default function Page() {
 
   const [isMobile, setIsMobile] = useState<boolean>(true);
 
-  useEffect(() => {
-    if (
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone/i.test(
-        navigator.userAgent
-      )
-    ) {
-      setIsMobile(true);
-    } else {
-      setIsMobile(false);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (
+  //     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone/i.test(
+  //       navigator.userAgent
+  //     )
+  //   ) {
+  //     setIsMobile(true);
+  //   } else {
+  //     setIsMobile(false);
+  //   }
+  // }, []);
 
   const onSearch = (value: string) => {
     router.push({
@@ -45,9 +45,10 @@ export default function Page() {
   }, [query]);
 
   return (
-        <Layout style={{ background: "black", maxHeight: "100vh", minHeight: "100vh"}}>
-          <Header style={{ background: "black", margin: 'auto' }}>
-            <Title level={1} style={{textAlign: "left", margin: "12px 32px"}}>
+        <Layout style={{ background: "black", maxHeight: "100vh", minHeight: "100vh", }}>
+
+          <Header style={{ background: "black", margin: 'auto', height: "auto" }}>
+            <Title level={isMobile ? 2 : 1} style={{textAlign: "left", margin: "5% 0%"}}>
               <div className="animation-text">
                 Search H1B1 data, explore insights.
               </div>
@@ -55,7 +56,7 @@ export default function Page() {
           </Header>
           {isLoading && <div style={{height: "100%", width: '100%', background: "black", display: 'flex', justifyContent: 'center', alignItems: 'center'}}><Spin size='large' /></div>}
           {!isLoading && <Content style={{display: 'flex', flexDirection: 'column'}}>
-            <div style={{padding: isMobile? '0% 2.5%' : '0%', minWidth:  isMobile? '92%': 750, maxWidth: isMobile? '92%': 750, margin: 'auto'}}>
+            <div style={{padding: isMobile? '0% 2.5%' : '0%', minWidth: '92%', maxWidth: '92%', margin: '0 auto'}}>
               <Search
                 placeholder="Search by 'Software Engineer' or 'Google' here"
                 allowClear
@@ -64,7 +65,7 @@ export default function Page() {
                 onSearch={onSearch}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 value={searchQuery}
-                style={{ width: '100%', borderColor: 'white', borderWidth: '2px', borderRadius: '10px', margin: '2% 0%'}}
+                // style={{ width: '100%', borderColor: 'white', borderWidth: '2px', borderRadius: '10px', margin: '2% 0%'}}
               />
             </div>
 

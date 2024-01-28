@@ -97,7 +97,7 @@ export function LCATableMobile({ lcaData }: Props) {
               description="dummy description"
               />
           </Card>}
-        height='70vh'
+        height='100vh'
         endMessage={
             // if there is no more data, show a message that we reached the end
           <p style={{ textAlign: "center" }}>
