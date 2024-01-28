@@ -11,7 +11,6 @@
 // }
 
 
-export const DATA_DIR = "src/data-preprocess/data"
 export const LCA_2022_Q1_FILENAME = "LCA_Disclosure_Data_FY2022_Q1.xlsx"
 export const LCA_2023_Q3_FILENAME = "LCA_Disclosure_Data_FY2023_Q3_H1B1.xlsx"
 
@@ -71,7 +70,7 @@ const toWageUnitOfPay = (str: string): WageUnitOfPay => {
         case "Hour":
             return WageUnitOfPay.HOUR;
         default:
-            throw new Error(`Unknown wage unit of pay: ${str}`);
+            return WageUnitOfPay.NOT_SPECIFIED;
     }
 }
 
@@ -165,31 +164,51 @@ function convertDateToMDYformat(date: Date): string {
     const day = dateArr[2]
     const year = dateArr[3]
     return `${month} ${day} ${year}`
-    
+
+}
+
+export async function getAllLCAData(dataDir: string): Promise<LCADisclosure[]> {
+    // Iterate over all xlsx files in dataDir
+    const fs = require('fs');
+    const files = fs.readdirSync(dataDir);
+    const allLCAs: LCADisclosure[] = [];
+    for (const file of files) {
+        // skip non-xlsx files
+        if (!file.endsWith('.xlsx') || file.startsWith('~$')) {
+            continue;
+        }
+        const LCAs = await getLCAData(dataDir, file);
+        allLCAs.push(...LCAs);
+    }
+    return allLCAs;
 }
 
 export async function getLCAData(dataDir: string, filename: string): Promise<LCADisclosure[]> {
     const workbook = new Excel.Workbook();
-    console.log('start reading file')
+    console.log('Processing file:', filename)
     const content = await workbook.xlsx.readFile(
         `${dataDir}/${filename}`
     )
-    console.log('start reading worksheet')
+
     const worksheet = content.worksheets[0];
     const rowStartIndex = 2; // 1st row is header
     const nDataRows = worksheet.actualRowCount;
-    console.log('start reading rows')
     const dataRows = worksheet.getRows(rowStartIndex, nDataRows - 1) ?? [];
-    console.log('end reading rows')
     if (dataRows.length === 0) {
         console.error("No data rows found");
         return [];
     }
-    console.log('start mapping LCA')
-    console.log('n rows', dataRows.length)
 
     const LCAs = dataRows.map((row) => {
         // console.log('row', row.values)
+        // console.log('row', String(getCellValue(row, 1)))
+        // // print cols 70-74
+        // console.log('row', String(getCellValue(row, 70)))
+        // console.log('row', String(getCellValue(row, 71)))
+        // console.log('row', String(getCellValue(row, 72)))
+        // console.log('row', String(getCellValue(row, 73)))
+        // console.log('row', String(getCellValue(row, 74)))
+
         const receivedDate = getCellValue(row, 3) as Date;
         const decisionDate = getCellValue(row, 4) as Date;
         const jobTitle =  String(getCellValue(row, 7));
@@ -201,11 +220,17 @@ export async function getLCAData(dataDir: string, filename: string): Promise<LCA
         const wageRateOfPayFrom = getCellValue(row, 72) as number;
         const wageUnitOfPay = toWageUnitOfPay(String(getCellValue(row, 74)));
 
+        const visaClass = toVisaClass(String(getCellValue(row, 6)));
+
+        // only include H1B1 Singapore
+
+        if (visaClass !== VisaClass.H1B1_SINGAPORE) {
+            return undefined;
+        }
+
         //combine all above values into one searchable text and apply all as lowercase string
-        const searchableText =  `${String(convertDateToMDYformat(receivedDate))} ${String(convertDateToMDYformat(decisionDate))} ${jobTitle} ${status} ${String(calculateBaseAnnualSalary(wageRateOfPayFrom, wageUnitOfPay))} ${employerName} ${worksiteCity} ${worksiteState}`.toLowerCase(); 
-        
-        console.log(searchableText);
-        
+        const searchableText =  `${String(convertDateToMDYformat(receivedDate))} ${String(convertDateToMDYformat(decisionDate))} ${jobTitle} ${status} ${String(calculateBaseAnnualSalary(wageRateOfPayFrom, wageUnitOfPay))} ${employerName} ${worksiteCity} ${worksiteState}`.toLowerCase();
+
         const lcaDisclosure: LCADisclosure = {
             id: String(getCellValue(row, 1)),
             caseStatus: status,
@@ -310,8 +335,9 @@ export async function getLCAData(dataDir: string, filename: string): Promise<LCA
         //     console.log(`${key}: ${typeof lcaDisclosure[key as keyof LCADisclosure]}, value: ${lcaDisclosure[key as keyof LCADisclosure]}`);
         // });
         // exit(0);
-        return lcaDisclosure;
+        return lcaDisclosure
     });
-    console.log("n LCA disclosures:", LCAs.length);
-    return LCAs;
+    const filteredLCAs = LCAs.filter((lca) => lca !== undefined) as LCADisclosure[];
+    console.log(`Found ${filteredLCAs.length} H-1B1 LCA disclosures`);
+    return filteredLCAs;
 }
