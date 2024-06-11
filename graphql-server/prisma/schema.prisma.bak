@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator pothos {
+  provider = "prisma-pothos-types"
+}
+
+// To migrate: npx prisma migrate dev --name init
+// To generate Prisma Client and Pothos types: npm run build (npm i && npx prisma generate)
+
+model LCADisclosure {
+  caseNumber String @id
+  caseStatus String
+  visaClass String
+  jobTitle String?
+  socCode String
+  socJob SOCJob @relation(fields: [socCode], references: [code])
+  fullTimePosition Boolean
+  receivedDate DateTime @db.Date
+  decisionDate DateTime @db.Date
+  beginDate DateTime @db.Date
+  employerUuid String @db.Uuid
+  employer Employer @relation(fields: [employerUuid], references: [uuid])
+  worksiteCity String?
+  worksiteState String?
+  worksitePostalCode String?
+  wageRateOfPayFrom Float?
+  wageRateOfPayTo Float?
+  wageRateOfPayUnit String?
+  prevailingWageRateOfPay Float?
+  prevailingWageRateOfPayUnit String?
+}
+
+model SOCJob {
+  code String @id
+  title String
+  lcaDisclosures LCADisclosure[]
+}
+
+model Employer {
+  uuid   String @id @default(uuid()) @db.Uuid
+  naicsCode String
+  name String
+  city String
+  state String?
+  postalCode String
+  lcaDisclosures LCADisclosure[]
+}
+
+model RawDisclosureData {
+  // This model is used to store the raw data from the disclosure files
+  // Combines all fields from LCADisclosure, SOCJob, Employer, and Worksite
+  // All optional strings except for caseNumber
+  caseNumber String @id
+  caseStatus String?
+  visaClass String?
+  jobTitle String?
+  socCode String?
+  socTitle String?
+  fullTimePosition String?
+  receivedDate String?
+  decisionDate String?
+  beginDate String?
+  employerNaicsCode String?
+  employerName String?
+  employerCity String?
+  employerState String?
+  employerPostalCode String?
+  worksitePostalCode String?
+  worksiteCity String?
+  worksiteState String?
+  wageRateOfPayFrom String?
+  wageRateOfPayTo String?
+  wageRateOfPayUnit String?
+  prevailingWageRateOfPay String?
+  prevailingWageRateOfPayUnit String?
+}
+
+

@@ -1,0 +1,21 @@
+query allLCADisclosures {
+  lcaDisclosures {
+    caseNumber
+    caseStatus
+    visaClass
+    receivedDate
+    employer {
+      name
+      city
+      state
+    }
+    worksite {
+      city
+      state
+      postalCode
+    }
+    socJob {
+      code
+    }
+  }
+}

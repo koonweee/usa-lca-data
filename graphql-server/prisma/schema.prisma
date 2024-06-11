@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// generator pothos {
+//   provider = "prisma-pothos-types"
+// }
+
+generator nexusPrisma {
+   provider = "nexus-prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model LCADisclosure {
+  caseNumber                  String     @id
+  jobTitle                    String?
+  socCode                     String
+  fullTimePosition            Boolean
+  receivedDate                DateTime   @db.Date
+  decisionDate                DateTime   @db.Date
+  beginDate                   DateTime   @db.Date
+  worksitePostalCode          String?
+  wageRateOfPayFrom           BigInt?
+  wageRateOfPayTo             BigInt?
+  prevailingWageRateOfPay     BigInt?
+  employerUuid                String     @db.Uuid
+  worksiteCity                String?
+  worksiteState               String?
+  wageRateOfPayUnit           payunit?
+  prevailingWageRateOfPayUnit payunit?
+  caseStatus                  casestatus
+  visaClass                   visaclass
+  employer                    Employer   @relation(fields: [employerUuid], references: [uuid])
+  socJob                      SOCJob     @relation(fields: [socCode], references: [code])
+}
+
+model SOCJob {
+  code           String          @id
+  title          String
+  lcaDisclosures LCADisclosure[]
+}
+
+model Employer {
+  naicsCode      String
+  name           String
+  city           String
+  state          String?
+  postalCode     String
+  uuid           String          @id @default(uuid()) @db.Uuid
+  lcaDisclosures LCADisclosure[]
+}
+
+model RawDisclosureData {
+  caseNumber                       String      @id
+  caseStatus                       String?
+  visaClass                        String?
+  jobTitle                         String?
+  socCode                          String?
+  socTitle                         String?
+  fullTimePosition                 String?
+  receivedDate                     String?
+  decisionDate                     String?
+  beginDate                        String?
+  employerNaicsCode                String?
+  employerName                     String?
+  employerCity                     String?
+  employerState                    String?
+  employerPostalCode               String?
+  worksitePostalCode               String?
+  worksiteCity                     String?
+  worksiteState                    String?
+  wageRateOfPayFrom                String?
+  wageRateOfPayTo                  String?
+  wageRateOfPayUnit                String?
+  prevailingWageRateOfPay          String?
+  prevailingWageRateOfPayUnit      String?
+  receivedDate_date                DateTime?   @db.Date
+  decisionDate_date                DateTime?   @db.Date
+  beginDate_date                   DateTime?   @db.Date
+  socCode_clean                    String?     @db.VarChar(10)
+  employerUuid                     String?     @db.Uuid
+  fullTimePosition_bool            Boolean?
+  wageRateOfPayFrom_numeric        Decimal?    @db.Decimal
+  wageRateOfPayTo_numeric          Decimal?    @db.Decimal
+  prevailingWageRateOfPay_numeric  Decimal?    @db.Decimal
+  wageRateOfPayUnit_enum           payunit?
+  prevailingWageRateOfPayUnit_enum payunit?
+  visaClass_enum                   visaclass?
+  caseStatus_enum                  casestatus?
+}
+
+enum payunit {
+  Hour
+  Week
+  Bi_Weekly @map("Bi-Weekly")
+  Month
+  Year
+}
+
+enum casestatus {
+  Certified
+  Certified___Withdrawn @map("Certified - Withdrawn")
+  Denied
+  Withdrawn
+}
+
+enum visaclass {
+  E_3_Australian  @map("E-3 Australian")
+  H_1B            @map("H-1B")
+  H_1B1_Chile     @map("H-1B1 Chile")
+  H_1B1_Singapore @map("H-1B1 Singapore")
+}

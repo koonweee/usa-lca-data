@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "RawDisclosureData" ALTER COLUMN "receivedDate" SET DATA TYPE TEXT,
+ALTER COLUMN "decisionDate" SET DATA TYPE TEXT,
+ALTER COLUMN "beginDate" SET DATA TYPE TEXT;
