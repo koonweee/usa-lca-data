@@ -1,5 +1,5 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
-import { DateTimeResolver } from 'graphql-scalars';
+import { BigIntResolver, DateTimeResolver } from 'graphql-scalars';
 
 const config: CodegenConfig = {
   // GraphQL server for codegen to infer types and their fields from
@@ -19,6 +19,7 @@ const config: CodegenConfig = {
   config: {
     scalars: {
       DateTime: DateTimeResolver.extensions.codegenScalarType,
+      BigInt: BigIntResolver.extensions.codegenScalarType,
     }
   },
   // Ignore that we don't have any tsx files at the moment

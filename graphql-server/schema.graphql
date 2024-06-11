@@ -57,7 +57,52 @@ type LCADisclosures {
 
 type Query {
   employers(searchStr: String): [Employer!]!
-  lcaDisclosures(jobTitleSearchStr: String, orderBy: [LCADisclosureOrderByInput!], skip: Int, take: Int = 50): LCADisclosures!
+  lcaDisclosures(
+    """Filter for jobs with begin date less than or equal to this"""
+    beginDateMax: DateTime
+
+    """Filter for jobs with begin date greater than or equal to this"""
+    beginDateMin: DateTime
+    caseStatuses: [casestatus!]
+
+    """Filter for jobs with decision date less than or equal to this"""
+    decisionDateMax: DateTime
+
+    """Filter for jobs with decision date greater than or equal to this"""
+    decisionDateMin: DateTime
+
+    """Filter for jobs with this exact employer city"""
+    employerCities: [String!]
+
+    """Filter for employers containing this string"""
+    employerNameSearchStr: String
+
+    """Filter for jobs with this exact employer state"""
+    employerStates: [String!]
+
+    """Filter for jobs with this exact employer UUID"""
+    employerUuids: [String!]
+
+    """Filter for jobs with this exact job SOC code"""
+    jobSOCCodes: [String!]
+
+    """Filter for job titles containing this string"""
+    jobTitleSearchStr: String
+    orderBy: [LCADisclosureOrderByInput!]
+
+    """Number of records to skip"""
+    skip: Int = 0
+
+    """Number of records to take (max 500)"""
+    take: Int = 50
+    visaClasses: [visaclass!]
+
+    """Filter for jobs with wage less than or equal to this"""
+    wageMax: Int
+
+    """Filter for jobs with wage greater than or equal to this"""
+    wageMin: Int = 0
+  ): LCADisclosures!
   socJobs: [SOCJob!]!
 }
 

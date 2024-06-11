@@ -1,7 +1,6 @@
 
 
-import type { AllLcaDisclosuresQuery } from "./graphql/generated"
+import type { PaginatedLcaDisclosuresQuery } from "./graphql/generated"
 
-export type LCADisclosure = AllLcaDisclosuresQuery["lcaDisclosures"][0]
+export type LCADisclosure = PaginatedLcaDisclosuresQuery["lcaDisclosures"]['items'][0]
 export type Employer = LCADisclosure["employer"]
-export type Worksite = LCADisclosure["worksite"]

@@ -1,0 +1,14 @@
+query paginatedLCADisclosures($orderBy: [LCADisclosureOrderByInput!], $take: Int, $skip: Int) {
+  lcaDisclosures(take: $take, skip: $skip, orderBy: $orderBy) {
+    count
+    items {
+      employer {
+        name
+      }
+      receivedDate
+      beginDate
+      visaClass
+      wageRateOfPayFrom
+    }
+  }
+}

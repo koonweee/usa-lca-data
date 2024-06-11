@@ -207,10 +207,23 @@ export interface NexusGenArgTypes {
       searchStr?: string | null; // String
     }
     lcaDisclosures: { // args
+      beginDateMax?: NexusGenScalars['DateTime'] | null; // DateTime
+      beginDateMin?: NexusGenScalars['DateTime'] | null; // DateTime
+      caseStatuses?: NexusGenEnums['casestatus'][] | null; // [casestatus!]
+      decisionDateMax?: NexusGenScalars['DateTime'] | null; // DateTime
+      decisionDateMin?: NexusGenScalars['DateTime'] | null; // DateTime
+      employerCities?: string[] | null; // [String!]
+      employerNameSearchStr?: string | null; // String
+      employerStates?: string[] | null; // [String!]
+      employerUuids?: string[] | null; // [String!]
+      jobSOCCodes?: string[] | null; // [String!]
       jobTitleSearchStr?: string | null; // String
       orderBy?: NexusGenInputs['LCADisclosureOrderByInput'][] | null; // [LCADisclosureOrderByInput!]
       skip?: number | null; // Int
       take: number | null; // Int
+      visaClasses?: NexusGenEnums['visaclass'][] | null; // [visaclass!]
+      wageMax?: number | null; // Int
+      wageMin?: number | null; // Int
     }
   }
 }

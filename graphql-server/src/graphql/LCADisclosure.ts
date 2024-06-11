@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { arg, enumType, extendType, inputObjectType, intArg, list, nonNull, objectType, stringArg } from "nexus";
 import { LCADisclosure, casestatus, payunit, visaclass } from "nexus-prisma";
+import { dateTimeArg } from "./args";
 
 export const payUnitType = enumType(payunit);
 export const caseStatusType = enumType(casestatus);
@@ -46,29 +47,124 @@ export const lcaDisclosureQuery = extendType({
     t.nonNull.field('lcaDisclosures', {
       type: 'LCADisclosures',
       args: {
-        jobTitleSearchStr: stringArg(),
-        skip: intArg(),
-        take: intArg({default: 50}),
-        orderBy: arg({ type: list(nonNull(LCADisclosureOrderByInput)) })
+        /** Job filter options */
+        jobTitleSearchStr: stringArg({ description: 'Filter for job titles containing this string' }),
+        jobSOCCodes: list(nonNull(stringArg({ description: 'Filter for jobs with this exact job SOC code'}))),
+        /** Employer filter options */
+        employerNameSearchStr: stringArg({ description: 'Filter for employers containing this string' }),
+        employerUuids: list(nonNull(stringArg({ description: 'Filter for jobs with this exact employer UUID'}))),
+        employerStates: list(nonNull(stringArg({ description: 'Filter for jobs with this exact employer state'}))),
+        employerCities: list(nonNull(stringArg({ description: 'Filter for jobs with this exact employer city'}))),
+        /** Date filter options */
+        decisionDateMin: dateTimeArg({ description: 'Filter for jobs with decision date greater than or equal to this'}),
+        decisionDateMax: dateTimeArg({ description: 'Filter for jobs with decision date less than or equal to this'}),
+        beginDateMin: dateTimeArg({ description: 'Filter for jobs with begin date greater than or equal to this'}),
+        beginDateMax: dateTimeArg({ description: 'Filter for jobs with begin date less than or equal to this'}),
+        /** Wage filter options */
+        wageMin: intArg({ description: 'Filter for jobs with wage greater than or equal to this', default: 0}),
+        wageMax: intArg({ description: 'Filter for jobs with wage less than or equal to this'}),
+        /** Case status options */
+        caseStatuses: list(nonNull(arg({ type: caseStatusType }))),
+        /** Visa class options */
+        visaClasses: list(nonNull(arg({ type: visaClassType }))),
+        /** Pagination options */
+        skip: intArg({ description: 'Number of records to skip', default: 0}),
+        take: intArg({ description: 'Number of records to take (max 500)', default: 50}),
+        /** Sorting options */
+        orderBy: arg({ type: list(nonNull(LCADisclosureOrderByInput)) }),
       },
       resolve(parent, args, context, info) {
-        const { jobTitleSearchStr, skip, take, orderBy } = args
+        const {
+          jobTitleSearchStr,
+          jobSOCCodes,
+          employerNameSearchStr,
+          employerUuids,
+          employerStates,
+          employerCities,
+          decisionDateMin,
+          decisionDateMax,
+          beginDateMin,
+          beginDateMax,
+          wageMin,
+          wageMax,
+          caseStatuses,
+          visaClasses,
+          skip,
+          take,
+          orderBy
+        } = args
         // Throw if take > 500
         if (take && take > 500) {
           throw new Error('Cannot take more than 500 records')
         }
         const count = context.prisma.lCADisclosure.count()
-        const baseWhere = {
-          visaClass: visaclass.members[3]
+
+        const where: Prisma.LCADisclosureWhereInput = {}
+
+        if (jobTitleSearchStr) {
+          where.jobTitle = { contains: jobTitleSearchStr, mode: 'insensitive' }
         }
-        const conditionalWhere = jobTitleSearchStr ?
-            { jobTitle: { contains: jobTitleSearchStr } }
-         : {}
+
+        if (jobSOCCodes) {
+          where.socCode = { in: jobSOCCodes }
+        }
+
+        if (employerUuids) {
+          where.employerUuid = { in: employerUuids }
+        }
+
+        const employerWhere: Prisma.EmployerWhereInput = {}
+
+        if (employerNameSearchStr) {
+          employerWhere.name = { contains: employerNameSearchStr, mode: 'insensitive' }
+        }
+
+        if (employerStates) {
+          employerWhere.state = { in: employerStates, mode: 'insensitive' }
+        }
+
+        if (employerCities) {
+          employerWhere.city = { in: employerCities, mode: 'insensitive' }
+        }
+
+        if (Object.keys(employerWhere).length > 0) {
+          where.employer = employerWhere
+        }
+
+        if (decisionDateMin) {
+          where.decisionDate = { ...(typeof where.decisionDate === 'object' ? where.decisionDate : {}), gte: decisionDateMin }
+        }
+
+        if (decisionDateMax) {
+          where.decisionDate = { ...(typeof where.decisionDate === 'object' ? where.decisionDate : {}), lte: decisionDateMax }
+        }
+
+        if (beginDateMin) {
+          where.beginDate = { ...(typeof where.beginDate === 'object' ? where.beginDate : {}), gte: beginDateMin }
+        }
+
+        if (beginDateMax) {
+          where.beginDate = { ...(typeof where.beginDate === 'object' ? where.beginDate : {}), lte: beginDateMax }
+        }
+
+        if (wageMin) {
+          where.wageRateOfPayFrom = {...(typeof where.wageRateOfPayFrom === 'object' ? where.wageRateOfPayFrom : {}), gte: wageMin}
+        }
+
+        if (wageMax) {
+          where.wageRateOfPayFrom = {...(typeof where.wageRateOfPayFrom === 'object' ? where.wageRateOfPayFrom : {}), lte: wageMax}
+        }
+
+        if (caseStatuses) {
+          where.caseStatus = { in: caseStatuses }
+        }
+
+        if (visaClasses) {
+          where.visaClass = { in: visaClasses }
+        }
+
         const disclosures =  context.prisma.lCADisclosure.findMany({
-          where: {
-            ...baseWhere,
-            ...conditionalWhere
-          },
+          where,
           skip: skip ?? undefined,
           take: take ?? undefined,
           orderBy: orderBy ? orderBy as Prisma.Enumerable<Prisma.LCADisclosureOrderByWithRelationInput> : undefined
