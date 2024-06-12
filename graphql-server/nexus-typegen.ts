@@ -63,6 +63,10 @@ export interface NexusGenScalars {
 }
 
 export interface NexusGenObjects {
+  CaseStatusFacet: { // root type
+    caseStatus: NexusGenEnums['casestatus']; // casestatus!
+    count: number; // Int!
+  }
   Employer: { // root type
     city: string; // String!
     naicsCode: string; // String!
@@ -93,11 +97,17 @@ export interface NexusGenObjects {
   LCADisclosures: { // root type
     count: number; // Int!
     items: NexusGenRootTypes['LCADisclosure'][]; // [LCADisclosure!]!
+    uniqueCaseStatusFacets: NexusGenRootTypes['CaseStatusFacet'][]; // [CaseStatusFacet!]!
+    uniqueVisaClassFacets: NexusGenRootTypes['VisaClassFacet'][]; // [VisaClassFacet!]!
   }
   Query: {};
   SOCJob: { // root type
     code: string; // ID!
     title: string; // String!
+  }
+  VisaClassFacet: { // root type
+    count: number; // Int!
+    visaClass: NexusGenEnums['visaclass']; // visaclass!
   }
 }
 
@@ -112,6 +122,10 @@ export type NexusGenRootTypes = NexusGenObjects
 export type NexusGenAllTypes = NexusGenRootTypes & NexusGenScalars & NexusGenEnums
 
 export interface NexusGenFieldTypes {
+  CaseStatusFacet: { // field return type
+    caseStatus: NexusGenEnums['casestatus']; // casestatus!
+    count: number; // Int!
+  }
   Employer: { // field return type
     city: string; // String!
     naicsCode: string; // String!
@@ -144,6 +158,8 @@ export interface NexusGenFieldTypes {
   LCADisclosures: { // field return type
     count: number; // Int!
     items: NexusGenRootTypes['LCADisclosure'][]; // [LCADisclosure!]!
+    uniqueCaseStatusFacets: NexusGenRootTypes['CaseStatusFacet'][]; // [CaseStatusFacet!]!
+    uniqueVisaClassFacets: NexusGenRootTypes['VisaClassFacet'][]; // [VisaClassFacet!]!
   }
   Query: { // field return type
     employers: NexusGenRootTypes['Employer'][]; // [Employer!]!
@@ -154,9 +170,17 @@ export interface NexusGenFieldTypes {
     code: string; // ID!
     title: string; // String!
   }
+  VisaClassFacet: { // field return type
+    count: number; // Int!
+    visaClass: NexusGenEnums['visaclass']; // visaclass!
+  }
 }
 
 export interface NexusGenFieldTypeNames {
+  CaseStatusFacet: { // field return type name
+    caseStatus: 'casestatus'
+    count: 'Int'
+  }
   Employer: { // field return type name
     city: 'String'
     naicsCode: 'String'
@@ -189,6 +213,8 @@ export interface NexusGenFieldTypeNames {
   LCADisclosures: { // field return type name
     count: 'Int'
     items: 'LCADisclosure'
+    uniqueCaseStatusFacets: 'CaseStatusFacet'
+    uniqueVisaClassFacets: 'VisaClassFacet'
   }
   Query: { // field return type name
     employers: 'Employer'
@@ -198,6 +224,10 @@ export interface NexusGenFieldTypeNames {
   SOCJob: { // field return type name
     code: 'ID'
     title: 'String'
+  }
+  VisaClassFacet: { // field return type name
+    count: 'Int'
+    visaClass: 'visaclass'
   }
 }
 
@@ -214,6 +244,7 @@ export interface NexusGenArgTypes {
       decisionDateMin?: NexusGenScalars['DateTime'] | null; // DateTime
       employerCities?: string[] | null; // [String!]
       employerNameSearchStr?: string | null; // String
+      employerNames?: string[] | null; // [String!]
       employerStates?: string[] | null; // [String!]
       employerUuids?: string[] | null; // [String!]
       jobSOCCodes?: string[] | null; // [String!]

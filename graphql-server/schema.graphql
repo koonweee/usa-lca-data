@@ -7,6 +7,11 @@ The `BigInt` scalar type represents non-fractional signed whole numeric values.
 """
 scalar BigInt
 
+type CaseStatusFacet {
+  caseStatus: casestatus!
+  count: Int!
+}
+
 """
 A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
 """
@@ -53,6 +58,8 @@ input LCADisclosureOrderByInput {
 type LCADisclosures {
   count: Int!
   items: [LCADisclosure!]!
+  uniqueCaseStatusFacets: [CaseStatusFacet!]!
+  uniqueVisaClassFacets: [VisaClassFacet!]!
 }
 
 type Query {
@@ -76,6 +83,9 @@ type Query {
 
     """Filter for employers containing this string"""
     employerNameSearchStr: String
+
+    """Filter for jobs with this exact employer name"""
+    employerNames: [String!]
 
     """Filter for jobs with this exact employer state"""
     employerStates: [String!]
@@ -114,6 +124,11 @@ type SOCJob {
 enum SortOrder {
   asc
   desc
+}
+
+type VisaClassFacet {
+  count: Int!
+  visaClass: visaclass!
 }
 
 enum casestatus {

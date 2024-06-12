@@ -1,0 +1,6 @@
+query allEmployers {
+  employers {
+    uuid
+    name
+  }
+}

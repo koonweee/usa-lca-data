@@ -1,14 +1,70 @@
-query paginatedLCADisclosures($orderBy: [LCADisclosureOrderByInput!], $take: Int, $skip: Int) {
-  lcaDisclosures(take: $take, skip: $skip, orderBy: $orderBy) {
+query paginatedLCADisclosures(
+  $orderBy: [LCADisclosureOrderByInput!]
+  $take: Int
+  $skip: Int
+  $visaClasses: [visaclass!]
+  $caseStatuses: [casestatus!]
+  $wageMin: Int
+  $wageMax: Int
+  $beginDateMin: DateTime
+  $beginDateMax: DateTime
+  $decisionDateMin: DateTime
+  $decisionDateMax: DateTime
+  $employerUuids: [String!]
+  $employerStates: [String!]
+  $employerCities: [String!]
+  $employerNames: [String!]
+  $employerNameSearchStr: String
+  $jobSocCodes: [String!]
+  $jobTitleSearchStr: String
+) {
+  lcaDisclosures(
+    take: $take
+    skip: $skip
+    orderBy: $orderBy
+    visaClasses: $visaClasses
+    caseStatuses: $caseStatuses
+    wageMin: $wageMin
+    wageMax: $wageMax
+    beginDateMin: $beginDateMin
+    beginDateMax: $beginDateMax
+    decisionDateMin: $decisionDateMin
+    decisionDateMax: $decisionDateMax
+    employerUuids: $employerUuids
+    employerStates: $employerStates
+    employerCities: $employerCities
+    employerNames: $employerNames
+    employerNameSearchStr: $employerNameSearchStr
+    jobSOCCodes: $jobSocCodes
+    jobTitleSearchStr: $jobTitleSearchStr
+  ) {
     count
+    uniqueVisaClassFacets {
+      count
+      visaClass
+    }
+    uniqueCaseStatusFacets {
+      caseStatus
+      count
+    }
     items {
       employer {
         name
+        city
+        state
+      }
+      socJob {
+        title
+        code
       }
       receivedDate
       beginDate
       visaClass
       wageRateOfPayFrom
+      wageRateOfPayUnit
+      jobTitle
+      caseStatus
+      caseNumber
     }
   }
 }
