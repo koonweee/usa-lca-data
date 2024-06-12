@@ -30,7 +30,7 @@ export function PageFooter() {
           </a>
           . Source code is available on{" "}
           <a
-            href={'https://github.com/koonweee/h1b1-data'}
+            href={'https://github.com/koonweee/usa-lca-data'}
             target="_blank"
             rel="noreferrer"
             className="font-medium underline underline-offset-4"
