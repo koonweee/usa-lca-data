@@ -64,8 +64,6 @@ export const LCADisclosuresType = objectType({
   definition(t) {
     t.nonNull.list.nonNull.field("items", { type: "LCADisclosure" });
     t.nonNull.int("count");
-    t.nonNull.list.nonNull.field("uniqueVisaClassFacets", { type: "VisaClassFacet" });
-    t.nonNull.list.nonNull.field("uniqueCaseStatusFacets", { type: "CaseStatusFacet" });
   },
 });
 
@@ -281,7 +279,9 @@ export const lcaDisclosureQuery = extendType({
         }
 
         const disclosures = context.prisma.lCADisclosure.findMany({
-          where,
+          where: {
+            ...where,
+          },
           skip: skip ?? undefined,
           take: take ?? undefined,
           orderBy: orderBy
@@ -291,24 +291,9 @@ export const lcaDisclosureQuery = extendType({
 
         const count = context.prisma.lCADisclosure.count({ where });
 
-        // Faceted unique value counts for filtering (visaClasses, caseStatuses)
-        const uniqueVisaClassFacets = context.prisma.lCADisclosure.groupBy({
-          by: "visaClass",
-          _count: { visaClass: true },
-          where,
-        }).then((res: any) => res.map((r: any) => ({ visaClass: r.visaClass, count: r._count.visaClass })))
-
-        const uniqueCaseStatusFacets = context.prisma.lCADisclosure.groupBy({
-          by: ["caseStatus"],
-          _count: { caseStatus: true },
-          where
-        }).then((res: any) => res.map((r: any) => ({ caseStatus: r.caseStatus, count: r._count.caseStatus })))
-
         return {
           items: disclosures,
           count,
-          uniqueVisaClassFacets: uniqueVisaClassFacets,
-          uniqueCaseStatusFacets: uniqueCaseStatusFacets,
         };
       },
     });

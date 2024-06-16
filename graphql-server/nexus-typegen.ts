@@ -97,8 +97,10 @@ export interface NexusGenObjects {
   LCADisclosures: { // root type
     count: number; // Int!
     items: NexusGenRootTypes['LCADisclosure'][]; // [LCADisclosure!]!
-    uniqueCaseStatusFacets: NexusGenRootTypes['CaseStatusFacet'][]; // [CaseStatusFacet!]!
-    uniqueVisaClassFacets: NexusGenRootTypes['VisaClassFacet'][]; // [VisaClassFacet!]!
+  }
+  PaginatedEmployer: { // root type
+    hasMore: boolean; // Boolean!
+    items: NexusGenRootTypes['Employer'][]; // [Employer!]!
   }
   Query: {};
   SOCJob: { // root type
@@ -158,11 +160,13 @@ export interface NexusGenFieldTypes {
   LCADisclosures: { // field return type
     count: number; // Int!
     items: NexusGenRootTypes['LCADisclosure'][]; // [LCADisclosure!]!
-    uniqueCaseStatusFacets: NexusGenRootTypes['CaseStatusFacet'][]; // [CaseStatusFacet!]!
-    uniqueVisaClassFacets: NexusGenRootTypes['VisaClassFacet'][]; // [VisaClassFacet!]!
+  }
+  PaginatedEmployer: { // field return type
+    hasMore: boolean; // Boolean!
+    items: NexusGenRootTypes['Employer'][]; // [Employer!]!
   }
   Query: { // field return type
-    employers: NexusGenRootTypes['Employer'][]; // [Employer!]!
+    employers: NexusGenRootTypes['PaginatedEmployer']; // PaginatedEmployer!
     lcaDisclosures: NexusGenRootTypes['LCADisclosures']; // LCADisclosures!
     socJobs: NexusGenRootTypes['SOCJob'][]; // [SOCJob!]!
   }
@@ -213,11 +217,13 @@ export interface NexusGenFieldTypeNames {
   LCADisclosures: { // field return type name
     count: 'Int'
     items: 'LCADisclosure'
-    uniqueCaseStatusFacets: 'CaseStatusFacet'
-    uniqueVisaClassFacets: 'VisaClassFacet'
+  }
+  PaginatedEmployer: { // field return type name
+    hasMore: 'Boolean'
+    items: 'Employer'
   }
   Query: { // field return type name
-    employers: 'Employer'
+    employers: 'PaginatedEmployer'
     lcaDisclosures: 'LCADisclosures'
     socJobs: 'SOCJob'
   }
@@ -234,7 +240,11 @@ export interface NexusGenFieldTypeNames {
 export interface NexusGenArgTypes {
   Query: {
     employers: { // args
+      caseStatuses?: NexusGenEnums['casestatus'][] | null; // [casestatus!]
       searchStr?: string | null; // String
+      skip?: number | null; // Int
+      take: number | null; // Int
+      visaClasses?: NexusGenEnums['visaclass'][] | null; // [visaclass!]
     }
     lcaDisclosures: { // args
       beginDateMax?: NexusGenScalars['DateTime'] | null; // DateTime

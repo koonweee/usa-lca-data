@@ -1,0 +1,25 @@
+query paginatedEmployers(
+  $searchStr: String
+  $caseStatuses: [casestatus!]
+  $visaClasses: [visaclass!]
+  $skip: Int
+  $take: Int
+) {
+  employers(
+    searchStr: $searchStr
+    caseStatuses: $caseStatuses
+    visaClasses: $visaClasses
+    skip: $skip
+    take: $take
+  ) {
+    hasMore
+    items {
+      city
+      naicsCode
+      name
+      postalCode
+      state
+      uuid
+    }
+  }
+}

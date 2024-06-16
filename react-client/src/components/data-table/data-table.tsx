@@ -38,7 +38,7 @@ interface DataTableProps<TData, TValue> {
   serverSideFilteringConfig?: {
     setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
     columnFilters: ColumnFiltersState;
-    getFacetedUniqueValues: typeof getFacetedUniqueValues
+    getFacetedUniqueValues?: typeof getFacetedUniqueValues
     filterOptionsMap: Map<string, { value: string, label: string}[]> // columnId -> filterOptions
   };
   isLoading?: boolean;

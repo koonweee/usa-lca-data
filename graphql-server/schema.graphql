@@ -58,12 +58,25 @@ input LCADisclosureOrderByInput {
 type LCADisclosures {
   count: Int!
   items: [LCADisclosure!]!
-  uniqueCaseStatusFacets: [CaseStatusFacet!]!
-  uniqueVisaClassFacets: [VisaClassFacet!]!
+}
+
+type PaginatedEmployer {
+  hasMore: Boolean!
+  items: [Employer!]!
 }
 
 type Query {
-  employers(searchStr: String): [Employer!]!
+  employers(
+    caseStatuses: [casestatus!]
+    searchStr: String
+
+    """Number of records to skip"""
+    skip: Int = 0
+
+    """Number of records to take (max 500)"""
+    take: Int = 50
+    visaClasses: [visaclass!]
+  ): PaginatedEmployer!
   lcaDisclosures(
     """Filter for jobs with begin date less than or equal to this"""
     beginDateMax: DateTime

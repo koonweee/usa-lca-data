@@ -230,3 +230,11 @@ alter COLUMN "prevailingWageRateOfPay" type bigint using "prevailingWageRateOfPa
 
 -- Inspect the new columns
 select "wageRateOfPayFrom", "wageRateOfPayTo", "prevailingWageRateOfPay" from "LCADisclosure" limit 10
+
+
+-- Cleaning up Employer duplicates
+
+-- Get count of employers
+select count(*) from "Employer";
+-- Get distinct employers (name, postalCode)
+select count(distinct "name", "postalCode") from "Employer";

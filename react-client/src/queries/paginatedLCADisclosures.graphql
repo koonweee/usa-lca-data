@@ -39,14 +39,6 @@ query paginatedLCADisclosures(
     jobTitleSearchStr: $jobTitleSearchStr
   ) {
     count
-    uniqueVisaClassFacets {
-      count
-      visaClass
-    }
-    uniqueCaseStatusFacets {
-      caseStatus
-      count
-    }
     items {
       employer {
         name

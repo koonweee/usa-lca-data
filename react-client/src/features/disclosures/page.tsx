@@ -5,14 +5,13 @@ import { columns } from "@/features/disclosures/columns";
 import {
   getCaseStatusFilters,
   getEmployerNameFilters,
-  getFacetedUniqueValuesMapFromArray,
-  getVisaFilters,
+  getVisaFilters
 } from "@/features/disclosures/lib/filters";
 import {
-  PaginatedLcaDisclosuresDocument,
-  SortOrder,
   AllEmployersDocument,
+  PaginatedLcaDisclosuresDocument,
   PaginatedLcaDisclosuresQueryVariables,
+  SortOrder,
 } from "@/graphql/generated";
 import { CASE_STATUS_ENUM_TO_READABLE, VISA_CLASS_ENUM_TO_READABLE } from "@/queries/formatters/lca-disclosure";
 import { useQuery } from "@apollo/client";
@@ -52,59 +51,15 @@ export default function LCADisclosuresPage() {
     }
   );
 
-  const { items, count, uniqueCaseStatusFacets, uniqueVisaClassFacets } =
+  const { items, count } =
     data?.lcaDisclosures || {};
 
   const { data: allEmployersData } = useQuery(AllEmployersDocument);
-
-  const uniqueCaseStatusFacetsMap = useMemo(
-    () =>
-      uniqueCaseStatusFacets
-        ? getFacetedUniqueValuesMapFromArray(
-            "caseStatus",
-            uniqueCaseStatusFacets,
-            CASE_STATUS_ENUM_TO_READABLE,
-          )
-        : new Map<string, number>(),
-    [uniqueCaseStatusFacets]
-  );
-
-  const uniqueCaseStatusFacetsMapRef = React.useRef<Map<string, number>>();
-  uniqueCaseStatusFacetsMapRef.current = uniqueCaseStatusFacetsMap;
-
-
-
-  const uniqueVisaClassFacetsMap = useMemo(
-    () =>
-      uniqueVisaClassFacets
-        ? getFacetedUniqueValuesMapFromArray(
-            "visaClass",
-            uniqueVisaClassFacets,
-            VISA_CLASS_ENUM_TO_READABLE,
-          )
-        : new Map<string, number>(),
-    [uniqueVisaClassFacets]
-  );
-
-  const uniqueVisaClassFacetsMapRef = React.useRef<Map<string, number>>();
-  uniqueVisaClassFacetsMapRef.current = uniqueVisaClassFacetsMap;
-
-  const getFacetedUniqueValues= ()=> (_: unknown, columnId: string) => () => {
-    if (columnId === "caseStatus") {
-      return uniqueCaseStatusFacetsMapRef.current ?? new Map<string, number>();
-    }
-    if (columnId === "visaClass") {
-      return uniqueVisaClassFacetsMapRef.current ?? new Map<string, number>();
-    }
-    return new Map<string, number>();
-  }
 
   const employerOptions = allEmployersData?.employers.map((employer) => ({
     value: employer.name,
     label: employer.name,
   }));
-
-  console.log('employerOptions', employerOptions?.length)
 
   const caseStatusOptions = useMemo(() => Object.values(CASE_STATUS_ENUM_TO_READABLE).map(
     (value) => ({ value, label: value })
@@ -144,11 +99,10 @@ export default function LCADisclosuresPage() {
         serverSideFilteringConfig={{
           columnFilters,
           setColumnFilters,
-          getFacetedUniqueValues,
           filterOptionsMap: new Map([
             ["caseStatus", caseStatusOptions],
             ["visaClass", visaClassOptions],
-            ["employer.name", employerOptions?.slice(0,50) ?? []],
+            ["employer.name", employerOptions ?? []],
           ]),
         }}
         isLoading={loading}

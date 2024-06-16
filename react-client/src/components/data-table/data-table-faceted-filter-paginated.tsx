@@ -1,6 +1,10 @@
 import * as React from "react";
 import { CheckIcon, PlusCircledIcon } from "@radix-ui/react-icons";
 import { Column } from "@tanstack/react-table";
+import { useFuzzySearchList } from '@nozbe/microfuzz/react'
+import { useDebounce } from "use-debounce";
+import Select, { createFilter } from 'react-select';
+import { FixedSizeList as List } from "react-window";
 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +36,7 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   }[];
 }
 
-export function DataTableFacetedFilter<TData, TValue>({
+export function DataTableFacetedFilterPaginated<TData, TValue>({
   column,
   title,
   options,
@@ -49,7 +53,32 @@ export function DataTableFacetedFilter<TData, TValue>({
 
   const selectedValues = new Set(currentSelectedValues);
 
+
+  const [search, setSearch] = React.useState('')
+  const [debouncedSearchValue] = useDebounce(search, 500);
+  const onSearchChange = (searchValue: string) => setSearch(searchValue);
+
+  const isSearching = search.length > 0;
+
+  const searchedOptions = useFuzzySearchList({
+    list: options,
+    queryText: debouncedSearchValue,
+    getText: (option) => [option.label],
+    mapResultItem: (item) => item.item,
+  })
+
+
+
+  const [page, setPage] = React.useState(0);
+  const pageSize = 5;
+  const startIndex = page * pageSize; // 0, 5, 10, 15, ...
+  const endIndex = startIndex + pageSize; // 5, 10, 15, 20, ...
+  const paginatedOptions = (isSearching ? searchedOptions : options).slice(startIndex, endIndex);
+  const pageCount = Math.ceil(options.length / pageSize);
+
+
   return (
+    <>
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 border-dashed">
@@ -91,8 +120,8 @@ export function DataTableFacetedFilter<TData, TValue>({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0" align="start">
-        <Command>
-          <CommandInput placeholder={title} />
+        <Command shouldFilter={false}>
+          <CommandInput placeholder={title} value={search} onValueChange={onSearchChange}/>
           {selectedValues.size > 0 && (
             <>
               <CommandItem
@@ -106,13 +135,12 @@ export function DataTableFacetedFilter<TData, TValue>({
           )}
 
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
-              {options.map((option) => {
+              { paginatedOptions.map((option, index) => {
                 const isSelected = selectedValues.has(option.value);
                 return (
                   <CommandItem
-                    key={option.value}
+                    key={`${option.value}-${index}`}
                     onSelect={() => {
                       if (isSelected) {
                         selectedValues.delete(option.value);
@@ -145,7 +173,27 @@ export function DataTableFacetedFilter<TData, TValue>({
                 );
               })}
             </CommandGroup>
+            {
+              paginatedOptions.length === 0 &&
+              <CommandEmpty>No results found.</CommandEmpty>
+            }
           </CommandList>
+          {
+            pageCount > 1 &&
+              <>
+              <CommandSeparator />
+              <CommandItem>
+                Page {page + 1} of {pageCount}
+              </CommandItem>
+              <CommandSeparator />
+              <CommandItem
+                onSelect={() => setPage(page + 1)}
+                disabled={page === pageCount - 1}
+              >
+                Next
+              </CommandItem>
+              </>
+          }
           <CommandSeparator />
           <PopoverClose>
             <CommandItem
@@ -163,5 +211,25 @@ export function DataTableFacetedFilter<TData, TValue>({
         </Command>
       </PopoverContent>
     </Popover>
+    <Select options={options} isMulti components={{ MenuList }} filterOption={createFilter({ ignoreAccents: false })}/>
+    </>
   );
+}
+
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function MenuList({ options, children, maxHeight, getValue}: any) {
+    const [value] = getValue();
+    const initialOffset = options.indexOf(value) * 35;
+
+    return (
+      <List
+        height={maxHeight}
+        itemCount={children.length}
+        itemSize={height}
+        initialScrollOffset={initialOffset}
+      >
+        {({ index, style }) => <div style={style}>{children[index]}</div>}
+      </List>
+    );
 }
