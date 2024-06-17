@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { PopoverClose } from "@radix-ui/react-popover";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>;
@@ -30,12 +31,14 @@ interface DataTableFacetedFilterProps<TData, TValue> {
     value: string;
     icon?: React.ComponentType<{ className?: string }>;
   }[];
+  isLoading?: boolean;
 }
 
 export function DataTableFacetedFilter<TData, TValue>({
   column,
   title,
   options,
+  isLoading,
 }: DataTableFacetedFilterProps<TData, TValue>) {
   const facets = column?.getFacetedUniqueValues();
   const columnFilterValue = column?.getFilterValue() as string[];
@@ -58,34 +61,42 @@ export function DataTableFacetedFilter<TData, TValue>({
           {columnFilterValueSet?.size > 0 && (
             <>
               <Separator orientation="vertical" className="mx-2 h-4" />
-              <Badge
-                variant="secondary"
-                className="rounded-sm px-1 font-normal lg:hidden"
-              >
-                {columnFilterValueSet.size}
-              </Badge>
-              <div className="hidden space-x-1 lg:flex">
-                {columnFilterValueSet.size > 2 ? (
+              {isLoading ? (
+                <LoadingSpinner className="mr-2 w-4" />
+              ) : (
+                <>
                   <Badge
                     variant="secondary"
-                    className="rounded-sm px-1 font-normal"
+                    className="rounded-sm px-1 font-normal lg:hidden"
                   >
-                    {columnFilterValueSet.size} selected
+                    {columnFilterValueSet.size}
                   </Badge>
-                ) : (
-                  options
-                    .filter((option) => columnFilterValueSet.has(option.value))
-                    .map((option) => (
+                  <div className="hidden space-x-1 lg:flex">
+                    {columnFilterValueSet.size > 2 ? (
                       <Badge
                         variant="secondary"
-                        key={option.value}
                         className="rounded-sm px-1 font-normal"
                       >
-                        {option.label}
+                        {columnFilterValueSet.size} selected
                       </Badge>
-                    ))
-                )}
-              </div>
+                    ) : (
+                      options
+                        .filter((option) =>
+                          columnFilterValueSet.has(option.value)
+                        )
+                        .map((option) => (
+                          <Badge
+                            variant="secondary"
+                            key={option.value}
+                            className="rounded-sm px-1 font-normal"
+                          >
+                            {option.label}
+                          </Badge>
+                        ))
+                    )}
+                  </div>
+                </>
+              )}
             </>
           )}
         </Button>
@@ -107,6 +118,14 @@ export function DataTableFacetedFilter<TData, TValue>({
 
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
+            {isLoading && (
+              <CommandItem>
+                <div className="flex w-full justify-center items-center">
+                  <LoadingSpinner className="mr-2 w-4" />
+                  Loading...
+                </div>
+              </CommandItem>
+            )}
             <CommandGroup>
               {options.map((option) => {
                 const isSelected = selectedValues.has(option.value);

@@ -28,7 +28,7 @@ export const PaginatedEmployerType = objectType({
   name: "PaginatedEmployer",
   definition(t) {
     t.nonNull.list.nonNull.field("items", { type: "Employer" });
-    t.nonNull.boolean("hasMore");
+    t.nonNull.boolean("hasNext");
   },
 });
 
@@ -93,7 +93,7 @@ export const employerQuery = extendType({
           .then((result: any) => {
             return {
               items: result.slice(0, take ?? undefined),
-              hasMore: !take || result.length > take,
+              hasNext: !take || result.length > take,
             };
           });
       },

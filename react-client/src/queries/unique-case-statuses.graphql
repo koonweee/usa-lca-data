@@ -1,0 +1,7 @@
+query UniqueCaseStatuses($filters: LCADisclosureFilters) {
+  uniqueColumnValues {
+    caseStatuses(filters: $filters) {
+      uniqueValues
+    }
+  }
+}

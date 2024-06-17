@@ -37,16 +37,18 @@ declare global {
 }
 
 export interface NexusGenInputs {
-  LCADisclosureOrderByInput: { // input type
-    beginDate?: NexusGenEnums['SortOrder'] | null; // SortOrder
-    decisionDate?: NexusGenEnums['SortOrder'] | null; // SortOrder
-    receivedDate?: NexusGenEnums['SortOrder'] | null; // SortOrder
-    wageRateOfPayFrom?: NexusGenEnums['SortOrder'] | null; // SortOrder
+  LCADisclosureFilters: { // input type
+    caseStatus?: NexusGenEnums['casestatus'][] | null; // [casestatus!]
+    employerUuid?: string[] | null; // [String!]
+    visaClass?: NexusGenEnums['visaclass'][] | null; // [visaclass!]
+  }
+  PaginationInput: { // input type
+    skip?: number | null; // Int
+    take?: number | null; // Int
   }
 }
 
 export interface NexusGenEnums {
-  SortOrder: "asc" | "desc"
   casestatus: "Certified" | "Certified___Withdrawn" | "Denied" | "Withdrawn"
   payunit: "Bi_Weekly" | "Hour" | "Month" | "Week" | "Year"
   visaclass: "E_3_Australian" | "H_1B" | "H_1B1_Chile" | "H_1B1_Singapore"
@@ -63,10 +65,6 @@ export interface NexusGenScalars {
 }
 
 export interface NexusGenObjects {
-  CaseStatusFacet: { // root type
-    caseStatus: NexusGenEnums['casestatus']; // casestatus!
-    count: number; // Int!
-  }
   Employer: { // root type
     city: string; // String!
     naicsCode: string; // String!
@@ -95,21 +93,29 @@ export interface NexusGenObjects {
     worksiteState?: string | null; // String
   }
   LCADisclosures: { // root type
-    count: number; // Int!
+    hasNext?: boolean | null; // Boolean
     items: NexusGenRootTypes['LCADisclosure'][]; // [LCADisclosure!]!
+    totalCount: number; // Int!
   }
   PaginatedEmployer: { // root type
-    hasMore: boolean; // Boolean!
+    hasNext: boolean; // Boolean!
     items: NexusGenRootTypes['Employer'][]; // [Employer!]!
   }
+  PaginatedLCADisclosuresUniqueColumnValues: {};
   Query: {};
   SOCJob: { // root type
     code: string; // ID!
     title: string; // String!
   }
-  VisaClassFacet: { // root type
-    count: number; // Int!
-    visaClass: NexusGenEnums['visaclass']; // visaclass!
+  UniqueCaseStatuses: { // root type
+    uniqueValues: NexusGenEnums['casestatus'][]; // [casestatus!]!
+  }
+  UniqueEmployers: { // root type
+    hasNext?: boolean | null; // Boolean
+    uniqueValues: NexusGenRootTypes['Employer'][]; // [Employer!]!
+  }
+  UniqueVisaClasses: { // root type
+    uniqueValues: NexusGenEnums['visaclass'][]; // [visaclass!]!
   }
 }
 
@@ -124,10 +130,6 @@ export type NexusGenRootTypes = NexusGenObjects
 export type NexusGenAllTypes = NexusGenRootTypes & NexusGenScalars & NexusGenEnums
 
 export interface NexusGenFieldTypes {
-  CaseStatusFacet: { // field return type
-    caseStatus: NexusGenEnums['casestatus']; // casestatus!
-    count: number; // Int!
-  }
   Employer: { // field return type
     city: string; // String!
     naicsCode: string; // String!
@@ -158,33 +160,42 @@ export interface NexusGenFieldTypes {
     worksiteState: string | null; // String
   }
   LCADisclosures: { // field return type
-    count: number; // Int!
+    hasNext: boolean | null; // Boolean
     items: NexusGenRootTypes['LCADisclosure'][]; // [LCADisclosure!]!
+    totalCount: number; // Int!
   }
   PaginatedEmployer: { // field return type
-    hasMore: boolean; // Boolean!
+    hasNext: boolean; // Boolean!
     items: NexusGenRootTypes['Employer'][]; // [Employer!]!
+  }
+  PaginatedLCADisclosuresUniqueColumnValues: { // field return type
+    caseStatuses: NexusGenRootTypes['UniqueCaseStatuses']; // UniqueCaseStatuses!
+    employers: NexusGenRootTypes['UniqueEmployers']; // UniqueEmployers!
+    visaClasses: NexusGenRootTypes['UniqueVisaClasses']; // UniqueVisaClasses!
   }
   Query: { // field return type
     employers: NexusGenRootTypes['PaginatedEmployer']; // PaginatedEmployer!
     lcaDisclosures: NexusGenRootTypes['LCADisclosures']; // LCADisclosures!
     socJobs: NexusGenRootTypes['SOCJob'][]; // [SOCJob!]!
+    uniqueColumnValues: NexusGenRootTypes['PaginatedLCADisclosuresUniqueColumnValues']; // PaginatedLCADisclosuresUniqueColumnValues!
   }
   SOCJob: { // field return type
     code: string; // ID!
     title: string; // String!
   }
-  VisaClassFacet: { // field return type
-    count: number; // Int!
-    visaClass: NexusGenEnums['visaclass']; // visaclass!
+  UniqueCaseStatuses: { // field return type
+    uniqueValues: NexusGenEnums['casestatus'][]; // [casestatus!]!
+  }
+  UniqueEmployers: { // field return type
+    hasNext: boolean | null; // Boolean
+    uniqueValues: NexusGenRootTypes['Employer'][]; // [Employer!]!
+  }
+  UniqueVisaClasses: { // field return type
+    uniqueValues: NexusGenEnums['visaclass'][]; // [visaclass!]!
   }
 }
 
 export interface NexusGenFieldTypeNames {
-  CaseStatusFacet: { // field return type name
-    caseStatus: 'casestatus'
-    count: 'Int'
-  }
   Employer: { // field return type name
     city: 'String'
     naicsCode: 'String'
@@ -215,29 +226,55 @@ export interface NexusGenFieldTypeNames {
     worksiteState: 'String'
   }
   LCADisclosures: { // field return type name
-    count: 'Int'
+    hasNext: 'Boolean'
     items: 'LCADisclosure'
+    totalCount: 'Int'
   }
   PaginatedEmployer: { // field return type name
-    hasMore: 'Boolean'
+    hasNext: 'Boolean'
     items: 'Employer'
+  }
+  PaginatedLCADisclosuresUniqueColumnValues: { // field return type name
+    caseStatuses: 'UniqueCaseStatuses'
+    employers: 'UniqueEmployers'
+    visaClasses: 'UniqueVisaClasses'
   }
   Query: { // field return type name
     employers: 'PaginatedEmployer'
     lcaDisclosures: 'LCADisclosures'
     socJobs: 'SOCJob'
+    uniqueColumnValues: 'PaginatedLCADisclosuresUniqueColumnValues'
   }
   SOCJob: { // field return type name
     code: 'ID'
     title: 'String'
   }
-  VisaClassFacet: { // field return type name
-    count: 'Int'
-    visaClass: 'visaclass'
+  UniqueCaseStatuses: { // field return type name
+    uniqueValues: 'casestatus'
+  }
+  UniqueEmployers: { // field return type name
+    hasNext: 'Boolean'
+    uniqueValues: 'Employer'
+  }
+  UniqueVisaClasses: { // field return type name
+    uniqueValues: 'visaclass'
   }
 }
 
 export interface NexusGenArgTypes {
+  PaginatedLCADisclosuresUniqueColumnValues: {
+    caseStatuses: { // args
+      filters?: NexusGenInputs['LCADisclosureFilters'] | null; // LCADisclosureFilters
+    }
+    employers: { // args
+      employerNameSearchStr?: string | null; // String
+      filters?: NexusGenInputs['LCADisclosureFilters'] | null; // LCADisclosureFilters
+      pagination?: NexusGenInputs['PaginationInput'] | null; // PaginationInput
+    }
+    visaClasses: { // args
+      filters?: NexusGenInputs['LCADisclosureFilters'] | null; // LCADisclosureFilters
+    }
+  }
   Query: {
     employers: { // args
       caseStatuses?: NexusGenEnums['casestatus'][] | null; // [casestatus!]
@@ -247,24 +284,8 @@ export interface NexusGenArgTypes {
       visaClasses?: NexusGenEnums['visaclass'][] | null; // [visaclass!]
     }
     lcaDisclosures: { // args
-      beginDateMax?: NexusGenScalars['DateTime'] | null; // DateTime
-      beginDateMin?: NexusGenScalars['DateTime'] | null; // DateTime
-      caseStatuses?: NexusGenEnums['casestatus'][] | null; // [casestatus!]
-      decisionDateMax?: NexusGenScalars['DateTime'] | null; // DateTime
-      decisionDateMin?: NexusGenScalars['DateTime'] | null; // DateTime
-      employerCities?: string[] | null; // [String!]
-      employerNameSearchStr?: string | null; // String
-      employerNames?: string[] | null; // [String!]
-      employerStates?: string[] | null; // [String!]
-      employerUuids?: string[] | null; // [String!]
-      jobSOCCodes?: string[] | null; // [String!]
-      jobTitleSearchStr?: string | null; // String
-      orderBy?: NexusGenInputs['LCADisclosureOrderByInput'][] | null; // [LCADisclosureOrderByInput!]
-      skip?: number | null; // Int
-      take: number | null; // Int
-      visaClasses?: NexusGenEnums['visaclass'][] | null; // [visaclass!]
-      wageMax?: number | null; // Int
-      wageMin?: number | null; // Int
+      filters?: NexusGenInputs['LCADisclosureFilters'] | null; // LCADisclosureFilters
+      pagination?: NexusGenInputs['PaginationInput'] | null; // PaginationInput
     }
   }
 }

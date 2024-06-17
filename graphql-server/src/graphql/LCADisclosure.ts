@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { $Enums, Prisma } from "@prisma/client";
 import {
   arg,
   enumType,
@@ -10,8 +10,16 @@ import {
   objectType,
   stringArg,
 } from "nexus";
-import { LCADisclosure, casestatus, payunit, visaclass } from "nexus-prisma";
+import {
+  Employer,
+  LCADisclosure,
+  casestatus,
+  payunit,
+  visaclass,
+} from "nexus-prisma";
 import { dateTimeArg } from "./args";
+import { ArgsRecord, Maybe } from "nexus/dist/core";
+import { NexusGenInputs, NexusGenRootTypes } from "../../nexus-typegen";
 
 export const payUnitType = enumType(payunit);
 export const caseStatusType = enumType(casestatus);
@@ -43,19 +51,40 @@ export const LCADisclosureType = objectType({
   },
 });
 
-export const VisaClassFacet = objectType({
-  name: "VisaClassFacet",
+// export const LCADisclosureOrderByInput = inputObjectType({
+//   name: "LCADisclosureOrderByInput",
+//   definition(t) {
+//     t.field("decisionDate", { type: "SortOrder" });
+//     t.field("receivedDate", { type: "SortOrder" });
+//     t.field("beginDate", { type: "SortOrder" });
+//     t.field("wageRateOfPayFrom", { type: "SortOrder" });
+//   },
+// });
+
+// export const SortOrder = enumType({
+//   name: "SortOrder",
+//   members: ["asc", "desc"],
+// });
+
+export const UniqueVisaClassesType = objectType({
+  name: "UniqueVisaClasses",
   definition(t) {
-    t.nonNull.field("visaClass", { type: "visaclass" });
-    t.nonNull.int("count");
+    t.nonNull.list.nonNull.field("uniqueValues", { type: "visaclass" });
   },
 });
 
-export const CaseStatusFacet = objectType({
-  name: "CaseStatusFacet",
+export const UniqueCaseStatusesType = objectType({
+  name: "UniqueCaseStatuses",
   definition(t) {
-    t.nonNull.field("caseStatus", { type: "casestatus" });
-    t.nonNull.int("count");
+    t.nonNull.list.nonNull.field("uniqueValues", { type: "casestatus" });
+  },
+});
+
+export const UniqueEmployersType = objectType({
+  name: "UniqueEmployers",
+  definition(t) {
+    t.nonNull.list.nonNull.field("uniqueValues", { type: "Employer" });
+    t.boolean("hasNext");
   },
 });
 
@@ -63,7 +92,128 @@ export const LCADisclosuresType = objectType({
   name: "LCADisclosures",
   definition(t) {
     t.nonNull.list.nonNull.field("items", { type: "LCADisclosure" });
-    t.nonNull.int("count");
+    t.nonNull.int("totalCount");
+    t.boolean("hasNext");
+  },
+});
+
+export const lcaDisclosureFiltersInput = inputObjectType({
+  name: "LCADisclosureFilters",
+  definition(t) {
+    t.list.nonNull.string("employerUuid");
+    t.list.nonNull.field("caseStatus", { type: "casestatus" });
+    t.list.nonNull.field("visaClass", { type: "visaclass" });
+  },
+});
+
+export const paginationInput = inputObjectType({
+  name: "PaginationInput",
+  definition(t) {
+    t.int("skip");
+    t.int("take");
+  },
+});
+
+export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
+  name: "PaginatedLCADisclosuresUniqueColumnValues",
+  definition(t) {
+    t.nonNull.field("visaClasses", {
+      type: "UniqueVisaClasses",
+      description: "Unique visa classes in the result set for a given filter",
+      args: {
+        filters: arg({
+          type: "LCADisclosureFilters",
+          description: "Filter options",
+        }),
+      },
+      resolve: (_parent, args, context, _info) => {
+        const { filters } = args;
+        const where = constructPrismaWhereFromFilters(filters ?? {});
+        return context.prisma.lCADisclosure
+          .findMany({
+            where,
+            distinct: ["visaClass"],
+            select: { visaClass: true },
+          })
+          .then((result: { visaClass: $Enums.visaclass }[]) => {
+            return { uniqueValues: result.map((r) => r.visaClass) };
+          });
+      },
+    });
+    t.nonNull.field("caseStatuses", {
+      type: "UniqueCaseStatuses",
+
+      description: "Unique case statuses in the result set for a given filter",
+      args: {
+        filters: arg({
+          type: "LCADisclosureFilters",
+          description: "Filter options",
+        }),
+      },
+      resolve: (_parent, args, context, _info) => {
+        const { filters } = args;
+        const where = constructPrismaWhereFromFilters(filters ?? {});
+        return context.prisma.lCADisclosure
+          .findMany({
+            where,
+            distinct: ["caseStatus"],
+            select: { caseStatus: true },
+          })
+          .then((result: { caseStatus: $Enums.casestatus }[]) => {
+            return { uniqueValues: result.map((r) => r.caseStatus) };
+          });
+      },
+    });
+    t.nonNull.field("employers", {
+      type: "UniqueEmployers",
+      description: "Unique employers in the result set for a given filter",
+      args: {
+        filters: arg({
+          type: "LCADisclosureFilters",
+          description: "Filter options",
+        }),
+        employerNameSearchStr: stringArg({
+          description: "Search string for employer name",
+        }),
+        pagination: arg({
+          type: "PaginationInput",
+          description: "Pagination options",
+        }),
+      },
+      resolve: async (_parent, args, context, _info) => {
+        const { filters, pagination, employerNameSearchStr } = args;
+        const { skip, take } = pagination ?? {};
+
+        const where = constructPrismaWhereFromFilters(filters ?? {});
+
+        if (employerNameSearchStr) {
+          where.employer = {
+            name: { search: employerNameSearchStr, mode: "insensitive" },
+          };
+        }
+        const startTime = Date.now();
+
+        const results = await context.prisma.lCADisclosure.findMany({
+          where,
+          distinct: ["employerUuid"],
+          select: { employer: true },
+          skip: skip ?? undefined,
+          take: take ? take + 1 : undefined,
+          orderBy: { employer: { name: "asc" } },
+        });
+        // console.log("where: ", where);
+        // console.log("Unique employers query time: ", Date.now() - startTime);
+
+        const resultsProcessed = {
+          uniqueValues: take
+            ? results.map((r) => r.employer).slice(0, take)
+            : results.map((r) => r.employer),
+          hasNext: !take || results.length > take,
+        };
+
+        return resultsProcessed;
+      },
+    });
   },
 });
 
@@ -73,244 +223,74 @@ export const lcaDisclosureQuery = extendType({
     t.nonNull.field("lcaDisclosures", {
       type: "LCADisclosures",
       args: {
-        /** Job filter options */
-        jobTitleSearchStr: stringArg({
-          description: "Filter for job titles containing this string",
+        filters: arg({
+          type: "LCADisclosureFilters",
+          description: "Filter options",
         }),
-        jobSOCCodes: list(
-          nonNull(
-            stringArg({
-              description: "Filter for jobs with this exact job SOC code",
-            })
-          )
-        ),
-        /** Employer filter options */
-        employerNameSearchStr: stringArg({
-          description: "Filter for employers containing this string",
+        pagination: arg({
+          type: "PaginationInput",
+          description: "Pagination options",
         }),
-        employerNames: list(
-          nonNull(
-            stringArg({
-              description: "Filter for jobs with this exact employer name",
-            })
-          )
-        ),
-        employerUuids: list(
-          nonNull(
-            stringArg({
-              description: "Filter for jobs with this exact employer UUID",
-            })
-          )
-        ),
-        employerStates: list(
-          nonNull(
-            stringArg({
-              description: "Filter for jobs with this exact employer state",
-            })
-          )
-        ),
-        employerCities: list(
-          nonNull(
-            stringArg({
-              description: "Filter for jobs with this exact employer city",
-            })
-          )
-        ),
-        /** Date filter options */
-        decisionDateMin: dateTimeArg({
-          description:
-            "Filter for jobs with decision date greater than or equal to this",
-        }),
-        decisionDateMax: dateTimeArg({
-          description:
-            "Filter for jobs with decision date less than or equal to this",
-        }),
-        beginDateMin: dateTimeArg({
-          description:
-            "Filter for jobs with begin date greater than or equal to this",
-        }),
-        beginDateMax: dateTimeArg({
-          description:
-            "Filter for jobs with begin date less than or equal to this",
-        }),
-        /** Wage filter options */
-        wageMin: intArg({
-          description:
-            "Filter for jobs with wage greater than or equal to this",
-          default: 0,
-        }),
-        wageMax: intArg({
-          description: "Filter for jobs with wage less than or equal to this",
-        }),
-        /** Case status options */
-        caseStatuses: list(nonNull(arg({ type: caseStatusType }))),
-        /** Visa class options */
-        visaClasses: list(nonNull(arg({ type: visaClassType }))),
-        /** Pagination options */
-        skip: intArg({ description: "Number of records to skip", default: 0 }),
-        take: intArg({
-          description: "Number of records to take (max 500)",
-          default: 50,
-        }),
-        /** Sorting options */
-        orderBy: arg({ type: list(nonNull(LCADisclosureOrderByInput)) }),
       },
-      resolve(parent, args, context, info) {
-        const {
-          jobTitleSearchStr,
-          jobSOCCodes,
-          employerNameSearchStr,
-          employerNames,
-          employerUuids,
-          employerStates,
-          employerCities,
-          decisionDateMin,
-          decisionDateMax,
-          beginDateMin,
-          beginDateMax,
-          wageMin,
-          wageMax,
-          caseStatuses,
-          visaClasses,
-          skip,
-          take,
-          orderBy,
-        } = args;
-        // Throw if take > 500
-        if (take && take > 500) {
-          throw new Error("Cannot take more than 500 records");
-        }
+      async resolve(parent, args, context, info) {
+        const { filters, pagination } = args;
+        const { skip, take } = pagination ?? {};
 
-        const where: Prisma.LCADisclosureWhereInput = {};
+        const where = constructPrismaWhereFromFilters(filters ?? {});
 
-        if (jobTitleSearchStr) {
-          where.jobTitle = { contains: jobTitleSearchStr, mode: "insensitive" };
-        }
-
-        if (jobSOCCodes) {
-          where.socCode = { in: jobSOCCodes };
-        }
-
-        if (employerUuids) {
-          where.employerUuid = { in: employerUuids };
-        }
-
-        const employerWhere: Prisma.EmployerWhereInput = {};
-
-        if (employerNameSearchStr) {
-          employerWhere.name = {
-            contains: employerNameSearchStr,
-            mode: "insensitive",
-          };
-        }
-
-        if (employerNames) {
-          employerWhere.name = { in: employerNames, mode: "insensitive" };
-        }
-
-        if (employerStates) {
-          employerWhere.state = { in: employerStates, mode: "insensitive" };
-        }
-
-        if (employerCities) {
-          employerWhere.city = { in: employerCities, mode: "insensitive" };
-        }
-
-        if (Object.keys(employerWhere).length > 0) {
-          where.employer = employerWhere;
-        }
-
-        if (decisionDateMin) {
-          where.decisionDate = {
-            ...(typeof where.decisionDate === "object"
-              ? where.decisionDate
-              : {}),
-            gte: decisionDateMin,
-          };
-        }
-
-        if (decisionDateMax) {
-          where.decisionDate = {
-            ...(typeof where.decisionDate === "object"
-              ? where.decisionDate
-              : {}),
-            lte: decisionDateMax,
-          };
-        }
-
-        if (beginDateMin) {
-          where.beginDate = {
-            ...(typeof where.beginDate === "object" ? where.beginDate : {}),
-            gte: beginDateMin,
-          };
-        }
-
-        if (beginDateMax) {
-          where.beginDate = {
-            ...(typeof where.beginDate === "object" ? where.beginDate : {}),
-            lte: beginDateMax,
-          };
-        }
-
-        if (wageMin) {
-          where.wageRateOfPayFrom = {
-            ...(typeof where.wageRateOfPayFrom === "object"
-              ? where.wageRateOfPayFrom
-              : {}),
-            gte: wageMin,
-          };
-        }
-
-        if (wageMax) {
-          where.wageRateOfPayFrom = {
-            ...(typeof where.wageRateOfPayFrom === "object"
-              ? where.wageRateOfPayFrom
-              : {}),
-            lte: wageMax,
-          };
-        }
-
-        if (caseStatuses) {
-          where.caseStatus = { in: caseStatuses };
-        }
-
-        if (visaClasses) {
-          where.visaClass = { in: visaClasses };
-        }
-
-        const disclosures = context.prisma.lCADisclosure.findMany({
-          where: {
-            ...where,
-          },
+        // Fetch all disclosures and total count
+        const count = context.prisma.lCADisclosure.count({ where });
+        const disclosureItems = context.prisma.lCADisclosure.findMany({
+          where,
           skip: skip ?? undefined,
-          take: take ?? undefined,
-          orderBy: orderBy
-            ? (orderBy as Prisma.Enumerable<Prisma.LCADisclosureOrderByWithRelationInput>)
-            : undefined,
+          take: take ? take + 1 : undefined,
+          orderBy: { beginDate: "desc" },
         });
 
-        const count = context.prisma.lCADisclosure.count({ where });
+        const returnObj = Promise.all([disclosureItems, count]).then(
+          ([items, totalCount]) => {
+            return {
+              items: take ? items.slice(0, take) : items,
+              totalCount,
+              hasNext: !take || items.length > take,
+            };
+          }
+        );
 
-        return {
-          items: disclosures,
-          count,
-        };
+        return returnObj;
       },
+    });
+    t.nonNull.field("uniqueColumnValues", {
+      type: "PaginatedLCADisclosuresUniqueColumnValues",
+      resolve: () => ({}),
     });
   },
 });
 
-export const LCADisclosureOrderByInput = inputObjectType({
-  name: "LCADisclosureOrderByInput",
-  definition(t) {
-    t.field("decisionDate", { type: "SortOrder" });
-    t.field("receivedDate", { type: "SortOrder" });
-    t.field("beginDate", { type: "SortOrder" });
-    t.field("wageRateOfPayFrom", { type: "SortOrder" });
-  },
-});
+function constructPrismaWhereFromFilters(
+  filters: NexusGenInputs["LCADisclosureFilters"]
+): Prisma.LCADisclosureWhereInput {
+  // Build where clause from filters
+  const { employerUuid, caseStatus, visaClass } = filters ?? {};
 
-export const SortOrder = enumType({
-  name: "SortOrder",
-  members: ["asc", "desc"],
-});
+  const where: Prisma.LCADisclosureWhereInput = {};
+
+  if (caseStatus && caseStatus.length > 0) {
+    where.caseStatus = { in: caseStatus };
+  }
+
+  if (visaClass && visaClass.length > 0) {
+    where.visaClass = { in: visaClass };
+  }
+
+  if (employerUuid && employerUuid.length > 0) {
+    where.employerUuid = { in: employerUuid };
+  }
+
+  // if (employerNameSearchStr) {
+  //   where.employer = {
+  //     name: { search: employerNameSearchStr, mode: "insensitive" },
+  //   };
+  // }
+  return where;
+}

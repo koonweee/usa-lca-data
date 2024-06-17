@@ -4,16 +4,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { columns } from "@/features/disclosures/columns";
 import {
   getCaseStatusFilters,
-  getEmployerNameFilters,
-  getVisaFilters
+  getEmployerUuidsFilters,
+  getVisaFilters,
 } from "@/features/disclosures/lib/filters";
 import {
-  AllEmployersDocument,
+  InputMaybe,
+  LcaDisclosureFilters,
   PaginatedLcaDisclosuresDocument,
   PaginatedLcaDisclosuresQueryVariables,
-  SortOrder,
+  UniqueCaseStatusesDocument,
+  UniqueVisaClassesDocument,
 } from "@/graphql/generated";
-import { CASE_STATUS_ENUM_TO_READABLE, VISA_CLASS_ENUM_TO_READABLE } from "@/queries/formatters/lca-disclosure";
+import {
+  CASE_STATUS_ENUM_TO_READABLE,
+  VISA_CLASS_ENUM_TO_READABLE,
+} from "@/queries/formatters/lca-disclosure";
 import { useQuery } from "@apollo/client";
 import { ColumnFiltersState } from "@tanstack/react-table";
 import React, { useMemo } from "react";
@@ -31,43 +36,70 @@ export default function LCADisclosuresPage() {
     []
   );
 
+  console.count("LCADisclosuresPage");
+
+  const filters: InputMaybe<LcaDisclosureFilters> = useMemo(
+    () => ({
+      visaClass: getVisaFilters(columnFilters),
+      caseStatus: getCaseStatusFilters(columnFilters),
+      employerUuid: getEmployerUuidsFilters(columnFilters),
+    }),
+    [columnFilters]
+  );
+
   const queryVariables: PaginatedLcaDisclosuresQueryVariables = {
+    pagination: {
       take: pagination.pageSize,
       skip: pagination.pageIndex * pagination.pageSize,
-      orderBy: [
-        {
-          beginDate: SortOrder.Desc,
-        },
-      ],
-      visaClasses: getVisaFilters(columnFilters),
-      caseStatuses: getCaseStatusFilters(columnFilters),
-      employerNames: getEmployerNameFilters(columnFilters),
+    },
+    filters,
   };
 
-  const { loading, data } = useQuery(
-    PaginatedLcaDisclosuresDocument,
+  const { loading, data } = useQuery(PaginatedLcaDisclosuresDocument, {
+    variables: queryVariables,
+  });
+
+  const { items, totalCount } = data?.lcaDisclosures || {};
+
+  const { loading: isCaseStatusLoading, data: caseStatusData } = useQuery(
+    UniqueCaseStatusesDocument,
     {
-      variables: queryVariables,
+      variables: {
+        filters,
+      },
     }
   );
 
-  const { items, count } =
-    data?.lcaDisclosures || {};
+  const caseStatusOptions = useMemo(() => {
+    return (
+      caseStatusData?.uniqueColumnValues?.caseStatuses?.uniqueValues.map(
+        (value) => ({
+          value: CASE_STATUS_ENUM_TO_READABLE[value],
+          label: CASE_STATUS_ENUM_TO_READABLE[value],
+        })
+      ) ?? ([] as { value: string; label: string }[])
+    );
+  }, [caseStatusData]);
 
-  const { data: allEmployersData } = useQuery(AllEmployersDocument);
+  const { loading: isVisaClassLoading, data: visaClassData } = useQuery(
+    UniqueVisaClassesDocument,
+    {
+      variables: {
+        filters,
+      },
+    }
+  );
 
-  const employerOptions = allEmployersData?.employers.map((employer) => ({
-    value: employer.name,
-    label: employer.name,
-  }));
-
-  const caseStatusOptions = useMemo(() => Object.values(CASE_STATUS_ENUM_TO_READABLE).map(
-    (value) => ({ value, label: value })
-  ), []);
-
-  const visaClassOptions = useMemo(() => Object.values(VISA_CLASS_ENUM_TO_READABLE).map(
-    (value) => ({ value, label: value })
-  ), []);
+  const visaClassOptions = useMemo(() => {
+    return (
+      visaClassData?.uniqueColumnValues?.visaClasses?.uniqueValues.map(
+        (value) => ({
+          value: VISA_CLASS_ENUM_TO_READABLE[value],
+          label: VISA_CLASS_ENUM_TO_READABLE[value],
+        })
+      ) ?? ([] as { value: string; label: string }[])
+    );
+  }, [visaClassData]);
 
   return (
     <div className="h-full flex-1 flex-col space-y-8 p-8 flex">
@@ -80,7 +112,7 @@ export default function LCADisclosuresPage() {
             {loading ? (
               <Skeleton className="h-4 w-[60px] inline-block" />
             ) : (
-              `${count}`
+              `${totalCount}`
             )}
             <span>{" visa applications from the U.S Department of Labor"}</span>
           </p>
@@ -92,7 +124,7 @@ export default function LCADisclosuresPage() {
         data={items ?? []}
         columns={columns}
         serverSidePaginationConfig={{
-          rowCount: count ?? 0,
+          rowCount: totalCount ?? 0,
           pagination,
           setPagination,
         }}
@@ -100,9 +132,14 @@ export default function LCADisclosuresPage() {
           columnFilters,
           setColumnFilters,
           filterOptionsMap: new Map([
-            ["caseStatus", caseStatusOptions],
-            ["visaClass", visaClassOptions],
-            ["employer.name", employerOptions ?? []],
+            [
+              "visaClass",
+              { options: visaClassOptions, isLoading: isVisaClassLoading },
+            ],
+            [
+              "caseStatus",
+              { options: caseStatusOptions, isLoading: isCaseStatusLoading },
+            ],
           ]),
         }}
         isLoading={loading}

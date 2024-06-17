@@ -1,0 +1,23 @@
+query PaginatedUniqueEmployers(
+  $filters: LCADisclosureFilters
+  $pagination: PaginationInput
+  $employerNameSearchStr: String
+) {
+  uniqueColumnValues {
+    employers(
+      filters: $filters
+      pagination: $pagination
+      employerNameSearchStr: $employerNameSearchStr
+    ) {
+      uniqueValues {
+        city
+        naicsCode
+        name
+        postalCode
+        state
+        uuid
+      }
+      hasNext
+    }
+  }
+}

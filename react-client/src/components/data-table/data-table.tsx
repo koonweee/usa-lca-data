@@ -38,8 +38,11 @@ interface DataTableProps<TData, TValue> {
   serverSideFilteringConfig?: {
     setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
     columnFilters: ColumnFiltersState;
-    getFacetedUniqueValues?: typeof getFacetedUniqueValues
-    filterOptionsMap: Map<string, { value: string, label: string}[]> // columnId -> filterOptions
+    getFacetedUniqueValues?: typeof getFacetedUniqueValues;
+    filterOptionsMap: Map<
+      string,
+      { options: { value: string; label: string }[]; isLoading: boolean }
+    >; // columnId -> filterOptions
   };
   isLoading?: boolean;
 }
@@ -91,12 +94,19 @@ export function DataTable<TData, TValue>({
     getFacetedRowModel: getFacetedRowModel(),
     //getFacetedUniqueValues: serverSideFilteringConfig ? serverSideFilteringConfig.getFacetedUniqueValues() : getFacetedUniqueValues(),
     // getFacetedMinMaxValues: serverSideFilteringConfig ? serverSideFilteringConfig.getFacetedMinMaxValues() : getFacetedMinMaxValues(),
-    onPaginationChange: serverSidePaginationConfig ? serverSidePaginationConfig.setPagination : undefined,
+    onPaginationChange: serverSidePaginationConfig
+      ? serverSidePaginationConfig.setPagination
+      : undefined,
   });
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} filterOptionsMap={serverSideFilteringConfig?.filterOptionsMap ?? new Map()}/>
+      <DataTableToolbar
+        table={table}
+        filterOptionsMap={
+          serverSideFilteringConfig?.filterOptionsMap ?? new Map()
+        }
+      />
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -135,7 +145,11 @@ export function DataTable<TData, TValue>({
                 </TableRow>
               ))
             ) : (
-              <NoDataRows isLoading={isLoading} colCount={columns.length} pageSize={table.getState().pagination.pageSize}/>
+              <NoDataRows
+                isLoading={isLoading}
+                colCount={columns.length}
+                pageSize={table.getState().pagination.pageSize}
+              />
             )}
           </TableBody>
         </Table>
@@ -145,13 +159,19 @@ export function DataTable<TData, TValue>({
   );
 }
 
-export function NoDataRows({ isLoading, colCount, pageSize }: { isLoading?: boolean, colCount: number, pageSize: number}) {
+export function NoDataRows({
+  isLoading,
+  colCount,
+  pageSize,
+}: {
+  isLoading?: boolean;
+  colCount: number;
+  pageSize: number;
+}) {
   // Return skeleton rows if loading, else return no data message
   return isLoading ? (
     Array.from({ length: pageSize }).map((_, rowIndex) => (
-      <TableRow
-        key={`skeleton-row-${rowIndex}`}
-      >
+      <TableRow key={`skeleton-row-${rowIndex}`}>
         {Array.from({ length: colCount }).map((_, colIndex) => (
           <TableCell key={`skeleton-cell-${colIndex}-row-${rowIndex}`}>
             <Skeleton className="h-5 w-[100px]" />

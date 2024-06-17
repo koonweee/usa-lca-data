@@ -17,12 +17,6 @@ export type Scalars = {
   DateTime: { input: Date | string; output: Date | string; }
 };
 
-export type CaseStatusFacet = {
-  __typename?: 'CaseStatusFacet';
-  caseStatus: Casestatus;
-  count: Scalars['Int']['output'];
-};
-
 export type Employer = {
   __typename?: 'Employer';
   city: Scalars['String']['output'];
@@ -56,23 +50,55 @@ export type LcaDisclosure = {
   worksiteState?: Maybe<Scalars['String']['output']>;
 };
 
-export type LcaDisclosureOrderByInput = {
-  beginDate?: InputMaybe<SortOrder>;
-  decisionDate?: InputMaybe<SortOrder>;
-  receivedDate?: InputMaybe<SortOrder>;
-  wageRateOfPayFrom?: InputMaybe<SortOrder>;
+export type LcaDisclosureFilters = {
+  caseStatus?: InputMaybe<Array<Casestatus>>;
+  employerUuid?: InputMaybe<Array<Scalars['String']['input']>>;
+  visaClass?: InputMaybe<Array<Visaclass>>;
 };
 
 export type LcaDisclosures = {
   __typename?: 'LCADisclosures';
-  count: Scalars['Int']['output'];
+  hasNext?: Maybe<Scalars['Boolean']['output']>;
   items: Array<LcaDisclosure>;
+  totalCount: Scalars['Int']['output'];
 };
 
 export type PaginatedEmployer = {
   __typename?: 'PaginatedEmployer';
-  hasMore: Scalars['Boolean']['output'];
+  hasNext: Scalars['Boolean']['output'];
   items: Array<Employer>;
+};
+
+export type PaginatedLcaDisclosuresUniqueColumnValues = {
+  __typename?: 'PaginatedLCADisclosuresUniqueColumnValues';
+  /** Unique case statuses in the result set for a given filter */
+  caseStatuses: UniqueCaseStatuses;
+  /** Unique employers in the result set for a given filter */
+  employers: UniqueEmployers;
+  /** Unique visa classes in the result set for a given filter */
+  visaClasses: UniqueVisaClasses;
+};
+
+
+export type PaginatedLcaDisclosuresUniqueColumnValuesCaseStatusesArgs = {
+  filters?: InputMaybe<LcaDisclosureFilters>;
+};
+
+
+export type PaginatedLcaDisclosuresUniqueColumnValuesEmployersArgs = {
+  employerNameSearchStr?: InputMaybe<Scalars['String']['input']>;
+  filters?: InputMaybe<LcaDisclosureFilters>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type PaginatedLcaDisclosuresUniqueColumnValuesVisaClassesArgs = {
+  filters?: InputMaybe<LcaDisclosureFilters>;
+};
+
+export type PaginationInput = {
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  take?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type Query = {
@@ -80,6 +106,7 @@ export type Query = {
   employers: PaginatedEmployer;
   lcaDisclosures: LcaDisclosures;
   socJobs: Array<SocJob>;
+  uniqueColumnValues: PaginatedLcaDisclosuresUniqueColumnValues;
 };
 
 
@@ -93,24 +120,8 @@ export type QueryEmployersArgs = {
 
 
 export type QueryLcaDisclosuresArgs = {
-  beginDateMax?: InputMaybe<Scalars['DateTime']['input']>;
-  beginDateMin?: InputMaybe<Scalars['DateTime']['input']>;
-  caseStatuses?: InputMaybe<Array<Casestatus>>;
-  decisionDateMax?: InputMaybe<Scalars['DateTime']['input']>;
-  decisionDateMin?: InputMaybe<Scalars['DateTime']['input']>;
-  employerCities?: InputMaybe<Array<Scalars['String']['input']>>;
-  employerNameSearchStr?: InputMaybe<Scalars['String']['input']>;
-  employerNames?: InputMaybe<Array<Scalars['String']['input']>>;
-  employerStates?: InputMaybe<Array<Scalars['String']['input']>>;
-  employerUuids?: InputMaybe<Array<Scalars['String']['input']>>;
-  jobSOCCodes?: InputMaybe<Array<Scalars['String']['input']>>;
-  jobTitleSearchStr?: InputMaybe<Scalars['String']['input']>;
-  orderBy?: InputMaybe<Array<LcaDisclosureOrderByInput>>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  take?: InputMaybe<Scalars['Int']['input']>;
-  visaClasses?: InputMaybe<Array<Visaclass>>;
-  wageMax?: InputMaybe<Scalars['Int']['input']>;
-  wageMin?: InputMaybe<Scalars['Int']['input']>;
+  filters?: InputMaybe<LcaDisclosureFilters>;
+  pagination?: InputMaybe<PaginationInput>;
 };
 
 export type SocJob = {
@@ -119,15 +130,20 @@ export type SocJob = {
   title: Scalars['String']['output'];
 };
 
-export enum SortOrder {
-  Asc = 'asc',
-  Desc = 'desc'
-}
+export type UniqueCaseStatuses = {
+  __typename?: 'UniqueCaseStatuses';
+  uniqueValues: Array<Casestatus>;
+};
 
-export type VisaClassFacet = {
-  __typename?: 'VisaClassFacet';
-  count: Scalars['Int']['output'];
-  visaClass: Visaclass;
+export type UniqueEmployers = {
+  __typename?: 'UniqueEmployers';
+  hasNext?: Maybe<Scalars['Boolean']['output']>;
+  uniqueValues: Array<Employer>;
+};
+
+export type UniqueVisaClasses = {
+  __typename?: 'UniqueVisaClasses';
+  uniqueValues: Array<Visaclass>;
 };
 
 export enum Casestatus {
@@ -152,41 +168,39 @@ export enum Visaclass {
   H_1B1Singapore = 'H_1B1_Singapore'
 }
 
-export type PaginatedEmployersQueryVariables = Exact<{
-  searchStr?: InputMaybe<Scalars['String']['input']>;
-  caseStatuses?: InputMaybe<Array<Casestatus> | Casestatus>;
-  visaClasses?: InputMaybe<Array<Visaclass> | Visaclass>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  take?: InputMaybe<Scalars['Int']['input']>;
-}>;
-
-
-export type PaginatedEmployersQuery = { __typename?: 'Query', employers: { __typename?: 'PaginatedEmployer', hasMore: boolean, items: Array<{ __typename?: 'Employer', city: string, naicsCode: string, name: string, postalCode: string, state?: string | null, uuid: string }> } };
-
 export type PaginatedLcaDisclosuresQueryVariables = Exact<{
-  orderBy?: InputMaybe<Array<LcaDisclosureOrderByInput> | LcaDisclosureOrderByInput>;
-  take?: InputMaybe<Scalars['Int']['input']>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  visaClasses?: InputMaybe<Array<Visaclass> | Visaclass>;
-  caseStatuses?: InputMaybe<Array<Casestatus> | Casestatus>;
-  wageMin?: InputMaybe<Scalars['Int']['input']>;
-  wageMax?: InputMaybe<Scalars['Int']['input']>;
-  beginDateMin?: InputMaybe<Scalars['DateTime']['input']>;
-  beginDateMax?: InputMaybe<Scalars['DateTime']['input']>;
-  decisionDateMin?: InputMaybe<Scalars['DateTime']['input']>;
-  decisionDateMax?: InputMaybe<Scalars['DateTime']['input']>;
-  employerUuids?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
-  employerStates?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
-  employerCities?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
-  employerNames?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
-  employerNameSearchStr?: InputMaybe<Scalars['String']['input']>;
-  jobSocCodes?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
-  jobTitleSearchStr?: InputMaybe<Scalars['String']['input']>;
+  filters?: InputMaybe<LcaDisclosureFilters>;
+  pagination?: InputMaybe<PaginationInput>;
 }>;
 
 
-export type PaginatedLcaDisclosuresQuery = { __typename?: 'Query', lcaDisclosures: { __typename?: 'LCADisclosures', count: number, items: Array<{ __typename?: 'LCADisclosure', receivedDate: Date | string, beginDate: Date | string, visaClass: Visaclass, wageRateOfPayFrom?: bigint | null, wageRateOfPayUnit?: Payunit | null, jobTitle?: string | null, caseStatus: Casestatus, caseNumber: string, employer: { __typename?: 'Employer', name: string, city: string, state?: string | null }, socJob: { __typename?: 'SOCJob', title: string, code: string } }> } };
+export type PaginatedLcaDisclosuresQuery = { __typename?: 'Query', lcaDisclosures: { __typename?: 'LCADisclosures', totalCount: number, hasNext?: boolean | null, items: Array<{ __typename?: 'LCADisclosure', caseNumber: string, jobTitle?: string | null, socCode: string, fullTimePosition: boolean, receivedDate: Date | string, decisionDate: Date | string, beginDate: Date | string, worksitePostalCode?: string | null, wageRateOfPayFrom?: bigint | null, wageRateOfPayTo?: bigint | null, prevailingWageRateOfPay?: bigint | null, worksiteCity?: string | null, worksiteState?: string | null, wageRateOfPayUnit?: Payunit | null, prevailingWageRateOfPayUnit?: Payunit | null, caseStatus: Casestatus, visaClass: Visaclass, employer: { __typename?: 'Employer', city: string, naicsCode: string, name: string, postalCode: string, state?: string | null, uuid: string }, socJob: { __typename?: 'SOCJob', code: string, title: string } }> } };
+
+export type PaginatedUniqueEmployersQueryVariables = Exact<{
+  filters?: InputMaybe<LcaDisclosureFilters>;
+  pagination?: InputMaybe<PaginationInput>;
+  employerNameSearchStr?: InputMaybe<Scalars['String']['input']>;
+}>;
 
 
-export const PaginatedEmployersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"paginatedEmployers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"searchStr"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"caseStatuses"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"casestatus"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"visaClasses"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"visaclass"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"skip"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"take"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"employers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"searchStr"},"value":{"kind":"Variable","name":{"kind":"Name","value":"searchStr"}}},{"kind":"Argument","name":{"kind":"Name","value":"caseStatuses"},"value":{"kind":"Variable","name":{"kind":"Name","value":"caseStatuses"}}},{"kind":"Argument","name":{"kind":"Name","value":"visaClasses"},"value":{"kind":"Variable","name":{"kind":"Name","value":"visaClasses"}}},{"kind":"Argument","name":{"kind":"Name","value":"skip"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skip"}}},{"kind":"Argument","name":{"kind":"Name","value":"take"},"value":{"kind":"Variable","name":{"kind":"Name","value":"take"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasMore"}},{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"naicsCode"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"postalCode"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}}]}}]}}]}}]} as unknown as DocumentNode<PaginatedEmployersQuery, PaginatedEmployersQueryVariables>;
-export const PaginatedLcaDisclosuresDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"paginatedLCADisclosures"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"LCADisclosureOrderByInput"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"take"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"skip"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"visaClasses"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"visaclass"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"caseStatuses"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"casestatus"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"wageMin"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"wageMax"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"beginDateMin"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"DateTime"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"beginDateMax"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"DateTime"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"decisionDateMin"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"DateTime"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"decisionDateMax"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"DateTime"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"employerUuids"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"employerStates"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"employerCities"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"employerNames"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"employerNameSearchStr"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"jobSocCodes"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"jobTitleSearchStr"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"lcaDisclosures"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"take"},"value":{"kind":"Variable","name":{"kind":"Name","value":"take"}}},{"kind":"Argument","name":{"kind":"Name","value":"skip"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skip"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}},{"kind":"Argument","name":{"kind":"Name","value":"visaClasses"},"value":{"kind":"Variable","name":{"kind":"Name","value":"visaClasses"}}},{"kind":"Argument","name":{"kind":"Name","value":"caseStatuses"},"value":{"kind":"Variable","name":{"kind":"Name","value":"caseStatuses"}}},{"kind":"Argument","name":{"kind":"Name","value":"wageMin"},"value":{"kind":"Variable","name":{"kind":"Name","value":"wageMin"}}},{"kind":"Argument","name":{"kind":"Name","value":"wageMax"},"value":{"kind":"Variable","name":{"kind":"Name","value":"wageMax"}}},{"kind":"Argument","name":{"kind":"Name","value":"beginDateMin"},"value":{"kind":"Variable","name":{"kind":"Name","value":"beginDateMin"}}},{"kind":"Argument","name":{"kind":"Name","value":"beginDateMax"},"value":{"kind":"Variable","name":{"kind":"Name","value":"beginDateMax"}}},{"kind":"Argument","name":{"kind":"Name","value":"decisionDateMin"},"value":{"kind":"Variable","name":{"kind":"Name","value":"decisionDateMin"}}},{"kind":"Argument","name":{"kind":"Name","value":"decisionDateMax"},"value":{"kind":"Variable","name":{"kind":"Name","value":"decisionDateMax"}}},{"kind":"Argument","name":{"kind":"Name","value":"employerUuids"},"value":{"kind":"Variable","name":{"kind":"Name","value":"employerUuids"}}},{"kind":"Argument","name":{"kind":"Name","value":"employerStates"},"value":{"kind":"Variable","name":{"kind":"Name","value":"employerStates"}}},{"kind":"Argument","name":{"kind":"Name","value":"employerCities"},"value":{"kind":"Variable","name":{"kind":"Name","value":"employerCities"}}},{"kind":"Argument","name":{"kind":"Name","value":"employerNames"},"value":{"kind":"Variable","name":{"kind":"Name","value":"employerNames"}}},{"kind":"Argument","name":{"kind":"Name","value":"employerNameSearchStr"},"value":{"kind":"Variable","name":{"kind":"Name","value":"employerNameSearchStr"}}},{"kind":"Argument","name":{"kind":"Name","value":"jobSOCCodes"},"value":{"kind":"Variable","name":{"kind":"Name","value":"jobSocCodes"}}},{"kind":"Argument","name":{"kind":"Name","value":"jobTitleSearchStr"},"value":{"kind":"Variable","name":{"kind":"Name","value":"jobTitleSearchStr"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}},{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"employer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"state"}}]}},{"kind":"Field","name":{"kind":"Name","value":"socJob"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"code"}}]}},{"kind":"Field","name":{"kind":"Name","value":"receivedDate"}},{"kind":"Field","name":{"kind":"Name","value":"beginDate"}},{"kind":"Field","name":{"kind":"Name","value":"visaClass"}},{"kind":"Field","name":{"kind":"Name","value":"wageRateOfPayFrom"}},{"kind":"Field","name":{"kind":"Name","value":"wageRateOfPayUnit"}},{"kind":"Field","name":{"kind":"Name","value":"jobTitle"}},{"kind":"Field","name":{"kind":"Name","value":"caseStatus"}},{"kind":"Field","name":{"kind":"Name","value":"caseNumber"}}]}}]}}]}}]} as unknown as DocumentNode<PaginatedLcaDisclosuresQuery, PaginatedLcaDisclosuresQueryVariables>;
+export type PaginatedUniqueEmployersQuery = { __typename?: 'Query', uniqueColumnValues: { __typename?: 'PaginatedLCADisclosuresUniqueColumnValues', employers: { __typename?: 'UniqueEmployers', hasNext?: boolean | null, uniqueValues: Array<{ __typename?: 'Employer', city: string, naicsCode: string, name: string, postalCode: string, state?: string | null, uuid: string }> } } };
+
+export type UniqueCaseStatusesQueryVariables = Exact<{
+  filters?: InputMaybe<LcaDisclosureFilters>;
+}>;
+
+
+export type UniqueCaseStatusesQuery = { __typename?: 'Query', uniqueColumnValues: { __typename?: 'PaginatedLCADisclosuresUniqueColumnValues', caseStatuses: { __typename?: 'UniqueCaseStatuses', uniqueValues: Array<Casestatus> } } };
+
+export type UniqueVisaClassesQueryVariables = Exact<{
+  filters?: InputMaybe<LcaDisclosureFilters>;
+}>;
+
+
+export type UniqueVisaClassesQuery = { __typename?: 'Query', uniqueColumnValues: { __typename?: 'PaginatedLCADisclosuresUniqueColumnValues', visaClasses: { __typename?: 'UniqueVisaClasses', uniqueValues: Array<Visaclass> } } };
+
+
+export const PaginatedLcaDisclosuresDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PaginatedLcaDisclosures"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"LCADisclosureFilters"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"lcaDisclosures"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"caseNumber"}},{"kind":"Field","name":{"kind":"Name","value":"jobTitle"}},{"kind":"Field","name":{"kind":"Name","value":"socCode"}},{"kind":"Field","name":{"kind":"Name","value":"fullTimePosition"}},{"kind":"Field","name":{"kind":"Name","value":"receivedDate"}},{"kind":"Field","name":{"kind":"Name","value":"decisionDate"}},{"kind":"Field","name":{"kind":"Name","value":"beginDate"}},{"kind":"Field","name":{"kind":"Name","value":"worksitePostalCode"}},{"kind":"Field","name":{"kind":"Name","value":"wageRateOfPayFrom"}},{"kind":"Field","name":{"kind":"Name","value":"wageRateOfPayTo"}},{"kind":"Field","name":{"kind":"Name","value":"prevailingWageRateOfPay"}},{"kind":"Field","name":{"kind":"Name","value":"worksiteCity"}},{"kind":"Field","name":{"kind":"Name","value":"worksiteState"}},{"kind":"Field","name":{"kind":"Name","value":"wageRateOfPayUnit"}},{"kind":"Field","name":{"kind":"Name","value":"prevailingWageRateOfPayUnit"}},{"kind":"Field","name":{"kind":"Name","value":"caseStatus"}},{"kind":"Field","name":{"kind":"Name","value":"visaClass"}},{"kind":"Field","name":{"kind":"Name","value":"employer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"naicsCode"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"postalCode"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"socJob"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}},{"kind":"Field","name":{"kind":"Name","value":"hasNext"}}]}}]}}]} as unknown as DocumentNode<PaginatedLcaDisclosuresQuery, PaginatedLcaDisclosuresQueryVariables>;
+export const PaginatedUniqueEmployersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PaginatedUniqueEmployers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"LCADisclosureFilters"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"employerNameSearchStr"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uniqueColumnValues"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"employers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"employerNameSearchStr"},"value":{"kind":"Variable","name":{"kind":"Name","value":"employerNameSearchStr"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uniqueValues"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"naicsCode"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"postalCode"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"hasNext"}}]}}]}}]}}]} as unknown as DocumentNode<PaginatedUniqueEmployersQuery, PaginatedUniqueEmployersQueryVariables>;
+export const UniqueCaseStatusesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"UniqueCaseStatuses"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"LCADisclosureFilters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uniqueColumnValues"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"caseStatuses"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uniqueValues"}}]}}]}}]}}]} as unknown as DocumentNode<UniqueCaseStatusesQuery, UniqueCaseStatusesQueryVariables>;
+export const UniqueVisaClassesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"UniqueVisaClasses"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"LCADisclosureFilters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uniqueColumnValues"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"visaClasses"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uniqueValues"}}]}}]}}]}}]} as unknown as DocumentNode<UniqueVisaClassesQuery, UniqueVisaClassesQueryVariables>;

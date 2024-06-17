@@ -1,0 +1,40 @@
+query PaginatedLcaDisclosures(
+  $filters: LCADisclosureFilters
+  $pagination: PaginationInput
+) {
+  lcaDisclosures(filters: $filters, pagination: $pagination) {
+    items {
+      caseNumber
+      jobTitle
+      socCode
+      fullTimePosition
+      receivedDate
+      decisionDate
+      beginDate
+      worksitePostalCode
+      wageRateOfPayFrom
+      wageRateOfPayTo
+      prevailingWageRateOfPay
+      worksiteCity
+      worksiteState
+      wageRateOfPayUnit
+      prevailingWageRateOfPayUnit
+      caseStatus
+      visaClass
+      employer {
+        city
+        naicsCode
+        name
+        postalCode
+        state
+        uuid
+      }
+      socJob {
+        code
+        title
+      }
+    }
+    totalCount
+    hasNext
+  }
+}
