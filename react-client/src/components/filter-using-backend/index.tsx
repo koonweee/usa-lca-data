@@ -28,12 +28,14 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { EntriesCommandItems } from "@/components/filter-using-backend/components/entries-command-items";
 import { PopoverClose } from "@radix-ui/react-popover";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Column } from "@tanstack/react-table";
 
-interface FilterUsingBackendProps<T> {
+export interface FilterUsingBackendProps<T, TData, TValue> {
+  column: Column<TData, TValue>;
   /** Props related to entity T */
   entity: {
     /** What the entity is eg. 'employer' */
-    text: string;
+    title: string;
     /** Function to get ID from a data entry T*/
     idAccessorFn: (entry: T) => string;
     /** Function to get display value from a data entry T*/
@@ -66,16 +68,16 @@ interface FilterUsingBackendProps<T> {
     setStr: React.Dispatch<React.SetStateAction<string>>;
   };
 
-  /** Hook to call when filters are cleared */
-  selectedData: T[];
-  setSelectedData: React.Dispatch<React.SetStateAction<T[]>>;
   /** Hook to call when filter button is clicked */
   onFilter: (selectedData: T[]) => void;
 }
 
-export function FilterUsingBackend<T>(props: FilterUsingBackendProps<T>) {
+export function FilterUsingBackend<T, TData, TValue>(
+  props: FilterUsingBackendProps<T, TData, TValue>
+) {
   const {
-    entity: { text: entityText, idAccessorFn, displayAccessorFn },
+    column,
+    entity: { title, idAccessorFn, displayAccessorFn },
     query: {
       result: queryResult,
       isQueryLoading = false,
@@ -86,10 +88,16 @@ export function FilterUsingBackend<T>(props: FilterUsingBackendProps<T>) {
       setState: setPagination,
     },
     search: { str: searchStr, setStr: setSearchStr },
-    selectedData,
-    setSelectedData,
     onFilter,
   } = props;
+
+  console.log("column", column);
+
+  const columnFilterValue = column.getFilterValue()
+    ? (column.getFilterValue() as T[])
+    : [];
+  const [selectedData, setSelectedData] =
+    React.useState<T[]>(columnFilterValue);
 
   const [data, setData] = React.useState<T[]>([]);
   const dataIDsSet = useMemo(
@@ -145,7 +153,7 @@ export function FilterUsingBackend<T>(props: FilterUsingBackendProps<T>) {
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 border-dashed">
           <PlusCircledIcon className="mr-2 h-4 w-4" />
-          <span className=" capitalize">{entityText}</span>
+          <span className="capitalize">{title}</span>
           {selectedDataCount > 0 && (
             <>
               <Separator orientation="vertical" className="mx-2 h-4" />
@@ -256,7 +264,7 @@ export function FilterUsingBackend<T>(props: FilterUsingBackendProps<T>) {
             </CommandGroup>
           )}
           <CommandInput
-            placeholder={`Select ${pluralize(0, entityText)}`}
+            placeholder={`Select ${pluralize(0, title)}`}
             onValueChange={(str) => {
               // Reset pagination to first page
               setPagination({
@@ -279,12 +287,12 @@ export function FilterUsingBackend<T>(props: FilterUsingBackendProps<T>) {
             <CommandGroup
               heading={
                 <div className="flex flex-row items-center justify-between capitalize">
-                  {pluralize(0, entityText)}
+                  {pluralize(0, title)}
                   {isQueryLoading && <LoadingSpinner className="w-3 h-3" />}
                 </div>
               }
             >
-              {scrollContainerRef && (
+              {scrollContainerRef && data.length > 0 && (
                 <InfiniteScroll
                   dataLength={data.length - selectedData.length}
                   next={() => {

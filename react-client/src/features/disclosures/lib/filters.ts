@@ -1,8 +1,4 @@
-import { Casestatus, Visaclass } from "@/graphql/generated";
-import {
-  CASE_STATUS_ENUM_TO_READABLE,
-  VISA_CLASS_ENUM_TO_READABLE,
-} from "@/queries/formatters/lca-disclosure";
+import { Casestatus, Employer, Visaclass } from "@/graphql/generated";
 import { ColumnFiltersState } from "@tanstack/react-table";
 
 export function getVisaFilters(
@@ -10,8 +6,8 @@ export function getVisaFilters(
 ): Visaclass[] | undefined {
   return getEnumFiltersFromStrArray(
     columnFilters,
-    "visaClass",
-    VISA_CLASS_ENUM_TO_READABLE
+    "visaClass"
+    // VISA_CLASS_ENUM_TO_READABLE
   );
 }
 
@@ -20,42 +16,33 @@ export function getCaseStatusFilters(
 ): Casestatus[] | undefined {
   return getEnumFiltersFromStrArray(
     columnFilters,
-    "caseStatus",
-    CASE_STATUS_ENUM_TO_READABLE
+    "caseStatus"
+    // CASE_STATUS_ENUM_TO_READABLE
   );
 }
 
 export function getEnumFiltersFromStrArray<T extends string>(
   columnFilters: ColumnFiltersState,
-  columnId: string,
-  enumToStrRecord: Record<T, string>
+  columnId: string
+  // enumToStrRecord: Record<T, string>
 ): T[] | undefined {
   const columnFilter = columnFilters.find((f) => f.id === columnId);
   if (!columnFilter || !columnFilter.value) return undefined;
-  const filterEnums = (columnFilter.value as string[])
-    .map((value) => {
-      const result = Object.entries(enumToStrRecord).find(
-        ([, readable]) => readable === value
-      );
-      return result ? (result[0] as T) : undefined;
-    })
-    .filter((value): value is T => !!value);
-  if (!filterEnums.length) return undefined;
-  return filterEnums;
+  return columnFilter.value as T[];
 }
 
 export function getEmployerUuidsFilters(
   columnFilters: ColumnFiltersState
 ): string[] | undefined {
   const columnFilter = columnFilters.find((f) => f.id === "employer.name");
-  const asArray = columnFilter?.value ? (columnFilter.value as string[]) : [];
-  return asArray.length > 0 ? asArray : undefined;
+  const asArray = columnFilter?.value ? (columnFilter.value as Employer[]) : [];
+  return asArray.length > 0 ? asArray.map((e) => e.uuid) : undefined;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getFacetedUniqueValuesMapFromArray<T extends { count: number }>(
   propertyKey: string,
   uniqueFacetsArray: T[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   enumToStrRecord: Record<any, string>
 ): Map<string, number> {
   return new Map(

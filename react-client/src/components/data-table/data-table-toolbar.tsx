@@ -8,26 +8,72 @@ import { DataTableViewOptions } from "@/components/data-table/data-table-view-op
 import { useQuery } from "@apollo/client";
 import {
   Employer,
+  InputMaybe,
+  LcaDisclosureFilters,
   PaginatedUniqueEmployersDocument,
   PaginatedUniqueEmployersQueryVariables,
+  UniqueCaseStatusesDocument,
+  UniqueVisaClassesDocument,
 } from "@/graphql/generated";
 import { FilterUsingBackend } from "@/components/filter-using-backend";
-import React from "react";
+import React, { useMemo } from "react";
 import { useDebounce } from "use-debounce";
+import {
+  CASE_STATUS_ENUM_TO_READABLE,
+  VISA_CLASS_ENUM_TO_READABLE,
+} from "@/queries/formatters/lca-disclosure";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
-  filterOptionsMap: Map<
-    string,
-    { options: { value: string; label: string }[]; isLoading: boolean }
-  >;
+  queryFilters: InputMaybe<LcaDisclosureFilters>;
 }
 
 export function DataTableToolbar<TData>({
   table,
-  filterOptionsMap,
+  queryFilters,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+
+  /** Case status and visa type filters */
+  const { loading: isCaseStatusLoading, data: caseStatusData } = useQuery(
+    UniqueCaseStatusesDocument,
+    {
+      variables: {
+        filters: queryFilters,
+      },
+    }
+  );
+
+  const caseStatusOptions = useMemo(() => {
+    return (
+      caseStatusData?.uniqueColumnValues?.caseStatuses?.uniqueValues.map(
+        (value) => ({
+          value,
+          label: CASE_STATUS_ENUM_TO_READABLE[value],
+        })
+      ) ?? []
+    );
+  }, [caseStatusData]);
+
+  const { loading: isVisaClassLoading, data: visaClassData } = useQuery(
+    UniqueVisaClassesDocument,
+    {
+      variables: {
+        filters: queryFilters,
+      },
+    }
+  );
+
+  const visaClassOptions = useMemo(() => {
+    return (
+      visaClassData?.uniqueColumnValues?.visaClasses?.uniqueValues.map(
+        (value) => ({
+          value: value,
+          label: VISA_CLASS_ENUM_TO_READABLE[value],
+        })
+      ) ?? []
+    );
+  }, [visaClassData]);
 
   /** For employer filters */
   const pageSize = 20;
@@ -48,6 +94,7 @@ export function DataTableToolbar<TData>({
       take: searchPagination.pageSize,
       skip: searchPagination.pageIndex * pageSize,
     },
+    filters: queryFilters,
     employerNameSearchStr:
       debouncedSearchStr.length > 0 ? debouncedSearchStr : undefined,
     // searchStr: debouncedSearchStr.length > 0 ? debouncedSearchStr : undefined,
@@ -65,34 +112,30 @@ export function DataTableToolbar<TData>({
     uniqueValues: employersQueryItems = [],
   } = employers || {};
 
-  const [selectedEmployers, setSelectedEmployers] = React.useState<Employer[]>(
-    []
-  );
-
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
-        {table.getColumn("caseStatus") &&
-          filterOptionsMap.get("caseStatus") && (
-            <DataTableFacetedFilter
-              column={table.getColumn("caseStatus")}
-              title="Case status"
-              options={filterOptionsMap.get("caseStatus")!.options} // already validated existence
-              isLoading={filterOptionsMap.get("caseStatus")!.isLoading}
-            />
-          )}
-        {table.getColumn("visaClass") && filterOptionsMap.get("visaClass") && (
+        {table.getColumn("caseStatus") && (
+          <DataTableFacetedFilter
+            column={table.getColumn("caseStatus")}
+            title="Case status"
+            options={caseStatusOptions} // already validated existence
+            isLoading={isCaseStatusLoading}
+          />
+        )}
+        {table.getColumn("visaClass") && (
           <DataTableFacetedFilter
             column={table.getColumn("visaClass")}
             title="Visa class"
-            options={filterOptionsMap.get("visaClass")!.options} // already validated existence
-            isLoading={filterOptionsMap.get("visaClass")!.isLoading}
+            options={visaClassOptions} // already validated existence
+            isLoading={isVisaClassLoading}
           />
         )}
         {table.getColumn("employer.name") && (
-          <FilterUsingBackend<Employer>
+          <FilterUsingBackend
+            column={table.getColumn("employer.name")!}
             entity={{
-              text: "employer",
+              title: "employer",
               idAccessorFn,
               displayAccessorFn,
             }}
@@ -109,12 +152,8 @@ export function DataTableToolbar<TData>({
               str: searchStr,
               setStr: setSearchStr,
             }}
-            selectedData={selectedEmployers}
-            setSelectedData={setSelectedEmployers}
             onFilter={(selectedData) => {
-              table
-                .getColumn("employer.name")
-                ?.setFilterValue(selectedData.map((data) => data.uuid));
+              table.getColumn("employer.name")?.setFilterValue(selectedData);
             }}
           />
         )}
@@ -123,7 +162,6 @@ export function DataTableToolbar<TData>({
             variant="ghost"
             onClick={() => {
               table.resetColumnFilters();
-              setSelectedEmployers([]);
             }}
             className="h-8 px-2 lg:px-3"
           >

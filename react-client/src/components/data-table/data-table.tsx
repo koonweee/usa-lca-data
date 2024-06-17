@@ -1,9 +1,9 @@
-import * as React from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
   PaginationState,
   SortingState,
+  Table as TanstackTable,
   VisibilityState,
   flexRender,
   getCoreRowModel,
@@ -14,7 +14,10 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import * as React from "react";
 
+import { DataTablePagination } from "@/components/data-table/data-table-pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -23,9 +26,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DataTablePagination } from "@/components/data-table/data-table-pagination";
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -39,11 +39,8 @@ interface DataTableProps<TData, TValue> {
     setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
     columnFilters: ColumnFiltersState;
     getFacetedUniqueValues?: typeof getFacetedUniqueValues;
-    filterOptionsMap: Map<
-      string,
-      { options: { value: string; label: string }[]; isLoading: boolean }
-    >; // columnId -> filterOptions
   };
+  toolbar: React.FunctionComponent<{ table: TanstackTable<TData> }>;
   isLoading?: boolean;
 }
 
@@ -53,6 +50,7 @@ export function DataTable<TData, TValue>({
   serverSidePaginationConfig,
   serverSideFilteringConfig,
   isLoading,
+  toolbar,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -99,14 +97,17 @@ export function DataTable<TData, TValue>({
       : undefined,
   });
 
+  const Toolbar = toolbar;
+
   return (
     <div className="space-y-4">
-      <DataTableToolbar
+      {/* <DataTableToolbar
         table={table}
         filterOptionsMap={
           serverSideFilteringConfig?.filterOptionsMap ?? new Map()
         }
-      />
+      /> */}
+      <Toolbar table={table} />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

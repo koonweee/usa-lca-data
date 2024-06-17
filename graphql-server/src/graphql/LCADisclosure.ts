@@ -134,6 +134,7 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
             where,
             distinct: ["visaClass"],
             select: { visaClass: true },
+            orderBy: { visaClass: "asc" },
           })
           .then((result: { visaClass: $Enums.visaclass }[]) => {
             return { uniqueValues: result.map((r) => r.visaClass) };
@@ -158,6 +159,7 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
             where,
             distinct: ["caseStatus"],
             select: { caseStatus: true },
+            orderBy: { caseStatus: "asc" },
           })
           .then((result: { caseStatus: $Enums.casestatus }[]) => {
             return { uniqueValues: result.map((r) => r.caseStatus) };
