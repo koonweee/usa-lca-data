@@ -1,6 +1,6 @@
 import { ModeToggle } from "@/components/dark-mode-toggle";
 import { DataTable } from "@/components/data-table/data-table";
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { DataTableToolbar } from "@/features/disclosures/data-table-toolbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { columns } from "@/features/disclosures/columns";
 import {
@@ -30,8 +30,6 @@ export default function LCADisclosuresPage() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
-
-  console.count("LCADisclosuresPage");
 
   const filters: InputMaybe<LcaDisclosureFilters> = useMemo(
     () => ({

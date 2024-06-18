@@ -48,8 +48,9 @@ export function DataTableToolbar<TData>({
     return (
       caseStatusData?.uniqueColumnValues?.caseStatuses?.uniqueValues.map(
         (value) => ({
-          value,
-          label: CASE_STATUS_ENUM_TO_READABLE[value],
+          value: value.caseStatus,
+          label: CASE_STATUS_ENUM_TO_READABLE[value.caseStatus],
+          count: value.count,
         })
       ) ?? []
     );
@@ -68,8 +69,9 @@ export function DataTableToolbar<TData>({
     return (
       visaClassData?.uniqueColumnValues?.visaClasses?.uniqueValues.map(
         (value) => ({
-          value: value,
-          label: VISA_CLASS_ENUM_TO_READABLE[value],
+          value: value.visaClass,
+          label: VISA_CLASS_ENUM_TO_READABLE[value.visaClass],
+          count: value.count,
         })
       ) ?? []
     );
@@ -80,6 +82,7 @@ export function DataTableToolbar<TData>({
 
   const idAccessorFn = (entry: Employer) => entry.uuid;
   const displayAccessorFn = (entry: Employer) => entry.name;
+  const countAccessorFn = (entry: Employer) => entry.count;
 
   const [searchPagination, setSearchPagination] = React.useState({
     pageIndex: 0,
@@ -104,6 +107,8 @@ export function DataTableToolbar<TData>({
     useQuery(PaginatedUniqueEmployersDocument, {
       variables: searchQueryVariables,
     });
+
+  console.log("employersQueryData", employersQueryData);
 
   const { uniqueColumnValues } = employersQueryData || {};
   const { employers } = uniqueColumnValues || {};
@@ -138,6 +143,7 @@ export function DataTableToolbar<TData>({
               title: "employer",
               idAccessorFn,
               displayAccessorFn,
+              countAccessorFn,
             }}
             query={{
               result: employersQueryItems,

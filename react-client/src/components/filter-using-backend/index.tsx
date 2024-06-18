@@ -40,6 +40,8 @@ export interface FilterUsingBackendProps<T, TData, TValue> {
     idAccessorFn: (entry: T) => string;
     /** Function to get display value from a data entry T*/
     displayAccessorFn: (entry: T) => string;
+    /** Function to get count from a data entry T */
+    countAccessorFn?: (entry: T) => number;
   };
 
   /** Props related to query for T */
@@ -77,7 +79,7 @@ export function FilterUsingBackend<T, TData, TValue>(
 ) {
   const {
     column,
-    entity: { title, idAccessorFn, displayAccessorFn },
+    entity: { title, idAccessorFn, displayAccessorFn, countAccessorFn },
     query: {
       result: queryResult,
       isQueryLoading = false,
@@ -256,6 +258,11 @@ export function FilterUsingBackend<T, TData, TValue>(
                         <CheckIcon className="h-4 w-4" />
                       </div>
                       <span>{displayAccessorFn(entry)}</span>
+                      {countAccessorFn && (
+                        <span className="ml-auto flex h-4 w-fit items-center justify-center font-mono text-xs">
+                          {countAccessorFn(entry)}
+                        </span>
+                      )}
                     </CommandItem>
                   ))}
                   <CommandSeparator alwaysRender />
@@ -312,9 +319,9 @@ export function FilterUsingBackend<T, TData, TValue>(
                       (e) => !selectedDataIDsSet.has(idAccessorFn(e))
                     )}
                     idAccessorFn={idAccessorFn}
+                    countAccessorFn={countAccessorFn}
                     displayAccessorFn={displayAccessorFn}
                     setSelectedData={setSelectedData}
-                    // isDataLoading={isQueryLoading}
                   />
                 </InfiniteScroll>
               )}

@@ -19,11 +19,6 @@ export const columns: ColumnDef<LCADisclosure>[] = [
     header: "Case status",
     accessorFn: (row) => getDisplayLCADisclosure(row).caseStatus,
   },
-  // {
-  //   id: "socJob.title",
-  //   header: "Job title",
-  //   accessorFn: (row) => getDisplayLCADisclosure(row).socJob.title
-  // },
   {
     id: "jobTitle",
     header: "Job title",

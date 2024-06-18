@@ -16,6 +16,7 @@ query PaginatedUniqueEmployers(
         postalCode
         state
         uuid
+        count
       }
       hasNext
     }

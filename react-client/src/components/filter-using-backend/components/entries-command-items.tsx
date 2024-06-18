@@ -7,12 +7,14 @@ export function EntriesCommandItems<T>({
   dataToDisplay,
   idAccessorFn,
   displayAccessorFn,
+  countAccessorFn,
   setSelectedData,
   isDataLoading = false,
 }: {
   dataToDisplay: T[];
   idAccessorFn: (entry: T) => string;
   displayAccessorFn: (entry: T) => string;
+  countAccessorFn?: (entry: T) => number;
   setSelectedData: React.Dispatch<React.SetStateAction<T[]>>;
   isDataLoading?: boolean;
 }) {
@@ -52,6 +54,11 @@ export function EntriesCommandItems<T>({
           <CheckIcon className={cn("h-4 w-4")} />
         </div>
         <span>{displayAccessorFn(data)}</span>
+        {countAccessorFn && (
+          <span className="ml-auto flex h-4 w-fit items-center justify-center font-mono text-xs">
+            {countAccessorFn(data)}
+          </span>
+        )}
       </CommandItem>
     );
   });

@@ -17,12 +17,12 @@ export const context: Context = {
   prisma,
 };
 
-// prisma.$on("query", async (e) => {
-//   const write = `query: ${e.query}\nparams: ${e.params}\nduration: ${e.duration}ms\n`;
-//   // Append to log.json
-//   fs.appendFile("log.json", write, (err) => {
-//     if (err) {
-//       console.error(err);
-//     }
-//   });
-// });
+prisma.$on("query", async (e) => {
+  const write = `query: ${e.query}\nparams: ${e.params}\nduration: ${e.duration}ms\n`;
+  // Append to log.json
+  fs.appendFile("log.json", write, (err) => {
+    if (err) {
+      console.error(err);
+    }
+  });
+});

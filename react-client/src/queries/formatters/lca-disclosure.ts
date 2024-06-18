@@ -68,7 +68,7 @@ export const VISA_CLASS_ENUM_TO_READABLE: Record<Visaclass, string> = {
 
 export const CASE_STATUS_ENUM_TO_READABLE: Record<Casestatus, string> = {
   Certified: "Certified",
-  Certified___Withdrawn: "Certified Withdrawn",
+  Certified___Withdrawn: "Certified - Withdrawn",
   Denied: "Denied",
   Withdrawn: "Withdrawn",
 };

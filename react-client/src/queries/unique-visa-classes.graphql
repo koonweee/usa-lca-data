@@ -1,7 +1,10 @@
 query UniqueVisaClasses($filters: LCADisclosureFilters) {
   uniqueColumnValues {
     visaClasses(filters: $filters) {
-      uniqueValues
+      uniqueValues {
+        visaClass
+        count
+      }
     }
   }
 }

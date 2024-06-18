@@ -1,4 +1,4 @@
-import { $Enums, Prisma } from "@prisma/client";
+import { $Enums, Prisma, Employer } from "@prisma/client";
 import {
   arg,
   enumType,
@@ -10,20 +10,29 @@ import {
   objectType,
   stringArg,
 } from "nexus";
-import {
-  Employer,
-  LCADisclosure,
-  casestatus,
-  payunit,
-  visaclass,
-} from "nexus-prisma";
+import { LCADisclosure, casestatus, payunit, visaclass } from "nexus-prisma";
 import { dateTimeArg } from "./args";
 import { ArgsRecord, Maybe } from "nexus/dist/core";
 import { NexusGenInputs, NexusGenRootTypes } from "../../nexus-typegen";
+import { Sql } from "@prisma/client/runtime/library";
 
 export const payUnitType = enumType(payunit);
 export const caseStatusType = enumType(casestatus);
 export const visaClassType = enumType(visaclass);
+
+export const VISA_CLASS_ENUM_TO_READABLE: Record<$Enums.visaclass, string> = {
+  H_1B: "H-1B",
+  H_1B1_Chile: "H-1B1 Chile",
+  H_1B1_Singapore: "H-1B1 Singapore",
+  E_3_Australian: "E-3 Australian",
+};
+
+export const CASE_STATUS_ENUM_TO_READABLE: Record<$Enums.casestatus, string> = {
+  Certified: "Certified",
+  Certified___Withdrawn: "Certified - Withdrawn",
+  Denied: "Denied",
+  Withdrawn: "Withdrawn",
+};
 
 export const LCADisclosureType = objectType({
   name: LCADisclosure.$name,
@@ -69,22 +78,49 @@ export const LCADisclosureType = objectType({
 export const UniqueVisaClassesType = objectType({
   name: "UniqueVisaClasses",
   definition(t) {
-    t.nonNull.list.nonNull.field("uniqueValues", { type: "visaclass" });
+    t.nonNull.list.nonNull.field("uniqueValues", { type: "VisaClassAndCount" });
+  },
+});
+
+export const VisaClassAndCountType = objectType({
+  name: "VisaClassAndCount",
+  definition(t) {
+    t.nonNull.field("visaClass", { type: "visaclass" });
+    t.nonNull.int("count");
   },
 });
 
 export const UniqueCaseStatusesType = objectType({
   name: "UniqueCaseStatuses",
   definition(t) {
-    t.nonNull.list.nonNull.field("uniqueValues", { type: "casestatus" });
+    t.nonNull.list.nonNull.field("uniqueValues", {
+      type: "CaseStatusAndCount",
+    });
+  },
+});
+
+export const caseStatusAndCountType = objectType({
+  name: "CaseStatusAndCount",
+  definition(t) {
+    t.nonNull.field("caseStatus", { type: "casestatus" });
+    t.nonNull.int("count");
   },
 });
 
 export const UniqueEmployersType = objectType({
   name: "UniqueEmployers",
   definition(t) {
-    t.nonNull.list.nonNull.field("uniqueValues", { type: "Employer" });
+    t.nonNull.list.nonNull.field("uniqueValues", {
+      type: "Employer",
+    });
     t.boolean("hasNext");
+  },
+});
+
+export const EmployerAndCountType = extendType({
+  type: "Employer",
+  definition(t) {
+    t.nonNull.int("count");
   },
 });
 
@@ -126,19 +162,25 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
           description: "Filter options",
         }),
       },
-      resolve: (_parent, args, context, _info) => {
+      resolve: async (_parent, args, context, _info) => {
         const { filters } = args;
         const where = constructPrismaWhereFromFilters(filters ?? {});
-        return context.prisma.lCADisclosure
-          .findMany({
+
+        const uniqueClassesAndCounts = context.prisma.lCADisclosure
+          .groupBy({
             where,
-            distinct: ["visaClass"],
-            select: { visaClass: true },
+            by: ["visaClass"],
+            _count: { visaClass: true },
             orderBy: { visaClass: "asc" },
           })
-          .then((result: { visaClass: $Enums.visaclass }[]) => {
-            return { uniqueValues: result.map((r) => r.visaClass) };
+          .then((result) => {
+            return result.map((r) => ({
+              visaClass: r.visaClass,
+              count: r._count.visaClass,
+            }));
           });
+
+        return { uniqueValues: uniqueClassesAndCounts };
       },
     });
     t.nonNull.field("caseStatuses", {
@@ -154,16 +196,22 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
       resolve: (_parent, args, context, _info) => {
         const { filters } = args;
         const where = constructPrismaWhereFromFilters(filters ?? {});
-        return context.prisma.lCADisclosure
-          .findMany({
+
+        const uniqueStatusesAndCounts = context.prisma.lCADisclosure
+          .groupBy({
             where,
-            distinct: ["caseStatus"],
-            select: { caseStatus: true },
+            by: ["caseStatus"],
+            _count: { caseStatus: true },
             orderBy: { caseStatus: "asc" },
           })
-          .then((result: { caseStatus: $Enums.casestatus }[]) => {
-            return { uniqueValues: result.map((r) => r.caseStatus) };
+          .then((result) => {
+            return result.map((r) => ({
+              caseStatus: r.caseStatus,
+              count: r._count.caseStatus,
+            }));
           });
+
+        return { uniqueValues: uniqueStatusesAndCounts };
       },
     });
     t.nonNull.field("employers", {
@@ -193,7 +241,6 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
             name: { search: employerNameSearchStr, mode: "insensitive" },
           };
         }
-        const startTime = Date.now();
 
         const results = await context.prisma.lCADisclosure.findMany({
           where,
@@ -203,8 +250,39 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
           take: take ? take + 1 : undefined,
           orderBy: { employer: { name: "asc" } },
         });
-        // console.log("where: ", where);
-        // console.log("Unique employers query time: ", Date.now() - startTime);
+
+        const filtersWhereClauses = constructTemplateStringWhereFromFilters(
+          filters ?? {}
+        );
+
+        const searchStrWhereClase =
+          employerNameSearchStr && employerNameSearchStr.length > 0
+            ? Prisma.sql`to_tsvector("public"."Employer"."name") @@ phraseto_tsquery(${employerNameSearchStr})`
+            : undefined;
+
+        const whereExists = filtersWhereClauses || searchStrWhereClase;
+
+        const whereTemplate = whereExists
+          ? Prisma.sql`WHERE ${Prisma.join(
+              [filtersWhereClauses, searchStrWhereClase].filter(
+                (clause) => !!clause
+              ),
+              "AND "
+            )}`
+          : Prisma.empty;
+
+        const uniqueEmployersAndCounts = context.prisma.$queryRaw<
+          (Employer & { count: BigInt })[]
+        >`
+          SELECT "public"."Employer".*, count(*) as count
+          FROM "public"."LCADisclosure"
+          INNER JOIN "public"."Employer" ON "public"."LCADisclosure"."employerUuid" = "public"."Employer"."uuid"
+          ${whereTemplate}
+          GROUP BY "public"."Employer"."uuid"
+          ORDER BY "public"."Employer"."name" ASC
+          ${take ? Prisma.sql`LIMIT ${take + 1}` : Prisma.empty}
+          ${skip ? Prisma.sql`OFFSET ${skip}` : Prisma.empty}
+        `;
 
         const resultsProcessed = {
           uniqueValues: take
@@ -213,7 +291,19 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
           hasNext: !take || results.length > take,
         };
 
-        return resultsProcessed;
+        return uniqueEmployersAndCounts.then((employers) => {
+          // Convert big int to int
+          const employersProcessed = employers.map((employer) => ({
+            ...employer,
+            count: Number(employer.count),
+          }));
+          return {
+            uniqueValues: take
+              ? employersProcessed.slice(0, take)
+              : employersProcessed,
+            hasNext: !take || results.length > take,
+          };
+        });
       },
     });
   },
@@ -289,10 +379,55 @@ function constructPrismaWhereFromFilters(
     where.employerUuid = { in: employerUuid };
   }
 
-  // if (employerNameSearchStr) {
-  //   where.employer = {
-  //     name: { search: employerNameSearchStr, mode: "insensitive" },
-  //   };
-  // }
   return where;
+}
+
+function constructTemplateStringWhereFromFilters(
+  filters: NexusGenInputs["LCADisclosureFilters"]
+): Sql | undefined {
+  const { employerUuid, caseStatus, visaClass } = filters ?? {};
+
+  const caseStatusExists = caseStatus && caseStatus.length > 0;
+  const visaClassExists = visaClass && visaClass.length > 0;
+  const employerUuidExists = employerUuid && employerUuid.length > 0;
+
+  if (!caseStatusExists && !visaClassExists && !employerUuidExists) {
+    return undefined;
+  }
+
+  const template = Prisma.sql`
+    ${
+      caseStatusExists
+        ? Prisma.sql`"caseStatus" IN (${Prisma.join(
+            caseStatus.map(
+              (status) =>
+                Prisma.sql`CAST(${CASE_STATUS_ENUM_TO_READABLE[status]}::text as "public"."casestatus")`
+            )
+          )})`
+        : Prisma.empty
+    }
+    ${caseStatusExists && visaClassExists ? Prisma.sql`AND` : Prisma.empty}
+    ${
+      visaClassExists
+        ? Prisma.sql`"visaClass" IN (${Prisma.join(
+            visaClass.map(
+              (visa) =>
+                Prisma.sql`CAST(${VISA_CLASS_ENUM_TO_READABLE[visa]}::text as "public"."visaclass")`
+            )
+          )})`
+        : Prisma.empty
+    }
+    ${
+      (caseStatusExists || visaClassExists) && employerUuidExists
+        ? Prisma.sql`AND`
+        : Prisma.empty
+    }
+    ${
+      employerUuidExists
+        ? Prisma.sql`"employerUuid" IN (${Prisma.join(employerUuid)})`
+        : Prisma.empty
+    }
+  `;
+
+  return template;
 }

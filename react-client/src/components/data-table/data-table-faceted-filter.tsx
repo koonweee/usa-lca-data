@@ -29,6 +29,7 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   options: {
     label: string;
     value: string;
+    count?: number;
     icon?: React.ComponentType<{ className?: string }>;
   }[];
   isLoading?: boolean;
@@ -40,7 +41,6 @@ export function DataTableFacetedFilter<TData, TValue>({
   options,
   isLoading,
 }: DataTableFacetedFilterProps<TData, TValue>) {
-  const facets = column?.getFacetedUniqueValues();
   const columnFilterValue = column?.getFilterValue() as string[];
   const columnFilterValueSet = new Set(columnFilterValue);
   const [currentSelectedValues, setCurrentSelectedValues] =
@@ -155,9 +155,9 @@ export function DataTableFacetedFilter<TData, TValue>({
                       <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                     )}
                     <span>{option.label}</span>
-                    {facets?.get(option.value) && (
+                    {option.count && (
                       <span className="ml-auto flex h-4 w-fit items-center justify-center font-mono text-xs">
-                        {facets.get(option.value)}
+                        {option.count}
                       </span>
                     )}
                   </CommandItem>

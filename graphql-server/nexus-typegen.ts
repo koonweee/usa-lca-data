@@ -65,8 +65,13 @@ export interface NexusGenScalars {
 }
 
 export interface NexusGenObjects {
+  CaseStatusAndCount: { // root type
+    caseStatus: NexusGenEnums['casestatus']; // casestatus!
+    count: number; // Int!
+  }
   Employer: { // root type
     city: string; // String!
+    count: number; // Int!
     naicsCode: string; // String!
     name: string; // String!
     postalCode: string; // String!
@@ -108,14 +113,18 @@ export interface NexusGenObjects {
     title: string; // String!
   }
   UniqueCaseStatuses: { // root type
-    uniqueValues: NexusGenEnums['casestatus'][]; // [casestatus!]!
+    uniqueValues: NexusGenRootTypes['CaseStatusAndCount'][]; // [CaseStatusAndCount!]!
   }
   UniqueEmployers: { // root type
     hasNext?: boolean | null; // Boolean
     uniqueValues: NexusGenRootTypes['Employer'][]; // [Employer!]!
   }
   UniqueVisaClasses: { // root type
-    uniqueValues: NexusGenEnums['visaclass'][]; // [visaclass!]!
+    uniqueValues: NexusGenRootTypes['VisaClassAndCount'][]; // [VisaClassAndCount!]!
+  }
+  VisaClassAndCount: { // root type
+    count: number; // Int!
+    visaClass: NexusGenEnums['visaclass']; // visaclass!
   }
 }
 
@@ -130,8 +139,13 @@ export type NexusGenRootTypes = NexusGenObjects
 export type NexusGenAllTypes = NexusGenRootTypes & NexusGenScalars & NexusGenEnums
 
 export interface NexusGenFieldTypes {
+  CaseStatusAndCount: { // field return type
+    caseStatus: NexusGenEnums['casestatus']; // casestatus!
+    count: number; // Int!
+  }
   Employer: { // field return type
     city: string; // String!
+    count: number; // Int!
     naicsCode: string; // String!
     name: string; // String!
     postalCode: string; // String!
@@ -184,20 +198,29 @@ export interface NexusGenFieldTypes {
     title: string; // String!
   }
   UniqueCaseStatuses: { // field return type
-    uniqueValues: NexusGenEnums['casestatus'][]; // [casestatus!]!
+    uniqueValues: NexusGenRootTypes['CaseStatusAndCount'][]; // [CaseStatusAndCount!]!
   }
   UniqueEmployers: { // field return type
     hasNext: boolean | null; // Boolean
     uniqueValues: NexusGenRootTypes['Employer'][]; // [Employer!]!
   }
   UniqueVisaClasses: { // field return type
-    uniqueValues: NexusGenEnums['visaclass'][]; // [visaclass!]!
+    uniqueValues: NexusGenRootTypes['VisaClassAndCount'][]; // [VisaClassAndCount!]!
+  }
+  VisaClassAndCount: { // field return type
+    count: number; // Int!
+    visaClass: NexusGenEnums['visaclass']; // visaclass!
   }
 }
 
 export interface NexusGenFieldTypeNames {
+  CaseStatusAndCount: { // field return type name
+    caseStatus: 'casestatus'
+    count: 'Int'
+  }
   Employer: { // field return type name
     city: 'String'
+    count: 'Int'
     naicsCode: 'String'
     name: 'String'
     postalCode: 'String'
@@ -250,14 +273,18 @@ export interface NexusGenFieldTypeNames {
     title: 'String'
   }
   UniqueCaseStatuses: { // field return type name
-    uniqueValues: 'casestatus'
+    uniqueValues: 'CaseStatusAndCount'
   }
   UniqueEmployers: { // field return type name
     hasNext: 'Boolean'
     uniqueValues: 'Employer'
   }
   UniqueVisaClasses: { // field return type name
-    uniqueValues: 'visaclass'
+    uniqueValues: 'VisaClassAndCount'
+  }
+  VisaClassAndCount: { // field return type name
+    count: 'Int'
+    visaClass: 'visaclass'
   }
 }
 
