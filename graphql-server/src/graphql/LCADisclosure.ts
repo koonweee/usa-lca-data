@@ -11,8 +11,6 @@ import {
   stringArg,
 } from "nexus";
 import { LCADisclosure, casestatus, payunit, visaclass } from "nexus-prisma";
-import { dateTimeArg } from "./args";
-import { ArgsRecord, Maybe } from "nexus/dist/core";
 import { NexusGenInputs, NexusGenRootTypes } from "../../nexus-typegen";
 import { Sql } from "@prisma/client/runtime/library";
 
@@ -60,20 +58,20 @@ export const LCADisclosureType = objectType({
   },
 });
 
-// export const LCADisclosureOrderByInput = inputObjectType({
-//   name: "LCADisclosureOrderByInput",
-//   definition(t) {
-//     t.field("decisionDate", { type: "SortOrder" });
-//     t.field("receivedDate", { type: "SortOrder" });
-//     t.field("beginDate", { type: "SortOrder" });
-//     t.field("wageRateOfPayFrom", { type: "SortOrder" });
-//   },
-// });
+export const LCADisclosureOrderByInput = inputObjectType({
+  name: "LCADisclosureOrderByInput",
+  definition(t) {
+    // t.field("decisionDate", { type: "SortOrder" });
+    // t.field("receivedDate", { type: "SortOrder" });
+    t.field("beginDate", { type: "SortOrder" });
+    t.field("wageRateOfPayFrom", { type: "SortOrder" });
+  },
+});
 
-// export const SortOrder = enumType({
-//   name: "SortOrder",
-//   members: ["asc", "desc"],
-// });
+export const SortOrder = enumType({
+  name: "SortOrder",
+  members: ["asc", "desc"],
+});
 
 export const UniqueVisaClassesType = objectType({
   name: "UniqueVisaClasses",
@@ -418,12 +416,31 @@ export const lcaDisclosureQuery = extendType({
           type: "PaginationInput",
           description: "Pagination options",
         }),
+        sorting: arg({
+          type: "LCADisclosureOrderByInput",
+          description: "Sorting options",
+        }),
       },
       async resolve(parent, args, context, info) {
-        const { filters, pagination } = args;
+        const { filters, pagination, sorting } = args;
         const { skip, take } = pagination ?? {};
 
         const where = constructPrismaWhereFromFilters(filters ?? {});
+
+        const { beginDate, wageRateOfPayFrom } = sorting ?? {};
+
+        const orderBy = [];
+
+        if (beginDate) {
+          orderBy.push({ beginDate });
+        }
+        if (wageRateOfPayFrom) {
+          orderBy.push({ wageRateOfPayFrom });
+        }
+
+        if (Object.keys(orderBy).length === 0) {
+          orderBy.push({ beginDate: "desc" as const });
+        }
 
         // Fetch all disclosures and total count
         const count = context.prisma.lCADisclosure.count({ where });
@@ -431,7 +448,7 @@ export const lcaDisclosureQuery = extendType({
           where,
           skip: skip ?? undefined,
           take: take ? take + 1 : undefined,
-          orderBy: { beginDate: "desc" },
+          orderBy,
         });
 
         const returnObj = Promise.all([disclosureItems, count]).then(

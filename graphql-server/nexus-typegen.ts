@@ -43,6 +43,10 @@ export interface NexusGenInputs {
     jobTitle?: string[] | null; // [String!]
     visaClass?: NexusGenEnums['visaclass'][] | null; // [visaclass!]
   }
+  LCADisclosureOrderByInput: { // input type
+    beginDate?: NexusGenEnums['SortOrder'] | null; // SortOrder
+    wageRateOfPayFrom?: NexusGenEnums['SortOrder'] | null; // SortOrder
+  }
   PaginationInput: { // input type
     skip?: number | null; // Int
     take?: number | null; // Int
@@ -50,6 +54,7 @@ export interface NexusGenInputs {
 }
 
 export interface NexusGenEnums {
+  SortOrder: "asc" | "desc"
   casestatus: "Certified" | "Certified___Withdrawn" | "Denied" | "Withdrawn"
   payunit: "Bi_Weekly" | "Hour" | "Month" | "Week" | "Year"
   visaclass: "E_3_Australian" | "H_1B" | "H_1B1_Chile" | "H_1B1_Singapore"
@@ -345,6 +350,7 @@ export interface NexusGenArgTypes {
     lcaDisclosures: { // args
       filters?: NexusGenInputs['LCADisclosureFilters'] | null; // LCADisclosureFilters
       pagination?: NexusGenInputs['PaginationInput'] | null; // PaginationInput
+      sorting?: NexusGenInputs['LCADisclosureOrderByInput'] | null; // LCADisclosureOrderByInput
     }
   }
 }

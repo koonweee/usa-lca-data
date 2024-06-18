@@ -4,6 +4,7 @@ import { DataTableToolbar } from "@/features/disclosures/data-table-toolbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ColumnId, columns } from "@/features/disclosures/columns";
 import {
+  getColumnSortOrder,
   getCaseStatusFilters,
   getEmployerUuidsFilters,
   getJobTitleFilters,
@@ -12,11 +13,12 @@ import {
 import {
   InputMaybe,
   LcaDisclosureFilters,
+  LcaDisclosureOrderByInput,
   PaginatedLcaDisclosuresDocument,
   PaginatedLcaDisclosuresQueryVariables,
 } from "@/graphql/generated";
 import { useQuery } from "@apollo/client";
-import { ColumnFiltersState } from "@tanstack/react-table";
+import { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 import React, { useMemo } from "react";
 
 export default function LCADisclosuresPage() {
@@ -24,6 +26,18 @@ export default function LCADisclosuresPage() {
     pageIndex: 0,
     pageSize: 10,
   });
+
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: ColumnId.StartDate, desc: true },
+  ]);
+
+  const sortingInput: InputMaybe<LcaDisclosureOrderByInput> = useMemo(
+    () => ({
+      beginDate: getColumnSortOrder(sorting, ColumnId.StartDate),
+      wageRateOfPayFrom: getColumnSortOrder(sorting, ColumnId.Salary),
+    }),
+    [sorting]
+  );
 
   /**
    * Each column filter is of shape { id: <columnId>, value: <filterValue>[]}
@@ -48,6 +62,7 @@ export default function LCADisclosuresPage() {
       skip: pagination.pageIndex * pagination.pageSize,
     },
     filters,
+    sorting: sortingInput,
   };
 
   const { loading, data } = useQuery(PaginatedLcaDisclosuresDocument, {
@@ -89,6 +104,8 @@ export default function LCADisclosuresPage() {
         serverSideFilteringConfig={{
           columnFilters,
           setColumnFilters,
+          sorting,
+          setSorting,
         }}
         isLoading={loading}
         defaultHiddenColumnIds={[ColumnId.CaseNumber]}

@@ -1,10 +1,26 @@
+import { ColumnId } from "@/features/disclosures/columns";
 import {
   Casestatus,
   Employer,
   Visaclass,
   StringValuesAndCount,
+  SortOrder,
 } from "@/graphql/generated";
-import { ColumnFiltersState } from "@tanstack/react-table";
+import { ColumnFiltersState, SortingState } from "@tanstack/react-table";
+
+export function getColumnSortOrder(
+  sorting: SortingState,
+  columnId: ColumnId
+): SortOrder | undefined {
+  const columnSort = sorting.find((s) => s.id === columnId);
+  const columnSorted = !!columnSort;
+  if (!columnSorted) return undefined;
+  if (columnSort.desc) {
+    return SortOrder.Desc;
+  } else {
+    return SortOrder.Asc;
+  }
+}
 
 export function getVisaFilters(
   columnFilters: ColumnFiltersState

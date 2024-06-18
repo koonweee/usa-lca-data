@@ -11,7 +11,6 @@ import {
   getFacetedUniqueValues,
   getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import * as React from "react";
@@ -39,6 +38,8 @@ interface DataTableProps<TData, TValue> {
     setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
     columnFilters: ColumnFiltersState;
     getFacetedUniqueValues?: typeof getFacetedUniqueValues;
+    sorting: SortingState;
+    setSorting: React.Dispatch<React.SetStateAction<SortingState>>;
   };
   toolbar: React.FunctionComponent<{ table: TanstackTable<TData> }>;
   isLoading?: boolean;
@@ -70,7 +71,9 @@ export function DataTable<TData, TValue>({
     data,
     columns,
     state: {
-      sorting,
+      sorting: serverSideFilteringConfig
+        ? serverSideFilteringConfig.sorting
+        : sorting,
       columnVisibility,
       rowSelection,
       columnFilters: serverSideFilteringConfig
@@ -82,7 +85,9 @@ export function DataTable<TData, TValue>({
     manualFiltering: serverSideFilteringConfig ? true : false,
     rowCount: serverSidePaginationConfig?.rowCount,
     onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
+    onSortingChange: serverSideFilteringConfig
+      ? serverSideFilteringConfig.setSorting
+      : setSorting,
     onColumnFiltersChange: serverSideFilteringConfig
       ? serverSideFilteringConfig.setColumnFilters
       : setColumnFilters,
@@ -94,13 +99,13 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: serverSidePaginationConfig
       ? undefined
       : getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     //getFacetedUniqueValues: serverSideFilteringConfig ? serverSideFilteringConfig.getFacetedUniqueValues() : getFacetedUniqueValues(),
     // getFacetedMinMaxValues: serverSideFilteringConfig ? serverSideFilteringConfig.getFacetedMinMaxValues() : getFacetedMinMaxValues(),
     onPaginationChange: serverSidePaginationConfig
       ? serverSidePaginationConfig.setPagination
       : undefined,
+    manualSorting: true,
   });
 
   const Toolbar = toolbar;
@@ -154,7 +159,12 @@ export function DataTable<TData, TValue>({
             ) : (
               <NoDataRows
                 isLoading={isLoading}
-                colCount={columns.length}
+                colCount={
+                  table.getAllColumns().length -
+                  Object.values(columnVisibility).filter(
+                    (isVisible) => !isVisible
+                  ).length
+                }
                 pageSize={table.getState().pagination.pageSize}
               />
             )}

@@ -56,6 +56,11 @@ input LCADisclosureFilters {
   visaClass: [visaclass!]
 }
 
+input LCADisclosureOrderByInput {
+  beginDate: SortOrder
+  wageRateOfPayFrom: SortOrder
+}
+
 type LCADisclosures {
   hasNext: Boolean
   items: [LCADisclosure!]!
@@ -128,6 +133,9 @@ type Query {
 
     """Pagination options"""
     pagination: PaginationInput
+
+    """Sorting options"""
+    sorting: LCADisclosureOrderByInput
   ): LCADisclosures!
   socJobs: [SOCJob!]!
   uniqueColumnValues: PaginatedLCADisclosuresUniqueColumnValues!
@@ -136,6 +144,11 @@ type Query {
 type SOCJob {
   code: ID!
   title: String!
+}
+
+enum SortOrder {
+  asc
+  desc
 }
 
 type StringValuesAndCount {

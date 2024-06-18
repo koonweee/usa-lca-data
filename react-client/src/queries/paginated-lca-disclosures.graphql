@@ -1,8 +1,13 @@
 query PaginatedLcaDisclosures(
   $filters: LCADisclosureFilters
   $pagination: PaginationInput
+  $sorting: LCADisclosureOrderByInput
 ) {
-  lcaDisclosures(filters: $filters, pagination: $pagination) {
+  lcaDisclosures(
+    filters: $filters
+    pagination: $pagination
+    sorting: $sorting
+  ) {
     items {
       caseNumber
       jobTitle

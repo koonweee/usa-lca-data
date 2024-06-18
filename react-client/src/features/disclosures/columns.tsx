@@ -1,7 +1,9 @@
+import { Button } from "@/components/ui/button";
 import { LCADisclosure } from "@/lib/types";
 import { getDisplayLCADisclosure } from "@/queries/formatters/lca-disclosure";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { Column, ColumnDef } from "@tanstack/react-table";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 export enum ColumnId {
   CaseNumber = "caseNumber",
@@ -53,12 +55,29 @@ export const columns: ColumnDef<LCADisclosure>[] = [
   },
   {
     id: ColumnId.StartDate,
-    header: "Employment start date",
     accessorFn: (row) => getDisplayLCADisclosure(row).startDate,
+    header: ({ column }) => {
+      return getSortableHeader(column, "Employment start date");
+    },
   },
   {
     id: ColumnId.Salary,
-    header: "Estimated (base) salary",
     accessorFn: (row) => getDisplayLCADisclosure(row).salary,
+    header: ({ column }) => {
+      return getSortableHeader(column, "Base salary");
+    },
   },
 ];
+
+function getSortableHeader(column: Column<LCADisclosure>, title: string) {
+  const isSorted = column.getIsSorted() !== false;
+  const isAsc = column.getIsSorted() === "asc";
+  return (
+    <Button variant="ghost" onClick={() => column.toggleSorting(isAsc)}>
+      {title}
+      {isSorted && isAsc && <ArrowUp className="ml-2 h-4 w-4" />}
+      {isSorted && !isAsc && <ArrowDown className="ml-2 h-4 w-4" />}
+      {!isSorted && <ArrowUpDown className="ml-2 h-4 w-4" />}
+    </Button>
+  );
+}
