@@ -107,6 +107,24 @@ export const caseStatusAndCountType = objectType({
   },
 });
 
+export const UniqueJobTitlesType = objectType({
+  name: "UniqueJobTitles",
+  definition(t) {
+    t.nonNull.list.nonNull.field("uniqueValues", {
+      type: "StringValuesAndCount",
+    });
+    t.boolean("hasNext");
+  },
+});
+
+export const StringValuesAndCountType = objectType({
+  name: "StringValuesAndCount",
+  definition(t) {
+    t.nonNull.string("value");
+    t.nonNull.int("count");
+  },
+});
+
 export const UniqueEmployersType = objectType({
   name: "UniqueEmployers",
   definition(t) {
@@ -139,6 +157,7 @@ export const lcaDisclosureFiltersInput = inputObjectType({
     t.list.nonNull.string("employerUuid");
     t.list.nonNull.field("caseStatus", { type: "casestatus" });
     t.list.nonNull.field("visaClass", { type: "visaclass" });
+    t.list.nonNull.string("jobTitle");
   },
 });
 
@@ -214,6 +233,39 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
         return { uniqueValues: uniqueStatusesAndCounts };
       },
     });
+    t.nonNull.field("jobTitles", {
+      type: "UniqueJobTitles",
+
+      description: "Unique job titles in the result set for a given filter",
+      args: {
+        filters: arg({
+          type: "LCADisclosureFilters",
+          description: "Filter options",
+        }),
+      },
+      resolve: (_parent, args, context, _info) => {
+        const { filters } = args;
+        const where = constructPrismaWhereFromFilters(filters ?? {});
+
+        const uniqueJobTitlesAndCounts = context.prisma.lCADisclosure
+          .groupBy({
+            where,
+            by: ["jobTitle"],
+            _count: { jobTitle: true },
+            orderBy: { jobTitle: "asc" },
+          })
+          .then((result) => {
+            return result
+              .filter((r) => r.jobTitle !== null)
+              .map((r) => ({
+                value: r.jobTitle as string,
+                count: r._count.jobTitle,
+              }));
+          });
+
+        return { uniqueValues: uniqueJobTitlesAndCounts };
+      },
+    });
     t.nonNull.field("employers", {
       type: "UniqueEmployers",
       description: "Unique employers in the result set for a given filter",
@@ -233,23 +285,6 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
       resolve: async (_parent, args, context, _info) => {
         const { filters, pagination, employerNameSearchStr } = args;
         const { skip, take } = pagination ?? {};
-
-        const where = constructPrismaWhereFromFilters(filters ?? {});
-
-        if (employerNameSearchStr) {
-          where.employer = {
-            name: { search: employerNameSearchStr, mode: "insensitive" },
-          };
-        }
-
-        const results = await context.prisma.lCADisclosure.findMany({
-          where,
-          distinct: ["employerUuid"],
-          select: { employer: true },
-          skip: skip ?? undefined,
-          take: take ? take + 1 : undefined,
-          orderBy: { employer: { name: "asc" } },
-        });
 
         const filtersWhereClauses = constructTemplateStringWhereFromFilters(
           filters ?? {}
@@ -284,13 +319,6 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
           ${skip ? Prisma.sql`OFFSET ${skip}` : Prisma.empty}
         `;
 
-        const resultsProcessed = {
-          uniqueValues: take
-            ? results.map((r) => r.employer).slice(0, take)
-            : results.map((r) => r.employer),
-          hasNext: !take || results.length > take,
-        };
-
         return uniqueEmployersAndCounts.then((employers) => {
           // Convert big int to int
           const employersProcessed = employers.map((employer) => ({
@@ -301,7 +329,74 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
             uniqueValues: take
               ? employersProcessed.slice(0, take)
               : employersProcessed,
-            hasNext: !take || results.length > take,
+            hasNext: !take || employersProcessed.length > take,
+          };
+        });
+      },
+    });
+    t.nonNull.field("jobTitles", {
+      type: "UniqueJobTitles",
+      description: "Unique job titles in the result set for a given filter",
+      args: {
+        filters: arg({
+          type: "LCADisclosureFilters",
+          description: "Filter options",
+        }),
+        jobTitleSearchStr: stringArg({
+          description: "Search string for job title",
+        }),
+        pagination: arg({
+          type: "PaginationInput",
+          description: "Pagination options",
+        }),
+      },
+      resolve: async (_parent, args, context, _info) => {
+        const { filters, pagination, jobTitleSearchStr } = args;
+        const { skip, take } = pagination ?? {};
+
+        const filtersWhereClauses = constructTemplateStringWhereFromFilters(
+          filters ?? {}
+        );
+
+        const searchStrWhereClase =
+          jobTitleSearchStr && jobTitleSearchStr.length > 0
+            ? Prisma.sql`to_tsvector("public"."LCADisclosure"."jobTitle") @@ phraseto_tsquery(${jobTitleSearchStr})`
+            : undefined;
+
+        const whereExists = filtersWhereClauses || searchStrWhereClase;
+
+        const whereTemplate = whereExists
+          ? Prisma.sql`WHERE ${Prisma.join(
+              [filtersWhereClauses, searchStrWhereClase].filter(
+                (clause) => !!clause
+              ),
+              "AND "
+            )}`
+          : Prisma.empty;
+
+        const uniqueJobTitlesAndCounts = context.prisma.$queryRaw<
+          { jobTitle: string; count: BigInt }[]
+        >`
+          SELECT "public"."LCADisclosure"."jobTitle", count(*) as count
+          FROM "public"."LCADisclosure"
+          ${whereTemplate}
+          GROUP BY "public"."LCADisclosure"."jobTitle"
+          ORDER BY count desc, "public"."LCADisclosure"."jobTitle" ASC
+          ${take ? Prisma.sql`LIMIT ${take + 1}` : Prisma.empty}
+          ${skip ? Prisma.sql`OFFSET ${skip}` : Prisma.empty}
+        `;
+
+        return uniqueJobTitlesAndCounts.then((jobTitles) => {
+          // Convert big int to int
+          const jobTitlesProcessed = jobTitles.map((jobTitle) => ({
+            value: jobTitle.jobTitle,
+            count: Number(jobTitle.count),
+          }));
+          return {
+            uniqueValues: take
+              ? jobTitlesProcessed.slice(0, take)
+              : jobTitlesProcessed,
+            hasNext: !take || jobTitlesProcessed.length > take,
           };
         });
       },
@@ -363,7 +458,7 @@ function constructPrismaWhereFromFilters(
   filters: NexusGenInputs["LCADisclosureFilters"]
 ): Prisma.LCADisclosureWhereInput {
   // Build where clause from filters
-  const { employerUuid, caseStatus, visaClass } = filters ?? {};
+  const { employerUuid, caseStatus, visaClass, jobTitle } = filters ?? {};
 
   const where: Prisma.LCADisclosureWhereInput = {};
 
@@ -379,19 +474,29 @@ function constructPrismaWhereFromFilters(
     where.employerUuid = { in: employerUuid };
   }
 
+  if (jobTitle && jobTitle.length > 0) {
+    where.jobTitle = { in: jobTitle };
+  }
+
   return where;
 }
 
 function constructTemplateStringWhereFromFilters(
   filters: NexusGenInputs["LCADisclosureFilters"]
 ): Sql | undefined {
-  const { employerUuid, caseStatus, visaClass } = filters ?? {};
+  const { employerUuid, caseStatus, visaClass, jobTitle } = filters ?? {};
 
   const caseStatusExists = caseStatus && caseStatus.length > 0;
   const visaClassExists = visaClass && visaClass.length > 0;
   const employerUuidExists = employerUuid && employerUuid.length > 0;
+  const jobTitleExists = jobTitle && jobTitle.length > 0;
 
-  if (!caseStatusExists && !visaClassExists && !employerUuidExists) {
+  if (
+    !caseStatusExists &&
+    !visaClassExists &&
+    !employerUuidExists &&
+    !jobTitleExists
+  ) {
     return undefined;
   }
 
@@ -424,7 +529,20 @@ function constructTemplateStringWhereFromFilters(
     }
     ${
       employerUuidExists
-        ? Prisma.sql`"employerUuid" IN (${Prisma.join(employerUuid)})`
+        ? Prisma.sql`"employerUuid" IN (${Prisma.join(
+            employerUuid.map((uuid) => Prisma.sql`${uuid}::uuid`)
+          )})`
+        : Prisma.empty
+    }
+    ${
+      (caseStatusExists || visaClassExists || employerUuidExists) &&
+      jobTitleExists
+        ? Prisma.sql`AND`
+        : Prisma.empty
+    }
+    ${
+      jobTitleExists
+        ? Prisma.sql`"jobTitle" IN (${Prisma.join(jobTitle)})`
         : Prisma.empty
     }
   `;

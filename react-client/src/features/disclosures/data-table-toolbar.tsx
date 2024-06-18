@@ -13,7 +13,10 @@ import {
   PaginatedUniqueEmployersDocument,
   PaginatedUniqueEmployersQueryVariables,
   UniqueCaseStatusesDocument,
+  StringValuesAndCount,
+  PaginatedUniqueJobTitlesDocument,
   UniqueVisaClassesDocument,
+  PaginatedUniqueJobTitlesQueryVariables,
 } from "@/graphql/generated";
 import { FilterUsingBackend } from "@/components/filter-using-backend";
 import React, { useMemo } from "react";
@@ -22,6 +25,7 @@ import {
   CASE_STATUS_ENUM_TO_READABLE,
   VISA_CLASS_ENUM_TO_READABLE,
 } from "@/queries/formatters/lca-disclosure";
+import { ColumnId } from "@/features/disclosures/columns";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -33,6 +37,8 @@ export function DataTableToolbar<TData>({
   queryFilters,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+
+  console.log("table filters", table.getState().columnFilters);
 
   /** Case status and visa type filters */
   const { loading: isCaseStatusLoading, data: caseStatusData } = useQuery(
@@ -77,8 +83,49 @@ export function DataTableToolbar<TData>({
     );
   }, [visaClassData]);
 
-  /** For employer filters */
   const pageSize = 20;
+  /** Job title filters */
+  const jobTitleIdAccessorFn = (entry: StringValuesAndCount) => entry.value;
+  const jobTitleDisplayAccessorFn = (entry: StringValuesAndCount) =>
+    entry.value;
+  const jobTitleCountAccessorFn = (entry: StringValuesAndCount) => entry.count;
+
+  const [jobTitlePagination, setJobTitlePagination] = React.useState({
+    pageIndex: 0,
+    pageSize,
+  });
+
+  const [searchJobTitleStr, setSearchJobTitleStr] = React.useState("");
+  const [debouncedJobTitleSearchStr] = useDebounce(searchJobTitleStr, 300);
+
+  const jobTitleSearchQueryVariables: PaginatedUniqueJobTitlesQueryVariables = {
+    pagination: {
+      take: jobTitlePagination.pageSize,
+      skip: jobTitlePagination.pageIndex * pageSize,
+    },
+    filters: queryFilters,
+    jobTitleSearchStr:
+      debouncedJobTitleSearchStr.length > 0
+        ? debouncedJobTitleSearchStr
+        : undefined,
+  };
+
+  const { loading: isJobTitleLoading, data: jobTitleQueryData } = useQuery(
+    PaginatedUniqueJobTitlesDocument,
+    {
+      variables: jobTitleSearchQueryVariables,
+    }
+  );
+
+  const { uniqueColumnValues: jobTitleUniqueColumnValues } =
+    jobTitleQueryData || {};
+  const { jobTitles } = jobTitleUniqueColumnValues || {};
+  const {
+    hasNext: jobTitlesHasNext = false,
+    uniqueValues: jobTitleQueryItems = [],
+  } = jobTitles || {};
+
+  /** For employer filters */
 
   const idAccessorFn = (entry: Employer) => entry.uuid;
   const displayAccessorFn = (entry: Employer) => entry.name;
@@ -108,8 +155,6 @@ export function DataTableToolbar<TData>({
       variables: searchQueryVariables,
     });
 
-  console.log("employersQueryData", employersQueryData);
-
   const { uniqueColumnValues } = employersQueryData || {};
   const { employers } = uniqueColumnValues || {};
   const {
@@ -117,28 +162,64 @@ export function DataTableToolbar<TData>({
     uniqueValues: employersQueryItems = [],
   } = employers || {};
 
+  const resetTableToFirstPage = table.resetPageIndex;
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
-        {table.getColumn("caseStatus") && (
+        {table.getColumn(ColumnId.CaseStatus) && (
           <DataTableFacetedFilter
-            column={table.getColumn("caseStatus")}
+            column={table.getColumn(ColumnId.CaseStatus)}
             title="Case status"
             options={caseStatusOptions} // already validated existence
             isLoading={isCaseStatusLoading}
+            onFilter={resetTableToFirstPage}
           />
         )}
-        {table.getColumn("visaClass") && (
+        {table.getColumn(ColumnId.VisaClass) && (
           <DataTableFacetedFilter
-            column={table.getColumn("visaClass")}
+            column={table.getColumn(ColumnId.VisaClass)}
             title="Visa class"
             options={visaClassOptions} // already validated existence
             isLoading={isVisaClassLoading}
+            onFilter={resetTableToFirstPage}
           />
         )}
-        {table.getColumn("employer.name") && (
+        {table.getColumn(ColumnId.JobTitle) && (
           <FilterUsingBackend
-            column={table.getColumn("employer.name")!}
+            column={table.getColumn(ColumnId.JobTitle)!}
+            entity={{
+              title: "job title",
+              idAccessorFn: jobTitleIdAccessorFn,
+              displayAccessorFn: jobTitleDisplayAccessorFn,
+              countAccessorFn: jobTitleCountAccessorFn,
+            }}
+            query={{
+              result: jobTitleQueryItems,
+              isQueryLoading: isJobTitleLoading,
+              queryHasNext: jobTitlesHasNext ?? false,
+            }}
+            pagination={{
+              state: jobTitlePagination,
+              setState: setJobTitlePagination,
+            }}
+            search={{
+              str: searchJobTitleStr,
+              setStr: setSearchJobTitleStr,
+            }}
+            onFilter={(selectedData) => {
+              table
+                .getColumn(ColumnId.JobTitle)
+                ?.setFilterValue(
+                  selectedData.length > 0 ? selectedData : undefined
+                );
+              resetTableToFirstPage();
+            }}
+          />
+        )}
+        {table.getColumn(ColumnId.EmployerName) && (
+          <FilterUsingBackend
+            column={table.getColumn(ColumnId.EmployerName)!}
             entity={{
               title: "employer",
               idAccessorFn,
@@ -159,7 +240,12 @@ export function DataTableToolbar<TData>({
               setStr: setSearchStr,
             }}
             onFilter={(selectedData) => {
-              table.getColumn("employer.name")?.setFilterValue(selectedData);
+              table
+                .getColumn(ColumnId.EmployerName)
+                ?.setFilterValue(
+                  selectedData.length > 0 ? selectedData : undefined
+                );
+              resetTableToFirstPage();
             }}
           />
         )}

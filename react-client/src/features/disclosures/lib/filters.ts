@@ -1,4 +1,9 @@
-import { Casestatus, Employer, Visaclass } from "@/graphql/generated";
+import {
+  Casestatus,
+  Employer,
+  Visaclass,
+  StringValuesAndCount,
+} from "@/graphql/generated";
 import { ColumnFiltersState } from "@tanstack/react-table";
 
 export function getVisaFilters(
@@ -37,6 +42,16 @@ export function getEmployerUuidsFilters(
   const columnFilter = columnFilters.find((f) => f.id === "employer.name");
   const asArray = columnFilter?.value ? (columnFilter.value as Employer[]) : [];
   return asArray.length > 0 ? asArray.map((e) => e.uuid) : undefined;
+}
+
+export function getJobTitleFilters(
+  columnFilters: ColumnFiltersState
+): string[] | undefined {
+  const columnFilter = columnFilters.find((f) => f.id === "jobTitle");
+  const asArray = columnFilter?.value
+    ? (columnFilter.value as StringValuesAndCount[])
+    : [];
+  return asArray.length > 0 ? asArray.map((e) => e.value) : undefined;
 }
 
 export function getFacetedUniqueValuesMapFromArray<T extends { count: number }>(

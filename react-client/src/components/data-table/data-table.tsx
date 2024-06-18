@@ -42,6 +42,7 @@ interface DataTableProps<TData, TValue> {
   };
   toolbar: React.FunctionComponent<{ table: TanstackTable<TData> }>;
   isLoading?: boolean;
+  defaultHiddenColumnIds?: string[];
 }
 
 export function DataTable<TData, TValue>({
@@ -51,10 +52,15 @@ export function DataTable<TData, TValue>({
   serverSideFilteringConfig,
   isLoading,
   toolbar,
+  defaultHiddenColumnIds,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
+  const initialVisiblity = defaultHiddenColumnIds?.reduce((acc, id) => {
+    acc[id] = false;
+    return acc;
+  }, {});
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>(initialVisiblity ?? {});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );

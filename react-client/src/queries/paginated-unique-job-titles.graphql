@@ -1,0 +1,19 @@
+query PaginatedUniqueJobTitles(
+  $filters: LCADisclosureFilters
+  $pagination: PaginationInput
+  $jobTitleSearchStr: String
+) {
+  uniqueColumnValues {
+    jobTitles(
+      filters: $filters
+      pagination: $pagination
+      jobTitleSearchStr: $jobTitleSearchStr
+    ) {
+      uniqueValues {
+        value
+        count
+      }
+      hasNext
+    }
+  }
+}

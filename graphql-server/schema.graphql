@@ -52,6 +52,7 @@ type LCADisclosure {
 input LCADisclosureFilters {
   caseStatus: [casestatus!]
   employerUuid: [String!]
+  jobTitle: [String!]
   visaClass: [visaclass!]
 }
 
@@ -84,6 +85,18 @@ type PaginatedLCADisclosuresUniqueColumnValues {
     """Pagination options"""
     pagination: PaginationInput
   ): UniqueEmployers!
+
+  """Unique job titles in the result set for a given filter"""
+  jobTitles(
+    """Filter options"""
+    filters: LCADisclosureFilters
+
+    """Search string for job title"""
+    jobTitleSearchStr: String
+
+    """Pagination options"""
+    pagination: PaginationInput
+  ): UniqueJobTitles!
 
   """Unique visa classes in the result set for a given filter"""
   visaClasses(
@@ -125,6 +138,11 @@ type SOCJob {
   title: String!
 }
 
+type StringValuesAndCount {
+  count: Int!
+  value: String!
+}
+
 type UniqueCaseStatuses {
   uniqueValues: [CaseStatusAndCount!]!
 }
@@ -132,6 +150,11 @@ type UniqueCaseStatuses {
 type UniqueEmployers {
   hasNext: Boolean
   uniqueValues: [Employer!]!
+}
+
+type UniqueJobTitles {
+  hasNext: Boolean
+  uniqueValues: [StringValuesAndCount!]!
 }
 
 type UniqueVisaClasses {

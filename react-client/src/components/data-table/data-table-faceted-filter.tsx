@@ -33,6 +33,7 @@ interface DataTableFacetedFilterProps<TData, TValue> {
     icon?: React.ComponentType<{ className?: string }>;
   }[];
   isLoading?: boolean;
+  onFilter: () => void;
 }
 
 export function DataTableFacetedFilter<TData, TValue>({
@@ -40,6 +41,7 @@ export function DataTableFacetedFilter<TData, TValue>({
   title,
   options,
   isLoading,
+  onFilter,
 }: DataTableFacetedFilterProps<TData, TValue>) {
   const columnFilterValue = column?.getFilterValue() as string[];
   const columnFilterValueSet = new Set(columnFilterValue);
@@ -173,6 +175,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                 column?.setFilterValue(
                   filterValues.length ? filterValues : undefined
                 );
+                onFilter();
               }}
               className="justify-center text-center"
             >

@@ -2,10 +2,11 @@ import { ModeToggle } from "@/components/dark-mode-toggle";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableToolbar } from "@/features/disclosures/data-table-toolbar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { columns } from "@/features/disclosures/columns";
+import { ColumnId, columns } from "@/features/disclosures/columns";
 import {
   getCaseStatusFilters,
   getEmployerUuidsFilters,
+  getJobTitleFilters,
   getVisaFilters,
 } from "@/features/disclosures/lib/filters";
 import {
@@ -36,6 +37,7 @@ export default function LCADisclosuresPage() {
       visaClass: getVisaFilters(columnFilters),
       caseStatus: getCaseStatusFilters(columnFilters),
       employerUuid: getEmployerUuidsFilters(columnFilters),
+      jobTitle: getJobTitleFilters(columnFilters),
     }),
     [columnFilters]
   );
@@ -89,6 +91,7 @@ export default function LCADisclosuresPage() {
           setColumnFilters,
         }}
         isLoading={loading}
+        defaultHiddenColumnIds={[ColumnId.CaseNumber]}
       />
     </div>
   );
