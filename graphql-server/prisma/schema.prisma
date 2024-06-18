@@ -4,10 +4,6 @@ generator client {
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
-// generator pothos {
-//   provider = "prisma-pothos-types"
-// }
-
 generator nexusPrisma {
    provider = "nexus-prisma"
 }
