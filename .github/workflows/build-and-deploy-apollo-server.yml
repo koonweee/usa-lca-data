@@ -61,7 +61,7 @@ jobs:
           username: ${{ secrets.DIGITALOCEAN_SSH_USERNAME }}
           key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
           passphrase: ${{ secrets.DIGITALOCEAN_SSH_PASSPHRASE }}
-          envs: IMAGE_NAME,REGISTRY,{{ secrets.DIGITALOCEAN_ACCESS_TOKEN }},GITHUB_SHA
+          envs: IMAGE_NAME,REGISTRY,{{ secrets.DIGITALOCEAN_ACCESS_TOKEN }},GITHUB_SHA,DOCKER_PORT
           script: |
             # Stop running container
             docker stop $(echo $IMAGE_NAME)
@@ -70,7 +70,7 @@ jobs:
             # Remove old image
             docker rmi $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
             # Load the image from the tar.gz
-            docker load < /home/${{ secrets.DIGITALOCEAN_SSH_USERNAME }}/docker-images/$(echo $IMAGE_NAME).tar.gz
+            docker load < /home/${{ secrets.DIGITALOCEAN_SSH_USERNAME }}/docker-images/server.tar.gz
             # Run a new container from a new image
             docker run -d \
             -p $(echo $DOCKER_PORT):$(echo $DOCKER_PORT) \
@@ -78,4 +78,4 @@ jobs:
             --name $(echo $IMAGE_NAME) \
             $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
             # Remove the tar.gz file
-            rm /home/${{ secrets.DIGITALOCEAN_SSH_USERNAME }}/docker-images/$(echo $IMAGE_NAME).tar.gz
+            rm /home/${{ secrets.DIGITALOCEAN_SSH_USERNAME }}/docker-images/server.tar.gz
