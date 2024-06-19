@@ -17,7 +17,7 @@ on:
 env:
   REGISTRY: "registry.digitalocean.com/usa-lca-data"
   IMAGE_NAME: "lca-data-graphql-server"
-  PORT: 4000
+  DOCKER_PORT: 4000
   SUBFOLDER: "graphql-server"
 
 #3
