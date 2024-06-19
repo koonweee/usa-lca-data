@@ -93,8 +93,6 @@ export function FilterUsingBackend<T, TData, TValue>(
     onFilter,
   } = props;
 
-  console.log("column", column);
-
   const columnFilterValue = column.getFilterValue()
     ? (column.getFilterValue() as T[])
     : [];

@@ -38,8 +38,6 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
-  console.log("table filters", table.getState().columnFilters);
-
   /** Case status and visa type filters */
   const { loading: isCaseStatusLoading, data: caseStatusData } = useQuery(
     UniqueCaseStatusesDocument,

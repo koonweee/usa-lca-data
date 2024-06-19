@@ -441,6 +441,8 @@ export const lcaDisclosureQuery = extendType({
         if (Object.keys(orderBy).length === 0) {
           orderBy.push({ beginDate: "desc" as const });
         }
+        // Always include case number in the order by to ensure consistent ordering
+        orderBy.push({ caseNumber: "desc" as const });
 
         // Fetch all disclosures and total count
         const count = context.prisma.lCADisclosure.count({ where });
