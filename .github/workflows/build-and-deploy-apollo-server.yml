@@ -20,7 +20,6 @@ concurrency:
 
 #2
 env:
-  REGISTRY: "registry.digitalocean.com/usa-lca-data"
   IMAGE_NAME: "lca-data-graphql-server"
   DOCKER_PORT: 4000
   SUBFOLDER: "graphql-server"
@@ -34,10 +33,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build container image
-        run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) ./$(echo $SUBFOLDER)
+        run: docker build -t $(echo $IMAGE_NAME):latest ./$(echo $SUBFOLDER)
 
       - name: Save the image to a tar.gz
-        run: docker save $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) | gzip > server.tar.gz
+        run: docker save $(echo $IMAGE_NAME):latest | gzip > server.tar.gz
 
       - name: Use SCP to push tar.gz to droplet
         uses: appleboy/scp-action@v0.1.7
@@ -61,21 +60,15 @@ jobs:
           username: ${{ secrets.DIGITALOCEAN_SSH_USERNAME }}
           key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
           passphrase: ${{ secrets.DIGITALOCEAN_SSH_PASSPHRASE }}
-          envs: IMAGE_NAME,REGISTRY,{{ secrets.DIGITALOCEAN_ACCESS_TOKEN }},GITHUB_SHA,DOCKER_PORT
+          envs: IMAGE_NAME,{{ secrets.DIGITALOCEAN_ACCESS_TOKEN }},DOCKER_PORT
           script: |
             # Stop running container
             docker stop $(echo $IMAGE_NAME)
             # Remove old container
             docker rm $(echo $IMAGE_NAME)
             # Remove old image
-            docker rmi $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
+            docker rmi $(echo $IMAGE_NAME):latest
             # Load the image from the tar.gz
             docker load < /home/${{ secrets.DIGITALOCEAN_SSH_USERNAME }}/docker-images/server.tar.gz
-            # Run a new container from a new image
-            docker run -d \
-            -p $(echo $DOCKER_PORT):$(echo $DOCKER_PORT) \
-            --restart always \
-            --name $(echo $IMAGE_NAME) \
-            $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
             # Remove the tar.gz file
             rm /home/${{ secrets.DIGITALOCEAN_SSH_USERNAME }}/docker-images/server.tar.gz

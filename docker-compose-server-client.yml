@@ -1,0 +1,23 @@
+version:version: '2'
+services:
+  cloudflare-ddns:
+    image: oznu/cloudflare-ddns:latest
+    restart: always
+    environment:
+      - API_KEY=${CLOUDFLARE_API_KEY}
+      - ZONE=${CLOUDFLARE_ZONE}
+      - PROXIED=true
+  lca-data-graphql-server:
+    container_name: lca-data-graphql-server
+    image: "lca-data-graphql-server"
+    restart: always
+    environment:
+      - DATABASE_URL=${PRISMA_DATABASE_URL}
+    ports:
+      - 4000:4000
+  lca-data-react-app:
+    container_name: lca-data-react-app
+    image: "lca-data-react-app"
+    restart: always
+    ports:
+      - 80:80
