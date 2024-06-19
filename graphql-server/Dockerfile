@@ -1,22 +1,22 @@
-# Uses the node base image with the latest LTS version
-FROM node:18-alpine3.16
-# Informs Docker that the container listens on the
-# specified network ports at runtime
-EXPOSE 4000
-# Copies index.js and the two package files from the local
-# directory to a new app directory on the container
-COPY prisma /app/prisma
-COPY src /app/src
-COPY .env /app/.env
-COPY package.json /app/package.json
-COPY nexus-typegen.ts /app/nexus-typegen.ts
-COPY schema.graphql /app/schema.graphql
-COPY tsconfig.json /app/tsconfig.json
+# syntax=docker.io/docker/dockerfile:1.7-labs
+FROM node:18-alpine
 
-# Changes working directory to the new directory just created
+EXPOSE 4000
+
 WORKDIR /app
-# Installs npm dependencies on container
+
+COPY package.json .
+
 RUN npm install
-# Command container will actually run when called
-# CMD ["npm", "run", "build"]
-CMD ["npm", "run", "buildAndDev"]
+
+COPY --exclude=node_modules . .
+
+RUN npm run build
+
+CMD ["npm", "run", "dev"]
+
+# docker build --platform linux/amd64 -t graphql-server .
+# docker save graphql-server | gzip > ../graphql-server.tar.gz
+# scp ../graphql-server.tar.gz dev@167.71.223.52:~/
+# docker load < graphql-server.tar.gz
+# docker run -p 4000:4000 graphql-server
