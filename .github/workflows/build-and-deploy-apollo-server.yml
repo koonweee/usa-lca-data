@@ -68,7 +68,7 @@ jobs:
             docker load < /home/${{ secrets.DIGITALOCEAN_SSH_USERNAME }}/docker-images/$(echo $IMAGE_NAME).tar.gz
             # Run a new container from a new image
             docker run -d \
-            -p $(echo $PORT):$(echo $PORT) \
+            -p $(echo $DOCKER_PORT):$(echo $DOCKER_PORT) \
             --restart always \
             --name $(echo $IMAGE_NAME) \
             $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
