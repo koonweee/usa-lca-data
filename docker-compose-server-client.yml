@@ -13,6 +13,8 @@ services:
     restart: always
     environment:
       - DATABASE_URL=${PRISMA_DATABASE_URL}
+    ports:
+      - 4000:4000
     networks:
       - app-network
   lca-data-react-app:
