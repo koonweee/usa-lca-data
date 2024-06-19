@@ -42,7 +42,7 @@ jobs:
           key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
           passphrase: ${{ secrets.DIGITALOCEAN_SSH_PASSPHRASE }}
           source: "./$(echo $IMAGE_NAME).tar.gz"
-          target: /home/${{ secrets.DIGITALOCEAN_SSH_USERNAME }}/docker-images
+          target: /home/${{ secrets.DIGITALOCEAN_SSH_USERNAME }}/docker-images/
 
   deploy:
     runs-on: ubuntu-latest
