@@ -21,7 +21,6 @@ concurrency:
 #2
 env:
   IMAGE_NAME: "lca-data-graphql-server"
-  DOCKER_PORT: 4000
   SUBFOLDER: "graphql-server"
 
 #3
