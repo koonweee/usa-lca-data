@@ -1,4 +1,4 @@
-name: Build and deploy Apollo Server (/graphql-server)
+name: Build and deploy Vite React App (/react-client)
 
 # 1
 # Controls when the workflow will run
@@ -16,8 +16,8 @@ on:
 #2
 env:
   REGISTRY: "registry.digitalocean.com/usa-lca-data"
-  IMAGE_NAME: "lca-data-graphql-server"
-  PORT: 4000
+  IMAGE_NAME: "lca-data-react-app"
+  PORT: 80
 
 #3
 jobs:
@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build container image
-        run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) ./graphql-server
+        run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) ./react-client
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
