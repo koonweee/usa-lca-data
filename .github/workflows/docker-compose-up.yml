@@ -41,4 +41,4 @@ jobs:
             # Restart containers
             cd /home/${{ secrets.DIGITALOCEAN_SSH_USERNAME }}/docker
             docker compose -f docker-compose-server-client.yml down
-            docker compose -f docker-compose-server-client.yml -d up
+            docker compose -f docker-compose-server-client.yml up -d
