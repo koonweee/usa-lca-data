@@ -32,7 +32,7 @@ jobs:
         run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) ./$(echo $SUBFOLDER)
 
       - name: Save the image to a tar.gz
-        run: docker save $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) | gzip > ./$(echo $IMAGE_NAME).tar.gz
+        run: docker save $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) | gzip > server.tar.gz
 
       - name: Use SCP to push tar.gz to droplet
         uses: appleboy/scp-action@v0.1.7
@@ -41,7 +41,7 @@ jobs:
           username: ${{ secrets.DIGITALOCEAN_SSH_USERNAME }}
           key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
           passphrase: ${{ secrets.DIGITALOCEAN_SSH_PASSPHRASE }}
-          source: "./$(echo $IMAGE_NAME).tar.gz"
+          source: "server.tar.gz"
           target: /home/${{ secrets.DIGITALOCEAN_SSH_USERNAME }}/docker-images/
 
   deploy:
