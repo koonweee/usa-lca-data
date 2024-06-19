@@ -5,7 +5,7 @@ import "./index.css";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 
 const client = new ApolloClient({
-  uri: "http://h1b1-work:4000",
+  uri: "https://graphql.h1b1-work.com",
   cache: new InMemoryCache(),
 });
 
