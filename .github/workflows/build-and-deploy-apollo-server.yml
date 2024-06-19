@@ -30,19 +30,18 @@ jobs:
       - name: Build container image
         run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) ./graphql-server
 
-      - name: Install doctl
-        uses: digitalocean/action-doctl@v2
+      - name: Save the image to a tar.gz
+        run: docker save $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) | gzip > $(echo $IMAGE_NAME).tar.gz
+
+      - name: Use SCP to push tar.gz to droplet
+        uses: appleboy/scp-action@v0.1.7
         with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-
-      - name: Log in to DigitalOcean Container Registry with short-lived credentials
-        run: doctl registry login --expiry-seconds 600
-
-      - name: Remove all old images
-        run: if [ ! -z "$(doctl registry repository list | grep "$(echo $IMAGE_NAME)")" ]; then doctl registry repository delete-manifest $(echo $IMAGE_NAME) $(doctl registry repository list-tags $(echo $IMAGE_NAME) | grep -o "sha.*") --force; else echo "No repository"; fi
-
-      - name: Push image to DigitalOcean Container Registry
-        run: docker push $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
+          host: ${{ secrets.DIGITALOCEAN_HOST }}
+          username: ${{ secrets.DIGITALOCEAN_SSH_USERNAME }}
+          key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
+          passphrase: ${{ secrets.DIGITALOCEAN_SSH_PASSPHRASE }}
+          source: $(echo $IMAGE_NAME).tar.gz
+          target: /home/${{ secrets.DIGITALOCEAN_SSH_USERNAME }}/docker-images
 
   deploy:
     runs-on: ubuntu-latest
@@ -58,12 +57,14 @@ jobs:
           passphrase: ${{ secrets.DIGITALOCEAN_SSH_PASSPHRASE }}
           envs: IMAGE_NAME,REGISTRY,{{ secrets.DIGITALOCEAN_ACCESS_TOKEN }},GITHUB_SHA
           script: |
-            # Login to registry
-            docker login -u ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} -p ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} registry.digitalocean.com
             # Stop running container
             docker stop $(echo $IMAGE_NAME)
             # Remove old container
             docker rm $(echo $IMAGE_NAME)
+            # Remove old image
+            docker rmi $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
+            # Load the image from the tar.gz
+            docker load < /home/${{ secrets.DIGITALOCEAN_SSH_USERNAME }}/docker-images/$(echo $IMAGE_NAME).tar.gz
             # Run a new container from a new image
             docker run -d \
             -p $(echo $PORT):$(echo $PORT) \
