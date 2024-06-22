@@ -103,11 +103,7 @@ export interface NexusGenObjects {
     worksitePostalCode?: string | null; // String
     worksiteState?: string | null; // String
   }
-  LCADisclosures: { // root type
-    hasNext?: boolean | null; // Boolean
-    items: NexusGenRootTypes['LCADisclosure'][]; // [LCADisclosure!]!
-    totalCount: number; // Int!
-  }
+  LCADisclosures: {};
   PaginatedEmployer: { // root type
     hasNext: boolean; // Boolean!
     items: NexusGenRootTypes['Employer'][]; // [Employer!]!
@@ -188,7 +184,6 @@ export interface NexusGenFieldTypes {
     worksiteState: string | null; // String
   }
   LCADisclosures: { // field return type
-    hasNext: boolean | null; // Boolean
     items: NexusGenRootTypes['LCADisclosure'][]; // [LCADisclosure!]!
     totalCount: number; // Int!
   }
@@ -272,7 +267,6 @@ export interface NexusGenFieldTypeNames {
     worksiteState: 'String'
   }
   LCADisclosures: { // field return type name
-    hasNext: 'Boolean'
     items: 'LCADisclosure'
     totalCount: 'Int'
   }
@@ -321,6 +315,16 @@ export interface NexusGenFieldTypeNames {
 }
 
 export interface NexusGenArgTypes {
+  LCADisclosures: {
+    items: { // args
+      filters?: NexusGenInputs['LCADisclosureFilters'] | null; // LCADisclosureFilters
+      pagination?: NexusGenInputs['PaginationInput'] | null; // PaginationInput
+      sorting?: NexusGenInputs['LCADisclosureOrderByInput'] | null; // LCADisclosureOrderByInput
+    }
+    totalCount: { // args
+      filters?: NexusGenInputs['LCADisclosureFilters'] | null; // LCADisclosureFilters
+    }
+  }
   PaginatedLCADisclosuresUniqueColumnValues: {
     caseStatuses: { // args
       filters?: NexusGenInputs['LCADisclosureFilters'] | null; // LCADisclosureFilters
@@ -346,11 +350,6 @@ export interface NexusGenArgTypes {
       skip?: number | null; // Int
       take: number | null; // Int
       visaClasses?: NexusGenEnums['visaclass'][] | null; // [visaclass!]
-    }
-    lcaDisclosures: { // args
-      filters?: NexusGenInputs['LCADisclosureFilters'] | null; // LCADisclosureFilters
-      pagination?: NexusGenInputs['PaginationInput'] | null; // PaginationInput
-      sorting?: NexusGenInputs['LCADisclosureOrderByInput'] | null; // LCADisclosureOrderByInput
     }
   }
 }

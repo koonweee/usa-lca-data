@@ -62,9 +62,20 @@ input LCADisclosureOrderByInput {
 }
 
 type LCADisclosures {
-  hasNext: Boolean
-  items: [LCADisclosure!]!
-  totalCount: Int!
+  items(
+    """Filter options"""
+    filters: LCADisclosureFilters
+
+    """Pagination options"""
+    pagination: PaginationInput
+
+    """Sorting options"""
+    sorting: LCADisclosureOrderByInput
+  ): [LCADisclosure!]!
+  totalCount(
+    """Filter options"""
+    filters: LCADisclosureFilters
+  ): Int!
 }
 
 type PaginatedEmployer {
@@ -127,16 +138,7 @@ type Query {
     take: Int = 50
     visaClasses: [visaclass!]
   ): PaginatedEmployer!
-  lcaDisclosures(
-    """Filter options"""
-    filters: LCADisclosureFilters
-
-    """Pagination options"""
-    pagination: PaginationInput
-
-    """Sorting options"""
-    sorting: LCADisclosureOrderByInput
-  ): LCADisclosures!
+  lcaDisclosures: LCADisclosures!
   socJobs: [SOCJob!]!
   uniqueColumnValues: PaginatedLCADisclosuresUniqueColumnValues!
 }

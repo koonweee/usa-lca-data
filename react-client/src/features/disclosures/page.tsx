@@ -20,6 +20,7 @@ import {
 import { useQuery } from "@apollo/client";
 import { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 import React, { useMemo } from "react";
+import { LCADisclosure } from "@/lib/types";
 
 export default function LCADisclosuresPage() {
   const [pagination, setPagination] = React.useState({
@@ -56,10 +57,12 @@ export default function LCADisclosuresPage() {
     [columnFilters]
   );
 
+  const queryTake = pagination.pageSize * 3;
+
   const queryVariables: PaginatedLcaDisclosuresQueryVariables = {
     pagination: {
-      take: pagination.pageSize,
-      skip: pagination.pageIndex * pagination.pageSize,
+      take: queryTake,
+      skip: pagination.pageIndex * queryTake,
     },
     filters,
     sorting: sortingInput,
@@ -69,17 +72,41 @@ export default function LCADisclosuresPage() {
     variables: queryVariables,
   });
 
-  const { items, totalCount } = data?.lcaDisclosures || {};
+  const { items, totalCount: dataCount } = data?.lcaDisclosures || {};
+
+  const [totalCount, setTotalCount] = React.useState<number | undefined>(
+    undefined
+  );
+
+  React.useEffect(() => {
+    if (!!dataCount && totalCount !== dataCount) {
+      setTotalCount(dataCount);
+    }
+  }, [dataCount, totalCount]);
+
+  const [loadedData, setLoadedData] = React.useState<LCADisclosure[]>([]);
+  const loadedDataIDsSet = React.useMemo(() => {
+    return new Set(loadedData.map((d) => d.caseNumber));
+  }, [loadedData]);
+
+  React.useEffect(() => {
+    if (items) {
+      const newItems = items.filter((i) => !loadedDataIDsSet.has(i.caseNumber));
+      if (newItems.length > 0) {
+        setLoadedData([...loadedData, ...newItems]);
+      }
+    }
+  }, [items, loadedData, loadedDataIDsSet]);
 
   return (
-    <div className="h-full flex-1 flex-col space-y-8 p-8 flex">
-      <div className="flex items-center justify-between space-y-2">
+    <div className="h-full flex-1 flex-col space-y-8 md:p-8 flex">
+      <div className="flex items-center justify-between space-y-2 px-8 pt-4 md:px-0 md:pt-0">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">
             Explore USA visa data
           </h2>
           <p className="text-muted-foreground">
-            {loading ? (
+            {totalCount === undefined ? (
               <Skeleton className="h-4 w-[60px] inline-block" />
             ) : (
               `${totalCount}`
@@ -87,11 +114,13 @@ export default function LCADisclosuresPage() {
             <span>{" visa applications from the U.S Department of Labor"}</span>
           </p>
         </div>
-        <ModeToggle />
+        <div className="hidden md:flex">
+          <ModeToggle />
+        </div>
       </div>
 
       <DataTable
-        data={items ?? []}
+        data={loadedData}
         columns={columns}
         serverSidePaginationConfig={{
           rowCount: totalCount ?? 0,
@@ -103,7 +132,11 @@ export default function LCADisclosuresPage() {
         )}
         serverSideFilteringConfig={{
           columnFilters,
-          setColumnFilters,
+          setColumnFilters: (filters) => {
+            // Clear loaded data when filters change
+            setLoadedData([]);
+            setColumnFilters(filters);
+          },
           sorting,
           setSorting,
         }}

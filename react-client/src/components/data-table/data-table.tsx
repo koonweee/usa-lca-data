@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { MobileDataTableInner } from "@/components/data-table/mobile-data-table-inner";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -110,68 +111,85 @@ export function DataTable<TData, TValue>({
 
   const Toolbar = toolbar;
 
+  const currentPage = table.getState().pagination.pageIndex;
+  const pageSize = table.getState().pagination.pageSize;
+  const dataStartIndex = currentPage * pageSize;
+  const dataEndIndex = dataStartIndex + pageSize;
+
+  // Show loading if isLoading && data is less than start index
+  const showLoading = isLoading && dataStartIndex >= data.length;
+
   return (
     <div className="space-y-4">
-      {/* <DataTableToolbar
-        table={table}
-        filterOptionsMap={
-          serverSideFilteringConfig?.filterOptionsMap ?? new Map()
-        }
-      /> */}
-      <Toolbar table={table} />
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id} colSpan={header.colSpan}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <NoDataRows
-                isLoading={isLoading}
-                colCount={
-                  table.getAllColumns().length -
-                  Object.values(columnVisibility).filter(
-                    (isVisible) => !isVisible
-                  ).length
-                }
-                pageSize={table.getState().pagination.pageSize}
-              />
-            )}
-          </TableBody>
-        </Table>
+      <div className="px-6 md:px-0">
+        <Toolbar table={table} />
       </div>
-      <DataTablePagination table={table} />
+      <div className="md:rounded-md md:border">
+        {/* Desktop data table */}
+        <div className="md:block hidden">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id} colSpan={header.colSpan}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {!showLoading ? (
+                table
+                  .getRowModel()
+                  .rows.slice(dataStartIndex, dataEndIndex)
+                  .map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+              ) : (
+                <NoDataRows
+                  isLoading={isLoading}
+                  colCount={
+                    table.getAllColumns().length -
+                    Object.values(columnVisibility).filter(
+                      (isVisible) => !isVisible
+                    ).length
+                  }
+                  pageSize={table.getState().pagination.pageSize}
+                />
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        {/* Mobile data cards */}
+        <div className="md:hidden block">
+          <MobileDataTableInner table={table} />
+        </div>
+      </div>
+      {/** Mobile view uses infinite scroll */}
+      <div className="md:block hidden">
+        <DataTablePagination table={table} />
+      </div>
     </div>
   );
 }

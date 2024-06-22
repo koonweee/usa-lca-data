@@ -1,36 +1,38 @@
 export function PageFooter() {
   return (
-    <footer className="py-6 md:px-8 md:py-0">
+    <footer className="pt-6 md:px-8 md:py-0">
       <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
         <p className="text-balance text-center text-sm leading-loose text-muted-foreground md:text-left">
           Built by{" "}
           <a
-            href={'https://github.com/koonweee'}
+            href={"https://github.com/koonweee"}
             target="_blank"
             rel="noreferrer"
             className="font-medium underline underline-offset-4"
           >
             Jeremy
-          </a>{", "}
+          </a>
+          {", "}
           <a
-            href={'https://github.com/chuyouchia'}
+            href={"https://github.com/chuyouchia"}
             target="_blank"
             rel="noreferrer"
             className="font-medium underline underline-offset-4"
           >
             Jacob
-          </a>{" and "}
+          </a>
+          {" and "}
           <a
-            href={'https://github.com/iamgenechua'}
+            href={"https://github.com/iamgenechua"}
             target="_blank"
             rel="noreferrer"
             className="font-medium underline underline-offset-4"
           >
-          Gene
+            Gene
           </a>
           . Source code is available on{" "}
           <a
-            href={'https://github.com/koonweee/usa-lca-data'}
+            href={"https://github.com/koonweee/usa-lca-data"}
             target="_blank"
             rel="noreferrer"
             className="font-medium underline underline-offset-4"
@@ -41,5 +43,5 @@ export function PageFooter() {
         </p>
       </div>
     </footer>
-  )
+  );
 }

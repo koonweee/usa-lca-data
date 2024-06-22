@@ -3,12 +3,8 @@ query PaginatedLcaDisclosures(
   $pagination: PaginationInput
   $sorting: LCADisclosureOrderByInput
 ) {
-  lcaDisclosures(
-    filters: $filters
-    pagination: $pagination
-    sorting: $sorting
-  ) {
-    items {
+  lcaDisclosures {
+    items(filters: $filters, pagination: $pagination, sorting: $sorting) {
       caseNumber
       jobTitle
       socCode
@@ -39,7 +35,6 @@ query PaginatedLcaDisclosures(
         title
       }
     }
-    totalCount
-    hasNext
+    totalCount(filters: $filters)
   }
 }

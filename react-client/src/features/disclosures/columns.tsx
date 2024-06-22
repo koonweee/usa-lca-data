@@ -59,12 +59,18 @@ export const columns: ColumnDef<LCADisclosure>[] = [
     header: ({ column }) => {
       return getSortableHeader(column, "Employment start date");
     },
+    meta: {
+      displayHeader: "Employment start date",
+    },
   },
   {
     id: ColumnId.Salary,
     accessorFn: (row) => getDisplayLCADisclosure(row).salary,
     header: ({ column }) => {
       return getSortableHeader(column, "Base salary");
+    },
+    meta: {
+      displayHeader: "Base salary",
     },
   },
 ];

@@ -140,15 +140,6 @@ export const EmployerAndCountType = extendType({
   },
 });
 
-export const LCADisclosuresType = objectType({
-  name: "LCADisclosures",
-  definition(t) {
-    t.nonNull.list.nonNull.field("items", { type: "LCADisclosure" });
-    t.nonNull.int("totalCount");
-    t.boolean("hasNext");
-  },
-});
-
 export const lcaDisclosureFiltersInput = inputObjectType({
   name: "LCADisclosureFilters",
   definition(t) {
@@ -164,6 +155,76 @@ export const paginationInput = inputObjectType({
   definition(t) {
     t.int("skip");
     t.int("take");
+  },
+});
+
+export const LCADisclosuresType = objectType({
+  name: "LCADisclosures",
+  definition(t) {
+    t.nonNull.list.nonNull.field("items", {
+      type: "LCADisclosure",
+      args: {
+        filters: arg({
+          type: "LCADisclosureFilters",
+          description: "Filter options",
+        }),
+        pagination: arg({
+          type: "PaginationInput",
+          description: "Pagination options",
+        }),
+        sorting: arg({
+          type: "LCADisclosureOrderByInput",
+          description: "Sorting options",
+        }),
+      },
+      resolve: async (parent, args, context, info) => {
+        const { filters, pagination, sorting } = args;
+        const { skip, take } = pagination ?? {};
+
+        const where = constructPrismaWhereFromFilters(filters ?? {});
+
+        const { beginDate, wageRateOfPayFrom } = sorting ?? {};
+
+        const orderBy = [];
+
+        if (beginDate) {
+          orderBy.push({ beginDate });
+        }
+        if (wageRateOfPayFrom) {
+          orderBy.push({ wageRateOfPayFrom });
+        }
+
+        if (Object.keys(orderBy).length === 0) {
+          orderBy.push({ beginDate: "desc" as const });
+        }
+        // Always include case number in the order by to ensure consistent ordering
+        orderBy.push({ caseNumber: "desc" as const });
+
+        const disclosureItems = context.prisma.lCADisclosure.findMany({
+          where,
+          skip: skip ?? undefined,
+          take: take ? take + 1 : undefined,
+          orderBy,
+        });
+        return disclosureItems.then((items) =>
+          take ? items.slice(0, take) : items
+        );
+      },
+    });
+    t.nonNull.int("totalCount", {
+      args: {
+        filters: arg({
+          type: "LCADisclosureFilters",
+          description: "Filter options",
+        }),
+      },
+      resolve: async (parent, args, context, info) => {
+        const { filters } = args;
+        const where = constructPrismaWhereFromFilters(filters ?? {});
+
+        return context.prisma.lCADisclosure.count({ where });
+      },
+    });
   },
 });
 
@@ -407,64 +468,7 @@ export const lcaDisclosureQuery = extendType({
   definition(t) {
     t.nonNull.field("lcaDisclosures", {
       type: "LCADisclosures",
-      args: {
-        filters: arg({
-          type: "LCADisclosureFilters",
-          description: "Filter options",
-        }),
-        pagination: arg({
-          type: "PaginationInput",
-          description: "Pagination options",
-        }),
-        sorting: arg({
-          type: "LCADisclosureOrderByInput",
-          description: "Sorting options",
-        }),
-      },
-      async resolve(parent, args, context, info) {
-        const { filters, pagination, sorting } = args;
-        const { skip, take } = pagination ?? {};
-
-        const where = constructPrismaWhereFromFilters(filters ?? {});
-
-        const { beginDate, wageRateOfPayFrom } = sorting ?? {};
-
-        const orderBy = [];
-
-        if (beginDate) {
-          orderBy.push({ beginDate });
-        }
-        if (wageRateOfPayFrom) {
-          orderBy.push({ wageRateOfPayFrom });
-        }
-
-        if (Object.keys(orderBy).length === 0) {
-          orderBy.push({ beginDate: "desc" as const });
-        }
-        // Always include case number in the order by to ensure consistent ordering
-        orderBy.push({ caseNumber: "desc" as const });
-
-        // Fetch all disclosures and total count
-        const count = context.prisma.lCADisclosure.count({ where });
-        const disclosureItems = context.prisma.lCADisclosure.findMany({
-          where,
-          skip: skip ?? undefined,
-          take: take ? take + 1 : undefined,
-          orderBy,
-        });
-
-        const returnObj = Promise.all([disclosureItems, count]).then(
-          ([items, totalCount]) => {
-            return {
-              items: take ? items.slice(0, take) : items,
-              totalCount,
-              hasNext: !take || items.length > take,
-            };
-          }
-        );
-
-        return returnObj;
-      },
+      resolve: () => ({}),
     });
     t.nonNull.field("uniqueColumnValues", {
       type: "PaginatedLCADisclosuresUniqueColumnValues",
