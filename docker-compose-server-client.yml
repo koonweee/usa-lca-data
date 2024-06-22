@@ -26,6 +26,7 @@ services:
     environment:
       - API_KEY=${CLOUDFLARE_API_KEY}
       - ZONE=${CLOUDFLARE_ZONE}
+      - SUBDOMAIN=direct
       - PROXIED=true
 
   lca-data-graphql-server:
