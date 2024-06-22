@@ -39,9 +39,10 @@ services:
     networks:
       - proxiable
 
-  lca-data-react-app:
-    container_name: lca-data-react-app
-    image: "lca-data-react-app"
-    restart: always
-    networks:
-      - proxiable
+  # Deploying to Vercel for now
+  # lca-data-react-app:
+  #   container_name: lca-data-react-app
+  #   image: "lca-data-react-app"
+  #   restart: always
+  #   networks:
+  #     - proxiable
