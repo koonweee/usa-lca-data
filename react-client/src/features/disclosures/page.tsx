@@ -98,6 +98,13 @@ export default function LCADisclosuresPage() {
     }
   }, [items, loadedData, loadedDataIDsSet]);
 
+  /**
+   * Clear loaded data if filters change
+   */
+  React.useEffect(() => {
+    setLoadedData([]);
+  }, [filters]);
+
   return (
     <div className="h-full flex-1 flex-col space-y-8 md:p-8 flex">
       <div className="flex items-center justify-between space-y-2 px-8 pt-4 md:px-0 md:pt-0">
@@ -132,11 +139,7 @@ export default function LCADisclosuresPage() {
         )}
         serverSideFilteringConfig={{
           columnFilters,
-          setColumnFilters: (filters) => {
-            // Clear loaded data when filters change
-            setLoadedData([]);
-            setColumnFilters(filters);
-          },
+          setColumnFilters,
           sorting,
           setSorting,
         }}

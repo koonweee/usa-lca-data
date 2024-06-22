@@ -164,7 +164,7 @@ export function DataTableToolbar<TData>({
 
   return (
     <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2 overflow-scroll">
+      <div className="flex flex-1 items-center space-x-2 overflow-auto">
         {table.getColumn(ColumnId.CaseStatus) && (
           <DataTableFacetedFilter
             column={table.getColumn(ColumnId.CaseStatus)}
@@ -252,6 +252,7 @@ export function DataTableToolbar<TData>({
             variant="ghost"
             onClick={() => {
               table.resetColumnFilters();
+              resetTableToFirstPage();
             }}
             className="h-8 px-2 lg:px-3"
           >
