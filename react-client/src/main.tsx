@@ -3,13 +3,25 @@ import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import Clarity from "@microsoft/clarity";
+
+// Initialize Clarity before rendering
+try {
+  const clarityProjectId = import.meta.env.VITE_CLARITY_PROJECT_ID; // Changed to use Vite env variable
+  if (clarityProjectId) {
+    Clarity.init(clarityProjectId);
+  } else {
+    console.warn('Clarity Project ID not found');
+  }
+} catch (error) {
+  console.error('Failed to initialize Clarity:', error);
+}
 
 const client = new ApolloClient({
-  // if NODE_ENV is production, use "https://graphql.h1b1.work", else use "http://localhost:4000"
   uri:
     process.env.NODE_ENV === "production"
       ? "https://graphql.h1b1.work"
-      : "http://localhost:4000",
+      : "https://graphql.h1b1.work",
   cache: new InMemoryCache(),
 });
 
