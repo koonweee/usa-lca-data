@@ -19,7 +19,7 @@ import {
 } from "@/graphql/generated";
 import { useQuery } from "@apollo/client";
 import { ColumnFiltersState, SortingState, Table } from "@tanstack/react-table";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { LCADisclosure } from "@/lib/types";
 
 export default function LCADisclosuresPage() {
@@ -43,9 +43,56 @@ export default function LCADisclosuresPage() {
   /**
    * Each column filter is of shape { id: <columnId>, value: <filterValue>[]}
    */
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(() => {
+    // Initialize filters from URL params
+    const initialFilters: ColumnFiltersState = [];
+
+    const params = new URLSearchParams(window.location.search);
+    
+    // Get visa class from URL
+    const visaClass = params.get('visa');
+    if (visaClass) {
+      initialFilters.push({
+        id: 'visaClass',
+        value: visaClass.split(',')
+      });
+    }
+
+    // Get case status from URL
+    const caseStatus = params.get('status');
+    if (caseStatus) {
+      initialFilters.push({
+        id: 'caseStatus',
+        value: caseStatus.split(',')
+      });
+    }
+
+    return initialFilters;
+  });
+
+  
+
+  // Update URL when filters change
+  useEffect(() => {
+    const visaFilters = getVisaFilters(columnFilters);
+    const statusFilters = getCaseStatusFilters(columnFilters);
+    
+    const params = new URLSearchParams(window.location.search);
+    
+    if (visaFilters?.length) {
+      params.set('visa', visaFilters.join(','));
+    } else {
+      params.delete('visa');
+    }
+    
+    if (statusFilters?.length) {
+      params.set('status', statusFilters.join(','));
+    } else {
+      params.delete('status');
+    }
+
+    window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+  }, [columnFilters]);
 
   const filters: InputMaybe<LcaDisclosureFilters> = useMemo(
     () => ({
