@@ -18,7 +18,7 @@ import {
   PaginatedLcaDisclosuresQueryVariables,
 } from "@/graphql/generated";
 import { useQuery } from "@apollo/client";
-import { ColumnFiltersState, SortingState } from "@tanstack/react-table";
+import { ColumnFiltersState, SortingState, Table } from "@tanstack/react-table";
 import React, { useMemo } from "react";
 import { LCADisclosure } from "@/lib/types";
 
@@ -71,7 +71,6 @@ export default function LCADisclosuresPage() {
   const { loading, data } = useQuery(PaginatedLcaDisclosuresDocument, {
     variables: queryVariables,
   });
-
   const { items, totalCount: dataCount } = data?.lcaDisclosures || {};
 
   const [totalCount, setTotalCount] = React.useState<number | undefined>(
@@ -99,11 +98,18 @@ export default function LCADisclosuresPage() {
   }, [items, loadedData, loadedDataIDsSet]);
 
   /**
-   * Clear loaded data if filters change
+   * Clear loaded data if filters or sorting change
    */
   React.useEffect(() => {
     setLoadedData([]);
-  }, [filters]);
+  }, [filters, sortingInput]);
+
+  const toolbarComponent = React.useCallback(
+    (props: { table: Table<LCADisclosure> }) => (
+      <DataTableToolbar table={props.table} queryFilters={filters} />
+    ),
+    [filters]
+  );
 
   return (
     <div className="h-full flex-1 flex-col space-y-8 md:p-8 flex">
@@ -134,9 +140,7 @@ export default function LCADisclosuresPage() {
           pagination,
           setPagination,
         }}
-        toolbar={(props) => (
-          <DataTableToolbar table={props.table} queryFilters={filters} />
-        )}
+        toolbar={toolbarComponent}    
         serverSideFilteringConfig={{
           columnFilters,
           setColumnFilters,

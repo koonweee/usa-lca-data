@@ -107,6 +107,8 @@ export function DataTable<TData, TValue>({
       ? serverSidePaginationConfig.setPagination
       : undefined,
     manualSorting: true,
+    autoResetPageIndex: false,
+    autoResetAll: false,
   });
 
   const Toolbar = toolbar;
