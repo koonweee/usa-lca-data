@@ -183,7 +183,7 @@ export default function LCADisclosuresPage() {
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						<Button className="mt-4 text-white">How does H1B1 work? 🔗</Button>
+						<Button className="mt-4">How does H1B1 work? 🔗</Button>
 					</a>
 				</div>
 
