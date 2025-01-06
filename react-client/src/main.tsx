@@ -21,7 +21,7 @@ const client = new ApolloClient({
   uri:
     process.env.NODE_ENV === "production"
       ? "https://graphql.h1b1.work"
-      : "https://graphql.h1b1.work",
+      : "http://localhost:4000/graphql",
   cache: new InMemoryCache(),
 });
 

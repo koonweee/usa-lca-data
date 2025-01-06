@@ -165,12 +165,12 @@ export default function LCADisclosuresPage() {
 
 	return (
 		<div className="h-full flex-1 flex-col space-y-8 md:p-8 flex">
-			<div className="flex items-center justify-between space-y-2 px-8 pt-4 md:px-0 md:pt-0">
-				<div>
+			<div className="flex items-center space-y-2 px-8 pt-4 md:px-0 md:pt-0">
+				<div className="w-full">
 					<h2 className="text-2xl font-bold tracking-tight">
-						Explore USA visa data
+						Explore jobs for Singaporeans 🇸🇬 working in the USA 🇺🇸
 					</h2>
-					<p className="text-muted-foreground">
+					<p className="text-muted-foreground text-sm border-b pb-2">
 						{totalCount === undefined ? (
 							<Skeleton className="h-4 w-[60px] inline-block" />
 						) : (
@@ -178,18 +178,23 @@ export default function LCADisclosuresPage() {
 						)}
 						<span>{" visa applications from the U.S Department of Labor"}</span>
 					</p>
+					<p className="pt-2">
+						The H-1B1 visa is a special visa for Singaporean citizens to work in the USA.
+						<br />
+						Each year, a quota of 5,400 H-1B1 visas are available.
+					</p>
 					<a
 						href="https://h1b1.notion.site"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						<Button className="mt-4">How does H1B1 work? 🔗</Button>
+						<Button className="mt-4 dark:bg-background dark:text-foreground dark:border dark:hover:bg-muted">How does the H-1B1 visa work? 🔗</Button>
 					</a>
 				</div>
 
-				<div className="hidden md:flex">
+				{/* <div className="hidden md:flex">
 					<ModeToggle />
-				</div>
+				</div> */}
 			</div>
 
 			<DataTable

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="2048px" height="2048px" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 2048 2048"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .fil2 {fill:none}
+    .fil0 {fill:#ED2939}
+    .fil1 {fill:#EEEEEE}
+   ]]>
+  </style>
+ </defs>
+ <g id="Layer_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <rect class="fil0" x="255.999" y="562.5" width="1536" height="461.5"/>
+  <path class="fil1" d="M508.52 785.372c0,-76.0784 60.1288,-138.104 135.452,-141.171 -15.4524,-5.40119 -32.0587,-8.34922 -49.3548,-8.34922 -82.578,0 -149.519,66.9438 -149.519,149.521 0,82.578 66.9414,149.521 149.519,149.521 17.2961,0 33.9024,-2.94685 49.3548,-8.34804 -75.3237,-3.06851 -135.452,-65.0941 -135.452,-141.173z"/>
+  <polygon class="fil1" points="605.298,763.856 625.668,748.361 600.524,748.423 592.804,723.265 585.09,748.426 559.947,748.374 580.323,763.861 572.504,788.986 592.811,773.397 613.123,788.979 "/>
+  <polygon class="fil1" points="692.892,729.831 685.066,704.709 705.436,689.213 680.293,689.275 672.572,664.118 664.86,689.278 639.715,689.225 660.091,704.714 652.274,729.838 672.579,714.25 "/>
+  <polygon class="fil1" points="772.499,788.979 764.67,763.856 785.044,748.361 759.898,748.423 752.176,723.265 744.464,748.426 719.321,748.374 739.697,763.861 731.88,788.986 752.186,773.397 "/>
+  <polygon class="fil1" points="734.848,858.498 755.223,843.003 730.079,843.064 722.357,817.906 714.643,843.067 689.5,843.014 709.875,858.503 702.058,883.628 722.365,868.038 742.679,883.62 "/>
+  <polygon class="fil1" points="642.944,883.62 635.118,858.498 655.49,843.003 630.347,843.064 622.624,817.906 614.911,843.067 589.769,843.014 610.144,858.503 602.326,883.628 622.633,868.038 "/>
+  <rect class="fil1" x="255.999" y="1024" width="1536" height="461.5"/>
+ </g>
+ <rect class="fil2" width="2048" height="2048"/>
+</svg>

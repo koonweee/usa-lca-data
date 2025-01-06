@@ -481,7 +481,7 @@ function constructPrismaWhereFromFilters(
   filters: NexusGenInputs["LCADisclosureFilters"]
 ): Prisma.LCADisclosureWhereInput {
   // Build where clause from filters
-  const { employerUuid, caseStatus, visaClass, jobTitle } = filters ?? {};
+  const { employerUuid, caseStatus, jobTitle } = filters ?? {};
 
   const where: Prisma.LCADisclosureWhereInput = {};
 
@@ -489,9 +489,10 @@ function constructPrismaWhereFromFilters(
     where.caseStatus = { in: caseStatus };
   }
 
-  if (visaClass && visaClass.length > 0) {
-    where.visaClass = { in: visaClass };
-  }
+  // if (visaClass && visaClass.length > 0) {
+  //   where.visaClass = { in: visaClass };
+  // }
+  where.visaClass = { in: ["H_1B1_Singapore"] }; // Hardcoding to only get H-1B1 Singapore
 
   if (employerUuid && employerUuid.length > 0) {
     where.employerUuid = { in: employerUuid };

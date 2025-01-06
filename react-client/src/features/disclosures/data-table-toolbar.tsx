@@ -174,7 +174,7 @@ export function DataTableToolbar<TData>({
             onFilter={resetTableToFirstPage}
           />
         )}
-        {table.getColumn(ColumnId.VisaClass) && (
+        {/* {table.getColumn(ColumnId.VisaClass) && (
           <DataTableFacetedFilter
             column={table.getColumn(ColumnId.VisaClass)}
             title="Visa class"
@@ -182,7 +182,8 @@ export function DataTableToolbar<TData>({
             isLoading={isVisaClassLoading}
             onFilter={resetTableToFirstPage}
           />
-        )}
+        )} */}
+        {/* Visa class is hardcoded to H-1B1 Singapore */}
         {table.getColumn(ColumnId.JobTitle) && (
           <FilterUsingBackend
             column={table.getColumn(ColumnId.JobTitle)!}
