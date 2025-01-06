@@ -1,18 +1,15 @@
-import { $Enums, Prisma, Employer } from "@prisma/client";
+import { $Enums, Employer, Prisma } from "@prisma/client";
+import { Sql } from "@prisma/client/runtime/library";
 import {
   arg,
   enumType,
   extendType,
   inputObjectType,
-  intArg,
-  list,
-  nonNull,
   objectType,
-  stringArg,
+  stringArg
 } from "nexus";
 import { LCADisclosure, casestatus, payunit, visaclass } from "nexus-prisma";
-import { NexusGenInputs, NexusGenRootTypes } from "../../nexus-typegen";
-import { Sql } from "@prisma/client/runtime/library";
+import { NexusGenInputs } from "../../nexus-typegen";
 
 export const payUnitType = enumType(payunit);
 export const caseStatusType = enumType(casestatus);

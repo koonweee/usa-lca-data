@@ -13,6 +13,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model ResumeSubmission {
+  id String @id @default(uuid()) @db.Uuid
+  name String
+  email String @unique
+  linkedinUrl String
+  s3key String?
+  createdAt DateTime @default(now()) @db.Timestamp
+}
+
 model LCADisclosure {
   caseNumber                  String     @id
   jobTitle                    String?

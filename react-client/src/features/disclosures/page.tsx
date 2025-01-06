@@ -1,11 +1,12 @@
-import { ModeToggle } from "@/components/dark-mode-toggle";
 import { DataTable } from "@/components/data-table/data-table";
-import { DataTableToolbar } from "@/features/disclosures/data-table-toolbar";
+import { SubmitResumeModal } from "@/components/submit-resume-modal";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ColumnId, columns } from "@/features/disclosures/columns";
+import { DataTableToolbar } from "@/features/disclosures/data-table-toolbar";
 import {
-	getColumnSortOrder,
 	getCaseStatusFilters,
+	getColumnSortOrder,
 	getEmployerUuidsFilters,
 	getJobTitleFilters,
 	getVisaFilters,
@@ -17,11 +18,10 @@ import {
 	PaginatedLcaDisclosuresDocument,
 	PaginatedLcaDisclosuresQueryVariables,
 } from "@/graphql/generated";
+import { LCADisclosure } from "@/lib/types";
 import { useQuery } from "@apollo/client";
 import { ColumnFiltersState, SortingState, Table } from "@tanstack/react-table";
 import React, { useEffect, useMemo } from "react";
-import { LCADisclosure } from "@/lib/types";
-import { Button } from "@/components/ui/button";
 
 export default function LCADisclosuresPage() {
 	const [pagination, setPagination] = React.useState({
@@ -178,18 +178,23 @@ export default function LCADisclosuresPage() {
 						)}
 						<span>{" visa applications from the U.S Department of Labor"}</span>
 					</p>
-					<p className="pt-2">
+					<div className="flex flex-col md:flex-row gap-4 md:justify-between pt-4">
+					<p>
 						The H-1B1 visa is a special visa for Singaporean citizens to work in the USA.
 						<br />
 						Each year, a quota of 5,400 H-1B1 visas are available.
 					</p>
-					<a
-						href="https://h1b1.notion.site"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Button className="mt-4 dark:bg-background dark:text-foreground dark:border dark:hover:bg-muted">How does the H-1B1 visa work? 🔗</Button>
-					</a>
+					<div className="flex flex-wrap md:flex-col gap-2 items-center md:items-end">
+						<a
+							href="https://h1b1.notion.site"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							<Button variant="outline">🔗 How does the H-1B1 visa work?</Button>
+						</a>
+						<SubmitResumeModal />
+					</div>
+					</div>
 				</div>
 
 				{/* <div className="hidden md:flex">

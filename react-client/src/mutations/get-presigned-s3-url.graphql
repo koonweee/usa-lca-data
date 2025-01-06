@@ -1,0 +1,6 @@
+mutation GetPresignedUrl($fileName: String!) {
+  getPresignedUrl(fileName: $fileName) {
+    url
+    s3key
+  }
+}

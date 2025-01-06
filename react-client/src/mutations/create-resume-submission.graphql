@@ -1,0 +1,20 @@
+mutation CreateResumeSubmission(
+  $name: String!
+  $email: String!
+  $linkedinUrl: String!
+  $s3key: String
+) {
+  createResumeSubmission(
+    name: $name
+    email: $email
+    linkedinUrl: $linkedinUrl
+    s3key: $s3key
+  ) {
+    id
+    name
+    email
+    linkedinUrl
+    s3key
+    createdAt
+  }
+}

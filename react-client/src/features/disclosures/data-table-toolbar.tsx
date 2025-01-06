@@ -5,27 +5,25 @@ import { Button } from "@/components/ui/button";
 
 import { DataTableFacetedFilter } from "@/components/data-table/data-table-faceted-filter";
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
-import { useQuery } from "@apollo/client";
+import { FilterUsingBackend } from "@/components/filter-using-backend";
+import { ColumnId } from "@/features/disclosures/columns";
 import {
   Employer,
   InputMaybe,
   LcaDisclosureFilters,
   PaginatedUniqueEmployersDocument,
   PaginatedUniqueEmployersQueryVariables,
-  UniqueCaseStatusesDocument,
-  StringValuesAndCount,
   PaginatedUniqueJobTitlesDocument,
-  UniqueVisaClassesDocument,
   PaginatedUniqueJobTitlesQueryVariables,
+  StringValuesAndCount,
+  UniqueCaseStatusesDocument
 } from "@/graphql/generated";
-import { FilterUsingBackend } from "@/components/filter-using-backend";
+import {
+  CASE_STATUS_ENUM_TO_READABLE
+} from "@/queries/formatters/lca-disclosure";
+import { useQuery } from "@apollo/client";
 import React, { useMemo } from "react";
 import { useDebounce } from "use-debounce";
-import {
-  CASE_STATUS_ENUM_TO_READABLE,
-  VISA_CLASS_ENUM_TO_READABLE,
-} from "@/queries/formatters/lca-disclosure";
-import { ColumnId } from "@/features/disclosures/columns";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -60,26 +58,26 @@ export function DataTableToolbar<TData>({
     );
   }, [caseStatusData]);
 
-  const { loading: isVisaClassLoading, data: visaClassData } = useQuery(
-    UniqueVisaClassesDocument,
-    {
-      variables: {
-        filters: queryFilters,
-      },
-    }
-  );
+  // const { loading: isVisaClassLoading, data: visaClassData } = useQuery(
+  //   UniqueVisaClassesDocument,
+  //   {
+  //     variables: {
+  //       filters: queryFilters,
+  //     },
+  //   }
+  // );
 
-  const visaClassOptions = useMemo(() => {
-    return (
-      visaClassData?.uniqueColumnValues?.visaClasses?.uniqueValues.map(
-        (value) => ({
-          value: value.visaClass,
-          label: VISA_CLASS_ENUM_TO_READABLE[value.visaClass],
-          count: value.count,
-        })
-      ) ?? []
-    );
-  }, [visaClassData]);
+  // const visaClassOptions = useMemo(() => {
+  //   return (
+  //     visaClassData?.uniqueColumnValues?.visaClasses?.uniqueValues.map(
+  //       (value) => ({
+  //         value: value.visaClass,
+  //         label: VISA_CLASS_ENUM_TO_READABLE[value.visaClass],
+  //         count: value.count,
+  //       })
+  //     ) ?? []
+  //   );
+  // }, [visaClassData]);
 
   const pageSize = 20;
   /** Job title filters */

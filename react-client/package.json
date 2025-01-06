@@ -28,6 +28,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
+    "formik": "^2.4.6",
     "fuse.js": "^7.0.0",
     "graphql": "^16.8.1",
     "graphql-scalars": "^1.23.0",
@@ -40,7 +41,8 @@
     "react-wrap-balancer": "^1.1.1",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
-    "use-debounce": "^10.0.1"
+    "use-debounce": "^10.0.1",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.2",

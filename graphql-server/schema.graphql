@@ -78,6 +78,11 @@ type LCADisclosures {
   ): Int!
 }
 
+type Mutation {
+  createResumeSubmission(email: String!, linkedinUrl: String!, name: String!, s3key: String): ResumeSubmission!
+  getPresignedUrl(fileName: String!): PresignedUrl!
+}
+
 type PaginatedEmployer {
   hasNext: Boolean!
   items: [Employer!]!
@@ -126,6 +131,11 @@ input PaginationInput {
   take: Int
 }
 
+type PresignedUrl {
+  s3key: String!
+  url: String!
+}
+
 type Query {
   employers(
     caseStatuses: [casestatus!]
@@ -139,8 +149,18 @@ type Query {
     visaClasses: [visaclass!]
   ): PaginatedEmployer!
   lcaDisclosures: LCADisclosures!
+  resumeSubmissions: [ResumeSubmission!]!
   socJobs: [SOCJob!]!
   uniqueColumnValues: PaginatedLCADisclosuresUniqueColumnValues!
+}
+
+type ResumeSubmission {
+  createdAt: DateTime!
+  email: String!
+  id: String!
+  linkedinUrl: String!
+  name: String!
+  s3key: String
 }
 
 type SOCJob {
