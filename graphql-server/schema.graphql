@@ -61,6 +61,11 @@ input LCADisclosureOrderByInput {
   wageRateOfPayFrom: SortOrder
 }
 
+type LCADisclosureStats {
+  successPercentage: Float!
+  totalCount: Int!
+}
+
 type LCADisclosures {
   items(
     """Filter options"""
@@ -72,10 +77,10 @@ type LCADisclosures {
     """Sorting options"""
     sorting: LCADisclosureOrderByInput
   ): [LCADisclosure!]!
-  totalCount(
+  stats(
     """Filter options"""
     filters: LCADisclosureFilters
-  ): Int!
+  ): LCADisclosureStats!
 }
 
 type Mutation {

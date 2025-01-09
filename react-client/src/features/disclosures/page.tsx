@@ -16,7 +16,9 @@ import {
 	LcaDisclosureFilters,
 	LcaDisclosureOrderByInput,
 	PaginatedLcaDisclosuresDocument,
+	PaginatedLcaDisclosuresQuery,
 	PaginatedLcaDisclosuresQueryVariables,
+	Visaclass,
 } from "@/graphql/generated";
 import { LCADisclosure } from "@/lib/types";
 import { useQuery } from "@apollo/client";
@@ -101,7 +103,8 @@ export default function LCADisclosuresPage() {
 
 	const filters: InputMaybe<LcaDisclosureFilters> = useMemo(
 		() => ({
-			visaClass: getVisaFilters(columnFilters),
+			// visaClass: getVisaFilters(columnFilters),
+			visaClass: [Visaclass.H_1B1Singapore],
 			caseStatus: getCaseStatusFilters(columnFilters),
 			employerUuid: getEmployerUuidsFilters(columnFilters),
 			jobTitle: getJobTitleFilters(columnFilters),
@@ -123,17 +126,17 @@ export default function LCADisclosuresPage() {
 	const { loading, data } = useQuery(PaginatedLcaDisclosuresDocument, {
 		variables: queryVariables,
 	});
-	const { items, totalCount: dataCount } = data?.lcaDisclosures || {};
+	const { items, stats } = data?.lcaDisclosures || {};
 
-	const [totalCount, setTotalCount] = React.useState<number | undefined>(
+	const [currentStats, setCurrentStats] = React.useState<PaginatedLcaDisclosuresQuery['lcaDisclosures']['stats'] | undefined>(
 		undefined
 	);
 
 	React.useEffect(() => {
-		if (!!dataCount && totalCount !== dataCount) {
-			setTotalCount(dataCount);
+		if (!!stats && (currentStats?.successPercentage !== stats.successPercentage || currentStats?.totalCount !== stats.totalCount)) {
+			setCurrentStats(stats);
 		}
-	}, [dataCount, totalCount]);
+	}, [stats, currentStats]);
 
 	const [loadedData, setLoadedData] = React.useState<LCADisclosure[]>([]);
 	const loadedDataIDsSet = React.useMemo(() => {
@@ -170,13 +173,19 @@ export default function LCADisclosuresPage() {
 					<h2 className="text-2xl font-bold tracking-tight">
 						Explore jobs for Singaporeans 🇸🇬 working in the USA 🇺🇸
 					</h2>
-					<p className="text-muted-foreground text-sm border-b pb-2">
-						{totalCount === undefined ? (
+					<p className="text-muted-foreground border-b py-2">
+						{loading || currentStats === undefined ? (
 							<Skeleton className="h-4 w-[60px] inline-block" />
 						) : (
-							`${totalCount}`
+							`${currentStats.totalCount}`
 						)}
-						<span>{" visa applications from the U.S Department of Labor"}</span>
+						<span>{" visa applications with a "}</span>
+						{loading || currentStats === undefined ? (
+							<Skeleton className="h-4 w-[30px] inline-block" />
+						) : (
+							<span className="dark:text-green-600 text-green-400 font-semibold">{`${Math.round(currentStats.successPercentage)}%`}</span>
+						)}
+						<span>{" success rate"}</span>
 					</p>
 					<div className="flex flex-col md:flex-row gap-4 md:justify-between pt-4">
 					<p>
@@ -206,7 +215,7 @@ export default function LCADisclosuresPage() {
 				data={loadedData}
 				columns={columns}
 				serverSidePaginationConfig={{
-					rowCount: totalCount ?? 0,
+					rowCount: currentStats?.totalCount ?? 0,
 					pagination,
 					setPagination,
 				}}

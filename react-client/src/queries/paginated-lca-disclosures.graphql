@@ -35,6 +35,9 @@ query PaginatedLcaDisclosures(
         title
       }
     }
-    totalCount(filters: $filters)
+    stats(filters: $filters) {
+      totalCount
+      successPercentage
+    }
   }
 }

@@ -208,7 +208,8 @@ export const LCADisclosuresType = objectType({
         );
       },
     });
-    t.nonNull.int("totalCount", {
+    t.nonNull.field("stats", {
+      type: LCADisclosureStatsType,
       args: {
         filters: arg({
           type: "LCADisclosureFilters",
@@ -218,8 +219,26 @@ export const LCADisclosuresType = objectType({
       resolve: async (parent, args, context, info) => {
         const { filters } = args;
         const where = constructPrismaWhereFromFilters(filters ?? {});
-
-        return context.prisma.lCADisclosure.count({ where });
+        const certifiedWhere = constructPrismaWhereFromFilters({
+          ...filters,
+          caseStatus: ["Certified"],
+        })
+    
+        const [totalCount, certifiedCount] = await Promise.all([
+          context.prisma.lCADisclosure.count({ where }),
+          context.prisma.lCADisclosure.count({
+            where: certifiedWhere,
+          }),
+        ]);
+    
+        const successPercentage = totalCount > 0 
+          ? (certifiedCount / totalCount) * 100 
+          : 0;
+    
+        return {
+          totalCount,
+          successPercentage,
+        };
       },
     });
   },
@@ -570,3 +589,11 @@ function constructTemplateStringWhereFromFilters(
 
   return template;
 }
+
+export const LCADisclosureStatsType = objectType({
+  name: "LCADisclosureStats",
+  definition(t) {
+    t.nonNull.int("totalCount");
+    t.nonNull.float("successPercentage");
+  },
+});

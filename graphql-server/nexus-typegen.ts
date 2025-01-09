@@ -103,6 +103,10 @@ export interface NexusGenObjects {
     worksitePostalCode?: string | null; // String
     worksiteState?: string | null; // String
   }
+  LCADisclosureStats: { // root type
+    successPercentage: number; // Float!
+    totalCount: number; // Int!
+  }
   LCADisclosures: {};
   Mutation: {};
   PaginatedEmployer: { // root type
@@ -196,9 +200,13 @@ export interface NexusGenFieldTypes {
     worksitePostalCode: string | null; // String
     worksiteState: string | null; // String
   }
+  LCADisclosureStats: { // field return type
+    successPercentage: number; // Float!
+    totalCount: number; // Int!
+  }
   LCADisclosures: { // field return type
     items: NexusGenRootTypes['LCADisclosure'][]; // [LCADisclosure!]!
-    totalCount: number; // Int!
+    stats: NexusGenRootTypes['LCADisclosureStats']; // LCADisclosureStats!
   }
   Mutation: { // field return type
     createResumeSubmission: NexusGenRootTypes['ResumeSubmission']; // ResumeSubmission!
@@ -296,9 +304,13 @@ export interface NexusGenFieldTypeNames {
     worksitePostalCode: 'String'
     worksiteState: 'String'
   }
+  LCADisclosureStats: { // field return type name
+    successPercentage: 'Float'
+    totalCount: 'Int'
+  }
   LCADisclosures: { // field return type name
     items: 'LCADisclosure'
-    totalCount: 'Int'
+    stats: 'LCADisclosureStats'
   }
   Mutation: { // field return type name
     createResumeSubmission: 'ResumeSubmission'
@@ -368,7 +380,7 @@ export interface NexusGenArgTypes {
       pagination?: NexusGenInputs['PaginationInput'] | null; // PaginationInput
       sorting?: NexusGenInputs['LCADisclosureOrderByInput'] | null; // LCADisclosureOrderByInput
     }
-    totalCount: { // args
+    stats: { // args
       filters?: NexusGenInputs['LCADisclosureFilters'] | null; // LCADisclosureFilters
     }
   }
