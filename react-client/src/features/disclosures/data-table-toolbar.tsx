@@ -16,11 +16,9 @@ import {
   PaginatedUniqueJobTitlesDocument,
   PaginatedUniqueJobTitlesQueryVariables,
   StringValuesAndCount,
-  UniqueCaseStatusesDocument
+  UniqueCaseStatusesDocument,
 } from "@/graphql/generated";
-import {
-  CASE_STATUS_ENUM_TO_READABLE
-} from "@/queries/formatters/lca-disclosure";
+import { CASE_STATUS_ENUM_TO_READABLE } from "@/queries/formatters/lca-disclosure";
 import { useQuery } from "@apollo/client";
 import React, { useMemo } from "react";
 import { useDebounce } from "use-debounce";
@@ -162,7 +160,7 @@ export function DataTableToolbar<TData>({
 
   return (
     <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2 overflow-auto">
+      <div className="flex flex-1 items-center gap-2 overflow-auto">
         {table.getColumn(ColumnId.CaseStatus) && (
           <DataTableFacetedFilter
             column={table.getColumn(ColumnId.CaseStatus)}

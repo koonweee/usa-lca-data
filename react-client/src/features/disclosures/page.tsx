@@ -172,8 +172,8 @@ export default function LCADisclosuresPage() {
   );
 
   return (
-    <div className="h-full flex-1 flex-col space-y-5 md:p-8 flex">
-      <div className="flex items-center space-y-2 px-5 pt-4 md:px-0 md:pt-0">
+    <div className="h-full flex-1 flex-col gap-5 md:p-8 flex">
+      <div className="flex items-center gap-2 px-5 pt-4 md:px-0 md:pt-0">
         <div className="w-full">
           <div className="flex justify-between border-b">
             <div>
