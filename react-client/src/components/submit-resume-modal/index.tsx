@@ -116,6 +116,7 @@ function SubmitResumeForm() {
           email: values.email!,
           linkedinUrl: values.linkedinUrl!,
           s3key,
+          targetJobs: "Not Specified",
         },
       });
     },

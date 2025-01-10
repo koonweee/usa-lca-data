@@ -126,6 +126,7 @@ export interface NexusGenObjects {
     linkedinUrl: string; // String!
     name: string; // String!
     s3key?: string | null; // String
+    targetJobs: string; // String!
   }
   SOCJob: { // root type
     code: string; // ID!
@@ -240,6 +241,7 @@ export interface NexusGenFieldTypes {
     linkedinUrl: string; // String!
     name: string; // String!
     s3key: string | null; // String
+    targetJobs: string; // String!
   }
   SOCJob: { // field return type
     code: string; // ID!
@@ -344,6 +346,7 @@ export interface NexusGenFieldTypeNames {
     linkedinUrl: 'String'
     name: 'String'
     s3key: 'String'
+    targetJobs: 'String'
   }
   SOCJob: { // field return type name
     code: 'ID'
@@ -390,6 +393,7 @@ export interface NexusGenArgTypes {
       linkedinUrl: string; // String!
       name: string; // String!
       s3key?: string | null; // String
+      targetJobs: string; // String!
     }
     getPresignedUrl: { // args
       fileName: string; // String!

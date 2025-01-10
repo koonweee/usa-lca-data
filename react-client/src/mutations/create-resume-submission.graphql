@@ -3,18 +3,21 @@ mutation CreateResumeSubmission(
   $email: String!
   $linkedinUrl: String!
   $s3key: String
+  $targetJobs: String!
 ) {
   createResumeSubmission(
     name: $name
     email: $email
     linkedinUrl: $linkedinUrl
     s3key: $s3key
+    targetJobs: $targetJobs
   ) {
     id
     name
     email
     linkedinUrl
     s3key
+    targetJobs
     createdAt
   }
 }

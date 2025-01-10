@@ -84,7 +84,7 @@ type LCADisclosures {
 }
 
 type Mutation {
-  createResumeSubmission(email: String!, linkedinUrl: String!, name: String!, s3key: String): ResumeSubmission!
+  createResumeSubmission(email: String!, linkedinUrl: String!, name: String!, s3key: String, targetJobs: String!): ResumeSubmission!
   getPresignedUrl(fileName: String!): PresignedUrl!
 }
 
@@ -166,6 +166,7 @@ type ResumeSubmission {
   linkedinUrl: String!
   name: String!
   s3key: String
+  targetJobs: String!
 }
 
 type SOCJob {

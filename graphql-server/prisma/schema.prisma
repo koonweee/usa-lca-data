@@ -20,6 +20,7 @@ model ResumeSubmission {
   linkedinUrl String
   s3key String?
   createdAt DateTime @default(now()) @db.Timestamp
+  targetJobs String @default("Not Specified")
 }
 
 model LCADisclosure {
