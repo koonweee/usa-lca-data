@@ -119,9 +119,9 @@ export function DataCard<TData>(props: {
   });
 
   return (
-    <div className="flex flex-col items-center pt-4 gap-4">
-      <div className="flex flex-col gap-1 w-[90%]">{cardRows}</div>
-      <Separator className="w-[90%]" />
+    <div className="flex flex-col items-center pt-4 gap-4 px-5">
+      <div className="flex flex-col gap-1 w-full">{cardRows}</div>
+      <Separator className="w-full" />
     </div>
   );
 }
@@ -131,11 +131,11 @@ export function LoadingSkeleton(): JSX.Element {
   return (
     <>
       {Array.from({ length: 10 }).map((_, index) => (
-        <div className="flex flex-col items-center pt-4 gap-4">
-          <div className="flex flex-col gap-1 w-[90%]">
+        <div className="flex flex-col items-center pt-4 gap-4 px-5">
+          <div className="flex flex-col gap-1 w-full">
             <SkeletonCard cardIndex={index} />
           </div>
-          <Separator className="w-[90%]" />
+          <Separator className="w-full" />
         </div>
       ))}
     </>

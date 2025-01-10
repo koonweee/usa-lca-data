@@ -122,8 +122,8 @@ export function DataTable<TData, TValue>({
   const showLoading = isLoading && dataStartIndex >= data.length;
 
   return (
-    <div className="space-y-4">
-      <div className="px-6 md:px-0">
+    <div className="space-y-3">
+      <div className="px-5 md:px-0">
         <Toolbar table={table} />
       </div>
       <div className="md:rounded-md md:border">
