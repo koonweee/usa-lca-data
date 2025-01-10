@@ -16,6 +16,7 @@ import {
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
 
 export function SubmitResumeModal() {
   return (
@@ -53,6 +54,7 @@ interface SubmitResumeFormValues {
   name?: string;
   email?: string;
   linkedinUrl?: string;
+  targetJobs?: string;
 }
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
@@ -75,6 +77,9 @@ function SubmitResumeForm() {
         .email("Invalid email address")
         .required("Email is required"),
       linkedinUrl: Yup.string().required("LinkedIn URL is required"),
+      targetJobs: Yup.string().required(
+        "Please specify roles you are interested in"
+      ),
       file: Yup.mixed()
         .optional()
         .test("file-size", "File size must be less than 5MB", (value) =>
@@ -82,6 +87,8 @@ function SubmitResumeForm() {
         ),
     }),
     onSubmit: async (values) => {
+      // Clear errors first
+      setShowSuccessMessage(false);
       // If a file is provided, we need to upload it to S3
       let s3key: string | undefined;
       if (values.file) {
@@ -116,7 +123,7 @@ function SubmitResumeForm() {
           email: values.email!,
           linkedinUrl: values.linkedinUrl!,
           s3key,
-          targetJobs: "Not Specified",
+          targetJobs: values.targetJobs!,
         },
       });
     },
@@ -155,10 +162,22 @@ function SubmitResumeForm() {
           placeholder="john@email.com"
         />
       </FieldWithLabel>
+      <FieldWithLabel
+        label="Roles you are interested in*"
+        error={errors?.targetJobs}
+      >
+        <Textarea
+          placeholder="Software Engineer, DevOps, etc."
+          value={values?.targetJobs}
+          onChange={(e) =>
+            setFieldValue("targetJobs", e.target.value, shouldValidate)
+          }
+        />
+      </FieldWithLabel>
       <FieldWithLabel label="LinkedIn URL*" error={errors?.linkedinUrl}>
         <Input
           type="text"
-          value={values?.linkedinUrl}
+          defaultValue={values?.linkedinUrl}
           onChange={(e) =>
             setFieldValue("linkedinUrl", e.target.value, shouldValidate)
           }
@@ -186,13 +205,13 @@ function SubmitResumeForm() {
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Submitting..." : "Submit"}
       </Button>
-      {showSuccessMessage && (
-        <p className="text-sm text-green-400 p-2">
+      {showSuccessMessage && !createResumeSubmissionError && (
+        <p className="text-sm dark:text-green-400 text-green-700 p-2">
           Your request has been submitted! We'll get back to you soon.
         </p>
       )}
-      {createResumeSubmissionError && (
-        <p className="text-sm text-red-400 p-2">
+      {createResumeSubmissionError && !showSuccessMessage && (
+        <p className="text-sm dark:text-red-400 text-red-700 p-2">
           We were unable to submit your request. Please try again later or drop
           us an email at{" "}
           <a
