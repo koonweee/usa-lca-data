@@ -6,9 +6,12 @@
   "scripts": {
     "dev": "ts-node-dev src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm i && npx prisma generate",
+    "setup": "npm i && npx prisma generate",
+    "clean": "rm -rf dist",
+    "build": "npm run clean && tsc",
     "generate": "ts-node --transpile-only src/schema.ts",
-    "buildAndDev": "npm run build && npm run dev"
+    "buildAndDev": "npm run setup && npm run dev",
+    "start": "node dist/src/index.js"
   },
   "prisma": {
     "seed": "ts-node-dev prisma/seed.ts"
