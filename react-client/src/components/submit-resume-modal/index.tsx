@@ -202,7 +202,7 @@ function SubmitResumeForm() {
           max={MAX_FILE_SIZE}
         />
       </FieldWithLabel>
-      <Button type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting || showSuccessMessage}>
         {isSubmitting ? "Submitting..." : "Submit"}
       </Button>
       {showSuccessMessage && !createResumeSubmissionError && (
