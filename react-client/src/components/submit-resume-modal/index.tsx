@@ -246,7 +246,7 @@ function FieldWithLabel({
             <p className="text-xs text-muted-foreground">{subtitle}</p>
           )}
         </div>
-        {error && <p className="text-sm text-red-400 text-end">{error}</p>}
+        {error && <p className="text-sm text-red-500 text-end">{error}</p>}
       </div>
       {children}
     </div>
