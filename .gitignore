@@ -1,2 +1,21 @@
 .DS_Store
 backup*.dump
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+
+# Docker volumes
+postgres_data/

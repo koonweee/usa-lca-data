@@ -4,14 +4,18 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev src/index.ts",
+    "dev": "ts-node-dev -r dotenv/config src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "setup": "npm i && npx prisma generate",
     "clean": "rm -rf dist",
     "build": "npm run clean && tsc",
     "generate": "ts-node --transpile-only src/schema.ts",
     "buildAndDev": "npm run setup && npm run dev",
-    "start": "node dist/src/index.js"
+    "start": "node dist/src/index.js",
+    "db:up": "docker-compose -f docker-compose.dev.yml up -d postgres",
+    "db:down": "docker-compose -f docker-compose.dev.yml down",
+    "db:logs": "docker-compose -f docker-compose.dev.yml logs -f postgres",
+    "db:reset": "npm run db:down && docker volume rm usa-lca-data_postgres_data && npm run db:up"
   },
   "prisma": {
     "seed": "ts-node-dev prisma/seed.ts"
@@ -21,6 +25,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.14.2",
+    "dotenv": "^17.2.1",
     "prisma": "^5.15.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.4.5"
