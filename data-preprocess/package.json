@@ -1,16 +1,29 @@
 {
-  "name": "h1b1-data-preprocess",
+  "name": "lca-data-preprocess",
   "version": "1.0.0",
-  "description": "Processes the xlsx files released by DOL",
-  "main": "index.js",
+  "description": "ETL pipeline for processing LCA disclosure data",
+  "main": "dist/pipeline.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "pipeline": "tsx src/pipeline.ts",
+    "extract": "tsx src/extract.ts",
+    "transform": "tsx src/transform.ts",
+    "load": "tsx src/load.ts",
+    "inspect": "tsx src/inspect.ts",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@types/node": "^20.14.2",
-    "JSONStream": "^1.3.5",
-    "xlstream": "^2.5.5"
+    "uuid": "^9.0.0",
+    "xlstream": "^2.5.5",
+    "zod": "^4.0.17"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^9.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^3.2.4"
   }
 }

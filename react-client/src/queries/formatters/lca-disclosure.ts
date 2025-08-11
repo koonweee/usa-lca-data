@@ -54,7 +54,7 @@ export function getSalaryAsDollars(
   wageRateOfPayUnit: Payunit
 ): number {
   return (
-    (Number(wageRateOfPayFrom) / 100) *
+    (Number(wageRateOfPayFrom)) *
     PAY_UNIT_ENUM_TO_MULTIPLIER[wageRateOfPayUnit]
   );
 }

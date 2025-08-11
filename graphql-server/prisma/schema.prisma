@@ -60,6 +60,8 @@ model Employer {
   postalCode     String
   uuid           String          @id @default(uuid()) @db.Uuid
   lcaDisclosures LCADisclosure[]
+
+  @@unique([name, postalCode])
 }
 
 model RawDisclosureData {
