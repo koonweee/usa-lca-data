@@ -44,7 +44,13 @@ npm run codegen            # Generate GraphQL types from server schema
 ### Data Processing
 ```bash
 cd data-preprocess
-# No specific scripts defined - manual processing tools
+# Uses bun for package management
+bun install                # Install dependencies
+tsx inspect.ts file.xlsx   # Inspect XLSX file headers
+tsx src/pipeline.ts        # Run processing pipeline
+tsx src/extract.ts         # Extract data
+tsx src/transform.ts       # Transform data
+tsx src/load.ts            # Load data
 ```
 
 ## Architecture

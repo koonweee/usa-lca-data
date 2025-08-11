@@ -1,0 +1,29 @@
+{
+  "name": "lca-data-preprocess",
+  "version": "1.0.0",
+  "description": "ETL pipeline for processing LCA disclosure data",
+  "main": "dist/pipeline.js",
+  "scripts": {
+    "build": "tsc",
+    "pipeline": "tsx src/pipeline.ts",
+    "extract": "tsx src/extract.ts",
+    "transform": "tsx src/transform.ts",
+    "load": "tsx src/load.ts",
+    "inspect": "tsx src/inspect.ts",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "dependencies": {
+    "uuid": "^9.0.0",
+    "xlstream": "^2.5.5",
+    "zod": "^4.0.17"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^9.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^3.2.4"
+  }
+}

@@ -149,3 +149,28 @@ Change ports in respective config files if needed.
 ## Data Pipeline
 
 Raw DOL XLSX files → JSON conversion → PostgreSQL via Prisma → GraphQL API → React frontend
+
+### Data Processing (data-preprocess)
+
+```bash
+cd data-preprocess
+
+# Install dependencies
+bun install
+
+# Process single XLSX file
+tsx src/pipeline.ts run ./path/to/file.xlsx
+
+# Process all XLSX files in a folder
+tsx src/pipeline.ts run ./raw_xlsx
+
+# Clear database before processing
+tsx src/pipeline.ts run ./path/to/file.xlsx --clear
+tsx src/pipeline.ts run ./raw_xlsx --clear
+
+# Clear all data
+tsx src/pipeline.ts clear
+
+# Show help
+tsx src/pipeline.ts help
+```
