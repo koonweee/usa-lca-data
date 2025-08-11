@@ -4,6 +4,8 @@ Browse H-1B, H-1B1 (Singapore/Chile), and E-3 (Australia) visa applications from
 
 Full-stack application built with GraphQL, Apollo Server, Prisma ORM, PostgreSQL, React, Vite, TailwindCSS, and shadcn/ui.
 
+NOTE: Last ingested file was `LCA_Disclosure_Data_FY2020_Q5.xlsx`
+
 ## Project Structure
 
 - **`data-preprocess/`** - Data processing pipeline for DOL XLSX files → JSON → PostgreSQL
