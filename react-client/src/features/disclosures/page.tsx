@@ -1,6 +1,6 @@
 import { ModeToggle } from "@/components/dark-mode-toggle";
 import { DataTable } from "@/components/data-table/data-table";
-import { SubmitResumeModal } from "@/components/submit-resume-modal";
+// import { SubmitResumeModal } from "@/components/submit-resume-modal";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ColumnId, columns } from "@/features/disclosures/columns";
