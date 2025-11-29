@@ -218,7 +218,7 @@ export default function LCADisclosuresPage() {
                   🔗 How does the H-1B1 visa work?
                 </Button>
               </a>
-              <SubmitResumeModal />
+              {/* <SubmitResumeModal /> */}
             </div>
           </div>
         </div>
