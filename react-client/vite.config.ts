@@ -17,7 +17,6 @@ export default defineConfig({
   preview: {
     port: 80,
     strictPort: true,
-    allowedHosts: ["h1b1.work"],
   },
   server: {
     port: 3000,

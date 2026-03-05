@@ -1,22 +1,19 @@
-# syntax=docker.io/docker/dockerfile:1.7-labs
-FROM node:18-alpine
+# syntax=docker/dockerfile:1.7-labs
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
-COPY package.json .
-
+COPY package.json ./
 RUN npm install
 
-COPY --exclude=node_modules . .
-
+COPY . .
 RUN npm run build
+
+FROM nginx:1.27-alpine AS runtime
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
 
-CMD [ "npm", "run", "preview" ]
-
-# docker build --platform linux/amd64 -t lca-fe .
-# docker save lca-fe | gzip > ../lca-fe.tar.gz
-# scp ../lca-fe.tar.gz dev@167.71.223.52:~/
-# docker load < lca-fe.tar.gz
-# docker run -p 80:80 lca-fe
+CMD ["nginx", "-g", "daemon off;"]
