@@ -103,4 +103,111 @@ export class Extract {
       throw new Error(`Failed to read XLSX file: ${(error as Error).message}`);
     }
   }
+
+  /**
+   * Stream XLSX rows and process them in fixed-size batches to limit memory usage.
+   * Returns the total number of extracted data rows (excluding headers).
+   */
+  static async extractDataInBatches(
+    filePath: string,
+    onBatch: (batch: RawLCADisclosure[]) => Promise<void>,
+    batchSize = 5000,
+  ): Promise<number> {
+    if (!Number.isInteger(batchSize) || batchSize <= 0) {
+      throw new Error(`Invalid batchSize '${batchSize}'. Must be a positive integer.`);
+    }
+
+    try {
+      const xlsxReadStream = await getXlsxStream({
+        filePath,
+        sheet: 0,
+        ignoreEmpty: true,
+      });
+
+      return new Promise((resolve, reject) => {
+        let columnMapping: ColumnMapping;
+        let isFirstRow = true;
+        let totalExtracted = 0;
+        let batch: RawLCADisclosure[] = [];
+        let streamEnded = false;
+        let streamFailed = false;
+        let processing = Promise.resolve();
+
+        const fail = (error: Error): void => {
+          if (streamFailed) {
+            return;
+          }
+          streamFailed = true;
+          xlsxReadStream.destroy(error);
+          reject(error);
+        };
+
+        const scheduleBatchProcessing = (rows: RawLCADisclosure[]): void => {
+          processing = processing
+            .then(() => onBatch(rows))
+            .catch((error) => {
+              fail(error as Error);
+            })
+            .finally(() => {
+              if (!streamFailed && !streamEnded) {
+                xlsxReadStream.resume();
+              }
+            });
+        };
+
+        xlsxReadStream.on("data", (data) => {
+          if (streamFailed) {
+            return;
+          }
+
+          try {
+            const rawRow = data.raw.arr;
+            const formattedRow = data.formatted.arr;
+
+            if (isFirstRow) {
+              columnMapping = this.createColumnMapping(rawRow);
+              isFirstRow = false;
+              return;
+            }
+
+            const disclosure = this.rowToRawLCADisclosure(rawRow, formattedRow, columnMapping);
+            totalExtracted += 1;
+            batch.push(disclosure);
+
+            if (batch.length >= batchSize) {
+              const rows = batch;
+              batch = [];
+              xlsxReadStream.pause();
+              scheduleBatchProcessing(rows);
+            }
+          } catch (error) {
+            fail(error as Error);
+          }
+        });
+
+        xlsxReadStream.on("error", (error) => {
+          fail(new Error(`Stream error: ${error.message}`));
+        });
+
+        xlsxReadStream.on("end", () => {
+          streamEnded = true;
+          processing
+            .then(async () => {
+              if (streamFailed) {
+                return;
+              }
+              if (batch.length > 0) {
+                await onBatch(batch);
+              }
+              resolve(totalExtracted);
+            })
+            .catch((error) => {
+              reject(error);
+            });
+        });
+      });
+    } catch (error) {
+      throw new Error(`Failed to read XLSX file: ${(error as Error).message}`);
+    }
+  }
 }

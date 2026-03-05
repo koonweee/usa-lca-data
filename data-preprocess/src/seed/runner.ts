@@ -368,9 +368,17 @@ async function runSeed(args: string[]): Promise<number> {
       try {
         console.log(`Seeding ${quarterLabel}`);
         const downloadedPath = await ensureFileDownloaded(candidate, options.downloadDir);
-        const rawData = await Extract.extractData(downloadedPath);
-        const transformedData = await transformer.transformData(rawData);
-        const loadStats = await loader.addLCADisclosures(transformedData);
+        let extractedCount = 0;
+        let insertedCount = 0;
+
+        extractedCount = await Extract.extractDataInBatches(
+          downloadedPath,
+          async (rawBatch) => {
+            const transformedData = await transformer.transformData(rawBatch);
+            const loadStats = await loader.addLCADisclosures(transformedData);
+            insertedCount += loadStats.createdLCADisclosures;
+          },
+        );
 
         ingestedCount += 1;
 
@@ -381,8 +389,8 @@ async function runSeed(args: string[]): Promise<number> {
           sourceUrl: candidate.sourceUrl,
           fileName: candidate.fileName,
           status: $Enums.SeedQuarterStatus.INGESTED,
-          recordCount: rawData.length,
-          ingestedCount: loadStats.createdLCADisclosures,
+          recordCount: extractedCount,
+          ingestedCount: insertedCount,
           ingestedAt: new Date(),
         });
 
@@ -392,11 +400,11 @@ async function runSeed(args: string[]): Promise<number> {
           sourceUrl: candidate.sourceUrl,
           lastRunId: seedRun.id,
           status: $Enums.SeedQuarterStatus.INGESTED,
-          recordCount: rawData.length,
-          ingestedCount: loadStats.createdLCADisclosures,
+          recordCount: extractedCount,
+          ingestedCount: insertedCount,
         });
 
-        console.log(`Completed ${quarterLabel}: extracted=${rawData.length}, inserted=${loadStats.createdLCADisclosures}`);
+        console.log(`Completed ${quarterLabel}: extracted=${extractedCount}, inserted=${insertedCount}`);
       } catch (error) {
         failedCount += 1;
         const message = (error as Error).message;

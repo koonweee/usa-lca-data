@@ -64,6 +64,16 @@ export class DataLoader {
     const h1b1Only = inputs.filter((input) => input.lcaDisclosure.visaClass === $Enums.visaclass.H_1B1_Singapore);
     console.log(`Filtered from ${inputs.length} total records to ${h1b1Only.length} H-1B1 records`);
 
+    if (h1b1Only.length === 0) {
+      return {
+        totalInputCount: inputs.length,
+        h1b1InputCount: 0,
+        createdEmployers: 0,
+        createdSocJobs: 0,
+        createdLCADisclosures: 0,
+      };
+    }
+
     /** Aggregate employer and socJob creates, since LCADisclosure depends on them */
     const employerCreates: Prisma.EmployerCreateInput[] = [];
     const socJobCreates: Prisma.SOCJobCreateInput[] = [];
@@ -86,8 +96,28 @@ export class DataLoader {
     console.log(`Employers: ${createdEmployers.count}/${employerCreates.length} created`);
     console.log(`SOC Jobs: ${createdSocJobs.count}/${socJobCreates.length} created`);
 
-    // For each LCADisclosure, we need to find the actual employer and soc job entity. Fetch all employer and soc job to create map.
-    const allEmployers = await this.prisma.employer.findMany();
+    // Resolve only the employers needed by this batch.
+    const uniqueEmployerValues = new Map<string, { name: string; postalCode: string }>();
+    h1b1Only.forEach((input) => {
+      const key = `${input.employer.name}-${input.employer.postalCode}`;
+      if (!uniqueEmployerValues.has(key)) {
+        uniqueEmployerValues.set(key, {
+          name: input.employer.name,
+          postalCode: input.employer.postalCode,
+        });
+      }
+    });
+
+    const allEmployers = await this.prisma.employer.findMany({
+      where: {
+        OR: Array.from(uniqueEmployerValues.values()),
+      },
+      select: {
+        uuid: true,
+        name: true,
+        postalCode: true,
+      },
+    });
     const employerUuidMap = new Map<string, string>();
 
     allEmployers.forEach((employer) => employerUuidMap.set(`${employer.name}-${employer.postalCode}`, employer.uuid));
