@@ -23,12 +23,20 @@ CREATE TABLE IF NOT EXISTS "ResumeSubmission" (
 -- CreateIndex
 CREATE UNIQUE INDEX IF NOT EXISTS "ResumeSubmission_email_key" ON "ResumeSubmission"("email");
 
+-- Drop FK constraints before type conversion
+ALTER TABLE "LCADisclosure" DROP CONSTRAINT IF EXISTS "LCADisclosure_employerUuid_fkey";
+ALTER TABLE "LCADisclosure" DROP CONSTRAINT IF EXISTS "LCADisclosure_socCode_fkey";
+
 -- AlterTable: Employer uuid TEXT -> UUID
 ALTER TABLE "Employer" ALTER COLUMN "uuid" SET DATA TYPE UUID USING "uuid"::UUID;
 
 -- AlterTable: LCADisclosure
 -- Convert employerUuid to UUID
 ALTER TABLE "LCADisclosure" ALTER COLUMN "employerUuid" SET DATA TYPE UUID USING "employerUuid"::UUID;
+
+-- Re-add FK constraints
+ALTER TABLE "LCADisclosure" ADD CONSTRAINT "LCADisclosure_employerUuid_fkey" FOREIGN KEY ("employerUuid") REFERENCES "Employer"("uuid") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "LCADisclosure" ADD CONSTRAINT "LCADisclosure_socCode_fkey" FOREIGN KEY ("socCode") REFERENCES "SOCJob"("code") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- Convert wage columns from DOUBLE PRECISION to BIGINT
 ALTER TABLE "LCADisclosure" ALTER COLUMN "wageRateOfPayFrom" SET DATA TYPE BIGINT USING "wageRateOfPayFrom"::BIGINT;
