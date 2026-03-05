@@ -91,6 +91,7 @@ bun run db:reset          # Reset database (removes all data)
 
 # Prisma commands
 npx prisma migrate dev    # Run database migrations
+npx prisma migrate deploy # Run production migrations
 npx prisma db push        # Push schema changes to database
 npx prisma studio         # Open Prisma Studio
 npx prisma db seed        # Seed database
@@ -152,6 +153,8 @@ Change ports in respective config files if needed.
 
 Raw DOL XLSX files → JSON conversion → PostgreSQL via Prisma → GraphQL API → React frontend
 
+Seed metadata is tracked in PostgreSQL (`SeedRun`, `SeedRunQuarter`, `SeededQuarter`) so incremental runs can skip already-seeded fiscal quarters and report dataset coverage.
+
 ### Data Processing (data-preprocess)
 
 ```bash
@@ -165,6 +168,18 @@ tsx src/pipeline.ts run ./path/to/file.xlsx
 
 # Process all XLSX files in a folder
 tsx src/pipeline.ts run ./raw_xlsx
+
+# Incremental seed from DOL (default FY2018 -> current FY+1)
+npm run seed:run
+
+# Force re-ingest selected quarters
+npm run seed:run -- --force FY2026Q1,FY2025Q4
+
+# Show latest run and seeded coverage range
+npm run seed:status
+
+# List discoverable FY/Q files only (no DB writes)
+npm run seed:list-available
 
 # Clear database before processing
 tsx src/pipeline.ts run ./path/to/file.xlsx --clear

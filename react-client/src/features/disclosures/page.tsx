@@ -13,6 +13,8 @@ import {
   getVisaFilters,
 } from "@/features/disclosures/lib/filters";
 import {
+  DataCoverageDocument,
+  DataCoverageQuery,
   InputMaybe,
   LcaDisclosureFilters,
   LcaDisclosureOrderByInput,
@@ -127,6 +129,7 @@ export default function LCADisclosuresPage() {
   const { loading, data } = useQuery(PaginatedLcaDisclosuresDocument, {
     variables: queryVariables,
   });
+  const { loading: coverageLoading, data: coverageData } = useQuery(DataCoverageDocument);
   const { items, stats } = data?.lcaDisclosures || {};
 
   const [currentStats, setCurrentStats] = React.useState<
@@ -171,6 +174,15 @@ export default function LCADisclosuresPage() {
     [filters]
   );
 
+  const coverageSummary = React.useMemo(() => {
+    const coverage: DataCoverageQuery['dataCoverage'] | undefined = coverageData?.dataCoverage;
+    if (!coverage?.start || !coverage?.end) {
+      return 'Dataset coverage unavailable (no seeded quarters yet)';
+    }
+
+    return `Dataset coverage: FY${coverage.start.fiscalYear} Q${coverage.start.quarter} to FY${coverage.end.fiscalYear} Q${coverage.end.quarter}`;
+  }, [coverageData]);
+
   return (
     <div className="h-full flex-1 flex-col gap-5 md:p-8 flex">
       <div className="flex items-center gap-2 px-5 pt-4 md:px-0 md:pt-0">
@@ -195,6 +207,13 @@ export default function LCADisclosuresPage() {
                   )}%`}</span>
                 )}
                 <span>{" success rate"}</span>
+              </p>
+              <p className="text-muted-foreground py-1">
+                {coverageLoading ? (
+                  <Skeleton className="h-4 w-[280px] inline-block" />
+                ) : (
+                  coverageSummary
+                )}
               </p>
             </div>
             <div className="hidden md:flex">

@@ -22,3 +22,4 @@ __exportStar(require("./scalars/BigInt"), exports);
 __exportStar(require("./args"), exports);
 __exportStar(require("./AWSS3"), exports);
 __exportStar(require("./ResumeSubmission"), exports);
+__exportStar(require("./DataCoverage"), exports);

@@ -103,6 +103,56 @@ model RawDisclosureData {
   caseStatus_enum                  casestatus?
 }
 
+model SeedRun {
+  id             String           @id @default(cuid())
+  startedAt      DateTime         @default(now()) @db.Timestamp
+  finishedAt     DateTime?        @db.Timestamp
+  status         SeedRunStatus
+  mode           SeedMode
+  fyStart        Int?
+  fyEnd          Int?
+  discoveredCount Int             @default(0)
+  ingestedCount  Int              @default(0)
+  skippedCount   Int              @default(0)
+  failedCount    Int              @default(0)
+  errorSummary   String?
+  quarters       SeedRunQuarter[]
+
+  @@index([startedAt])
+}
+
+model SeedRunQuarter {
+  id           String            @id @default(cuid())
+  seedRunId    String
+  fiscalYear   Int
+  quarter      Int
+  sourceUrl    String
+  fileName     String
+  status       SeedQuarterStatus
+  recordCount  Int               @default(0)
+  ingestedCount Int              @default(0)
+  error        String?
+  ingestedAt   DateTime?         @db.Timestamp
+  seedRun      SeedRun           @relation(fields: [seedRunId], references: [id], onDelete: Cascade)
+
+  @@unique([seedRunId, fiscalYear, quarter])
+  @@index([fiscalYear, quarter, status])
+}
+
+model SeededQuarter {
+  fiscalYear    Int
+  quarter       Int
+  sourceUrl     String
+  lastSeededAt  DateTime          @db.Timestamp
+  lastRunId     String
+  status        SeedQuarterStatus
+  recordCount   Int               @default(0)
+  ingestedCount Int               @default(0)
+
+  @@id([fiscalYear, quarter])
+  @@index([lastSeededAt])
+}
+
 enum payunit {
   Hour
   Week
@@ -123,4 +173,23 @@ enum visaclass {
   H_1B            @map("H-1B")
   H_1B1_Chile     @map("H-1B1 Chile")
   H_1B1_Singapore @map("H-1B1 Singapore")
+}
+
+enum SeedRunStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+  PARTIAL
+}
+
+enum SeedMode {
+  INCREMENTAL
+  FORCE
+}
+
+enum SeedQuarterStatus {
+  DISCOVERED
+  SKIPPED_ALREADY_SEEDED
+  INGESTED
+  FAILED
 }
