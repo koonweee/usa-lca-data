@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createWriteStream } from 'fs';
-import { mkdir, access } from 'fs/promises';
+import { mkdir, access, readFile, unlink } from 'fs/promises';
 import { constants } from 'fs';
 import { join } from 'path';
 import { Readable } from 'stream';
@@ -157,11 +157,23 @@ function getDOLUrl(fiscalYear: number, quarter: number): string {
   return `${DOL_BASE_URL}/LCA_Disclosure_Data_FY${fiscalYear}_Q${quarter}.xlsx`;
 }
 
+const XLSX_CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+// DOL's Akamai CDN blocks requests with Node's default User-Agent from some IPs.
+const FETCH_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (compatible; LCA-Data-Seed/1.0)',
+  'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/octet-stream,*/*',
+};
+
 async function urlExists(url: string): Promise<boolean> {
-  const response = await fetch(url, { method: 'GET', redirect: 'follow' });
-  // Cancel response body stream immediately, we only need status code.
+  const response = await fetch(url, { method: 'GET', redirect: 'follow', headers: FETCH_HEADERS });
+  // Cancel response body stream immediately, we only need status and headers.
   response.body?.cancel();
-  return response.status === 200;
+  if (response.status !== 200) {
+    return false;
+  }
+  const contentType = response.headers.get('content-type') ?? '';
+  return contentType.includes(XLSX_CONTENT_TYPE);
 }
 
 async function discoverAvailableQuarters(fyStart: number, fyEnd: number): Promise<SeedCandidate[]> {
@@ -192,20 +204,40 @@ async function discoverAvailableQuarters(fyStart: number, fyEnd: number): Promis
   return candidates;
 }
 
+// ZIP (and XLSX) files start with "PK" magic bytes (0x50 0x4B)
+async function isValidXlsxFile(filePath: string): Promise<boolean> {
+  try {
+    const header = await readFile(filePath).then((buf) => buf.subarray(0, 4));
+    return header.length >= 2 && header[0] === 0x50 && header[1] === 0x4b;
+  } catch {
+    return false;
+  }
+}
+
 async function ensureFileDownloaded(candidate: SeedCandidate, downloadDir: string): Promise<string> {
   await mkdir(downloadDir, { recursive: true });
   const destination = join(downloadDir, candidate.fileName);
 
   try {
     await access(destination, constants.F_OK);
-    return destination;
+    if (await isValidXlsxFile(destination)) {
+      return destination;
+    }
+    // Cached file is not a valid XLSX — remove and re-download
+    await unlink(destination);
   } catch {
-    // continue and download
+    // File does not exist, continue and download
   }
 
-  const response = await fetch(candidate.sourceUrl, { method: 'GET', redirect: 'follow' });
+  const response = await fetch(candidate.sourceUrl, { method: 'GET', redirect: 'follow', headers: FETCH_HEADERS });
   if (!response.ok || !response.body) {
     throw new Error(`Failed to download ${candidate.sourceUrl}: HTTP ${response.status}`);
+  }
+
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes(XLSX_CONTENT_TYPE)) {
+    response.body.cancel();
+    throw new Error(`Unexpected content type for ${candidate.sourceUrl}: ${contentType}`);
   }
 
   const body = Readable.fromWeb(response.body as globalThis.ReadableStream<Uint8Array>);
