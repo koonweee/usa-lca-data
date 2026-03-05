@@ -1,6 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { Extract } from '../extract';
-import { RawLCADisclosure } from '../types';
 
 describe('Extract', () => {
   describe('createColumnMapping', () => {
@@ -96,7 +95,7 @@ describe('Extract', () => {
       ];
 
       const rowToRawLCADisclosure = (Extract as any).rowToRawLCADisclosure;
-      const result = rowToRawLCADisclosure(validRow, mockColumnMapping);
+      const result = rowToRawLCADisclosure(validRow, validRow, mockColumnMapping);
 
       expect(result.CASE_NUMBER).toBe('I-200-12345678-123456');
       expect(result.CASE_STATUS).toBe('Certified');
@@ -106,7 +105,7 @@ describe('Extract', () => {
       expect(result.NAICS_CODE).toBe('541511');
     });
 
-    it('should handle undefined values by converting to empty string', () => {
+    it('should preserve undefined values for optional fields', () => {
       const rowWithUndefined = new Array(26).fill(undefined);
       rowWithUndefined[0] = 'I-200-12345678-123456'; // CASE_NUMBER
       rowWithUndefined[1] = 'Certified'; // CASE_STATUS
@@ -126,11 +125,35 @@ describe('Extract', () => {
       rowWithUndefined[25] = '541511'; // NAICS_CODE
 
       const rowToRawLCADisclosure = (Extract as any).rowToRawLCADisclosure;
-      const result = rowToRawLCADisclosure(rowWithUndefined, mockColumnMapping);
+      const result = rowToRawLCADisclosure(rowWithUndefined, rowWithUndefined, mockColumnMapping);
 
       expect(result.CASE_NUMBER).toBe('I-200-12345678-123456');
       expect(result.WAGE_RATE_OF_PAY_FROM).toBeUndefined();
       expect(result.EMPLOYER_ADDRESS2).toBeUndefined();
+    });
+
+    it('should allow missing DECISION_DATE', () => {
+      const rowWithMissingDecisionDate = new Array(26).fill(undefined);
+      rowWithMissingDecisionDate[0] = 'I-200-12345678-123456'; // CASE_NUMBER
+      rowWithMissingDecisionDate[1] = 'Certified - Withdrawn'; // CASE_STATUS
+      rowWithMissingDecisionDate[2] = 'H-1B'; // VISA_CLASS
+      rowWithMissingDecisionDate[3] = '2024-01-15'; // RECEIVED_DATE
+      rowWithMissingDecisionDate[5] = 'Software Engineer'; // JOB_TITLE
+      rowWithMissingDecisionDate[6] = '15-1132'; // SOC_CODE
+      rowWithMissingDecisionDate[7] = 'Software Developers'; // SOC_TITLE
+      rowWithMissingDecisionDate[8] = '2024-03-01'; // BEGIN_DATE
+      rowWithMissingDecisionDate[14] = 'Tech Corp Inc'; // EMPLOYER_NAME
+      rowWithMissingDecisionDate[16] = '123 Tech St'; // EMPLOYER_ADDRESS1
+      rowWithMissingDecisionDate[18] = 'San Francisco'; // EMPLOYER_CITY
+      rowWithMissingDecisionDate[20] = '94105'; // EMPLOYER_POSTAL_CODE
+      rowWithMissingDecisionDate[21] = 'UNITED STATES OF AMERICA'; // EMPLOYER_COUNTRY
+      rowWithMissingDecisionDate[25] = '541511'; // NAICS_CODE
+
+      const rowToRawLCADisclosure = (Extract as any).rowToRawLCADisclosure;
+      const result = rowToRawLCADisclosure(rowWithMissingDecisionDate, rowWithMissingDecisionDate, mockColumnMapping);
+
+      expect(result.DECISION_DATE).toBeUndefined();
+      expect(result.RECEIVED_DATE).toBe('2024-01-15');
     });
 
     it('should throw error for invalid data that fails Zod validation', () => {
@@ -141,7 +164,7 @@ describe('Extract', () => {
       const rowToRawLCADisclosure = (Extract as any).rowToRawLCADisclosure;
       
       expect(() => {
-        rowToRawLCADisclosure(invalidRow, mockColumnMapping);
+        rowToRawLCADisclosure(invalidRow, invalidRow, mockColumnMapping);
       }).toThrow('Row validation failed');
     });
   });

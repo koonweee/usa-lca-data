@@ -6,8 +6,12 @@ import { PrismaCreateInputs } from './types';
  * Data extracted from XLSX are strings. Parse them as needed for DB entity insertion.
  */
 export class DataTransformer {
-  static parseDate(dateStr: string): Date {
-    return new Date(dateStr);
+  static parseDate(dateStr: string, fieldName = 'date'): Date {
+    const parsedDate = new Date(dateStr);
+    if (Number.isNaN(parsedDate.getTime())) {
+      throw new Error(`Invalid ${fieldName}: ${dateStr}`);
+    }
+    return parsedDate;
   }
 
   static parseBigInt(value?: string): bigint | null {
@@ -105,6 +109,11 @@ export class DataTransformer {
       NAICS_CODE,
     } = record
 
+    const decisionDateRaw = DECISION_DATE ?? RECEIVED_DATE;
+    if (!decisionDateRaw) {
+      throw new Error(`Missing both DECISION_DATE and RECEIVED_DATE for case ${CASE_NUMBER}`);
+    }
+
     const employer: PrismaCreateInputs['employer'] = {
       naicsCode: NAICS_CODE,
       name: EMPLOYER_NAME,
@@ -122,9 +131,9 @@ export class DataTransformer {
       caseNumber: CASE_NUMBER,
       jobTitle: JOB_TITLE ?? SOC_TITLE,  
       fullTimePosition: true,
-      receivedDate: DataTransformer.parseDate(RECEIVED_DATE),
-      decisionDate: DataTransformer.parseDate(DECISION_DATE),
-      beginDate: DataTransformer.parseDate(BEGIN_DATE),
+      receivedDate: DataTransformer.parseDate(RECEIVED_DATE, 'RECEIVED_DATE'),
+      decisionDate: DataTransformer.parseDate(decisionDateRaw, 'DECISION_DATE'),
+      beginDate: DataTransformer.parseDate(BEGIN_DATE, 'BEGIN_DATE'),
       wageRateOfPayFrom: DataTransformer.parseBigInt(WAGE_RATE_OF_PAY_FROM),
       wageRateOfPayTo: DataTransformer.parseBigInt(WAGE_RATE_OF_PAY_TO),
       prevailingWageRateOfPay: DataTransformer.parseBigInt(PREVAILING_WAGE),

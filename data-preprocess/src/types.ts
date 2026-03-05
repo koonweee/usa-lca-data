@@ -7,7 +7,7 @@ export const RawLCADisclosureSchema = z.object({
   CASE_STATUS: z.string(),
   VISA_CLASS: z.string(),
   RECEIVED_DATE: z.string(),
-  DECISION_DATE: z.string(),
+  DECISION_DATE: z.string().optional(),
   
   /** Job details */
   JOB_TITLE: z.string().optional(),
