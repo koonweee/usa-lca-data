@@ -61,7 +61,8 @@ async function processFile(filePath: string): Promise<FileIssue | null> {
       });
     });
   } catch (error) {
-    return { file: filePath, issue: `Error: ${error.message}` };
+    const message = error instanceof Error ? error.message : String(error);
+    return { file: filePath, issue: `Error: ${message}` };
   }
 }
 
@@ -87,7 +88,8 @@ async function main() {
         allFiles.push(path);
       }
     } catch (error) {
-      console.error(`Error accessing ${path}: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Error accessing ${path}: ${message}`);
     }
   }
   

@@ -1,0 +1,16 @@
+query DataCoverage {
+  dataCoverage {
+    start {
+      fiscalYear
+      quarter
+      label
+    }
+    end {
+      fiscalYear
+      quarter
+      label
+    }
+    seededQuarterCount
+    lastSeededAt
+  }
+}

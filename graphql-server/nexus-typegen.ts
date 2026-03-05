@@ -75,6 +75,12 @@ export interface NexusGenObjects {
     caseStatus: NexusGenEnums['casestatus']; // casestatus!
     count: number; // Int!
   }
+  DataCoverage: { // root type
+    end?: NexusGenRootTypes['FiscalQuarter'] | null; // FiscalQuarter
+    lastSeededAt?: NexusGenScalars['DateTime'] | null; // DateTime
+    seededQuarterCount: number; // Int!
+    start?: NexusGenRootTypes['FiscalQuarter'] | null; // FiscalQuarter
+  }
   Employer: { // root type
     city: string; // String!
     count: number; // Int!
@@ -83,6 +89,11 @@ export interface NexusGenObjects {
     postalCode: string; // String!
     state?: string | null; // String
     uuid: string; // ID!
+  }
+  FiscalQuarter: { // root type
+    fiscalYear: number; // Int!
+    label: string; // String!
+    quarter: number; // Int!
   }
   LCADisclosure: { // root type
     beginDate: NexusGenScalars['DateTime']; // DateTime!
@@ -171,6 +182,12 @@ export interface NexusGenFieldTypes {
     caseStatus: NexusGenEnums['casestatus']; // casestatus!
     count: number; // Int!
   }
+  DataCoverage: { // field return type
+    end: NexusGenRootTypes['FiscalQuarter'] | null; // FiscalQuarter
+    lastSeededAt: NexusGenScalars['DateTime'] | null; // DateTime
+    seededQuarterCount: number; // Int!
+    start: NexusGenRootTypes['FiscalQuarter'] | null; // FiscalQuarter
+  }
   Employer: { // field return type
     city: string; // String!
     count: number; // Int!
@@ -179,6 +196,11 @@ export interface NexusGenFieldTypes {
     postalCode: string; // String!
     state: string | null; // String
     uuid: string; // ID!
+  }
+  FiscalQuarter: { // field return type
+    fiscalYear: number; // Int!
+    label: string; // String!
+    quarter: number; // Int!
   }
   LCADisclosure: { // field return type
     beginDate: NexusGenScalars['DateTime']; // DateTime!
@@ -228,6 +250,7 @@ export interface NexusGenFieldTypes {
     url: string; // String!
   }
   Query: { // field return type
+    dataCoverage: NexusGenRootTypes['DataCoverage']; // DataCoverage!
     employers: NexusGenRootTypes['PaginatedEmployer']; // PaginatedEmployer!
     lcaDisclosures: NexusGenRootTypes['LCADisclosures']; // LCADisclosures!
     resumeSubmissions: NexusGenRootTypes['ResumeSubmission'][]; // [ResumeSubmission!]!
@@ -276,6 +299,12 @@ export interface NexusGenFieldTypeNames {
     caseStatus: 'casestatus'
     count: 'Int'
   }
+  DataCoverage: { // field return type name
+    end: 'FiscalQuarter'
+    lastSeededAt: 'DateTime'
+    seededQuarterCount: 'Int'
+    start: 'FiscalQuarter'
+  }
   Employer: { // field return type name
     city: 'String'
     count: 'Int'
@@ -284,6 +313,11 @@ export interface NexusGenFieldTypeNames {
     postalCode: 'String'
     state: 'String'
     uuid: 'ID'
+  }
+  FiscalQuarter: { // field return type name
+    fiscalYear: 'Int'
+    label: 'String'
+    quarter: 'Int'
   }
   LCADisclosure: { // field return type name
     beginDate: 'DateTime'
@@ -333,6 +367,7 @@ export interface NexusGenFieldTypeNames {
     url: 'String'
   }
   Query: { // field return type name
+    dataCoverage: 'DataCoverage'
     employers: 'PaginatedEmployer'
     lcaDisclosures: 'LCADisclosures'
     resumeSubmissions: 'ResumeSubmission'

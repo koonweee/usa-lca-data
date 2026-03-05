@@ -1,0 +1,19 @@
+# syntax=docker/dockerfile:1.7-labs
+FROM node:20-alpine
+
+WORKDIR /app
+RUN apk add --no-cache openssl
+
+WORKDIR /app/graphql-server
+COPY graphql-server/package*.json ./
+RUN npm install
+COPY graphql-server/prisma ./prisma
+RUN npx prisma generate
+
+WORKDIR /app/data-preprocess
+COPY data-preprocess/package*.json ./
+RUN npm install
+COPY data-preprocess/tsconfig.json ./tsconfig.json
+COPY data-preprocess/src ./src
+
+CMD ["npm", "run", "seed:run"]

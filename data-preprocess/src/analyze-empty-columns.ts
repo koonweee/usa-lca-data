@@ -112,7 +112,8 @@ export class AnalyzeEmptyColumns {
         });
       });
     } catch (error) {
-      throw new Error(`Failed to read XLSX file: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to read XLSX file: ${message}`);
     }
   }
 
@@ -146,7 +147,8 @@ export class AnalyzeEmptyColumns {
         filesProcessed.push(filePath);
         console.log(`✅ Completed: ${fileStats[columns[0]].totalCount.toLocaleString()} records\n`);
       } catch (error) {
-        console.error(`❌ Error processing ${filePath}: ${error.message}\n`);
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`❌ Error processing ${filePath}: ${message}\n`);
       }
     }
 

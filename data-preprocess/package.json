@@ -6,6 +6,9 @@
   "scripts": {
     "build": "tsc",
     "pipeline": "tsx src/pipeline.ts",
+    "seed:run": "tsx src/seed/runner.ts run",
+    "seed:status": "tsx src/seed/runner.ts status",
+    "seed:list-available": "tsx src/seed/runner.ts list-available",
     "extract": "tsx src/extract.ts",
     "transform": "tsx src/transform.ts",
     "load": "tsx src/load.ts",

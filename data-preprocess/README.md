@@ -62,6 +62,25 @@ npm run pipeline clear
 npm run pipeline help
 ```
 
+### Incremental seed commands
+
+```bash
+# Discover and ingest new DOL FY/Q files (default FY2018 -> current FY+1)
+npm run seed:run
+
+# Override fiscal year range
+npm run seed:run -- --fy-start 2020 --fy-end 2026
+
+# Force reingest selected quarters
+npm run seed:run -- --force FY2026Q1,FY2025Q4
+
+# Inspect latest seed run and current coverage
+npm run seed:status
+
+# Discovery only, no DB writes
+npm run seed:list-available
+```
+
 ### Data Analysis Tools
 
 ```bash
@@ -107,6 +126,8 @@ data-preprocess/
 │   ├── transform.ts            # Data transformation and validation  
 │   ├── load.ts                 # Database insertion with batching
 │   ├── pipeline.ts             # CLI for batch file processing
+│   ├── seed/
+│   │   └── runner.ts           # Incremental FY/Q discovery and seeding
 │   ├── types.ts                # Zod schemas and TypeScript types
 │   ├── inspect.ts              # XLSX header validation utility
 │   ├── analyze-empty-columns.ts # Data completeness analysis
