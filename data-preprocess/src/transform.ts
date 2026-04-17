@@ -1,5 +1,6 @@
 import { Prisma } from '../../graphql-server/node_modules/@prisma/client';
 import { RawLCARecord } from './extract';
+import { resolveEmployerName } from './employer-normalize';
 import { PrismaCreateInputs } from './types';
 
 /**
@@ -116,7 +117,7 @@ export class DataTransformer {
 
     const employer: PrismaCreateInputs['employer'] = {
       naicsCode: NAICS_CODE,
-      name: EMPLOYER_NAME,
+      name: resolveEmployerName(EMPLOYER_NAME),
       city: EMPLOYER_CITY,
       state: EMPLOYER_STATE,
       postalCode: EMPLOYER_POSTAL_CODE,
