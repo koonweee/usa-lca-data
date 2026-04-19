@@ -1,130 +1,26 @@
 #!/usr/bin/env tsx
 /**
- * Download all DOL XLSX files (in parallel), scan them for H-1B1 Singapore
- * employer names (in parallel), and update employer-name-mappings.json
- * with suggested names for all employers.
+ * Scan cached DOL XLSX files for H-1B1 Singapore employer names
+ * and update employer-name-mappings.json with suggested names.
+ *
+ * Prerequisites: run `npm run seed:run` first to download the XLSX files.
+ * By default, the seed runner caches them in /tmp/lca-seed.
  *
  * Usage:
- *   npx tsx src/scripts/update-employer-mappings.ts
+ *   npx tsx src/scripts/update-employer-mappings.ts [download-dir]
  *
- * Downloads go to data-preprocess/raw_xlsx/ (gitignored).
- * After running, review the changes to employer-name-mappings.json and commit.
+ * Example:
+ *   npx tsx src/scripts/update-employer-mappings.ts /tmp/lca-seed
  */
-import { createWriteStream } from 'fs';
-import { mkdir, access, readFile, unlink, writeFile } from 'fs/promises';
-import { constants } from 'fs';
+import { readFile, writeFile } from 'fs/promises';
+import { readdirSync } from 'fs';
 import { join, dirname } from 'path';
-import { Readable } from 'stream';
-import { pipeline } from 'stream/promises';
 import { getXlsxStream } from 'xlstream';
 import { normalizeEmployerName } from '../employer-normalize';
 
-const DOL_BASE_URL = 'https://www.dol.gov/sites/dolgov/files/ETA/oflc/pdfs';
 const SCRIPT_DIR = typeof __dirname !== 'undefined' ? __dirname : dirname(new URL(import.meta.url).pathname);
-const PROJECT_ROOT = join(SCRIPT_DIR, '..', '..');
-const DOWNLOAD_DIR = join(PROJECT_ROOT, 'raw_xlsx');
-const MAPPINGS_PATH = join(PROJECT_ROOT, 'src', 'employer-name-mappings.json');
-const XLSX_CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-const FETCH_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (compatible; LCA-Data-Seed/1.0)',
-  'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/octet-stream,*/*',
-};
-const DEFAULT_FY_START = 2020;
-const DOWNLOAD_CONCURRENCY = 5;
-const SCAN_CONCURRENCY = 1;
-
-interface FileInfo {
-  fiscalYear: number;
-  quarter: number;
-  url: string;
-  fileName: string;
-  localPath: string;
-}
-
-// --- Download helpers ---
-
-async function isValidXlsx(path: string): Promise<boolean> {
-  try {
-    const buf = await readFile(path);
-    return buf.length >= 2 && buf[0] === 0x50 && buf[1] === 0x4b;
-  } catch {
-    return false;
-  }
-}
-
-async function downloadFile(info: FileInfo): Promise<void> {
-  try {
-    await access(info.localPath, constants.F_OK);
-    if (await isValidXlsx(info.localPath)) {
-      console.log(`  [cached] ${info.fileName}`);
-      return;
-    }
-    await unlink(info.localPath);
-  } catch {}
-
-  console.log(`  [downloading] ${info.fileName}`);
-  const res = await fetch(info.url, { method: 'GET', redirect: 'follow', headers: FETCH_HEADERS });
-  if (!res.ok || !res.body) throw new Error(`HTTP ${res.status} for ${info.url}`);
-  const ct = res.headers.get('content-type') ?? '';
-  if (!ct.includes(XLSX_CONTENT_TYPE)) {
-    res.body.cancel();
-    throw new Error(`Bad content-type for ${info.url}: ${ct}`);
-  }
-  const body = Readable.fromWeb(res.body as globalThis.ReadableStream<Uint8Array>);
-  await pipeline(body, createWriteStream(info.localPath));
-}
-
-async function discoverFiles(): Promise<FileInfo[]> {
-  const currentYear = new Date().getFullYear();
-  const fyEnd = currentYear + 1;
-  const candidates: FileInfo[] = [];
-
-  for (let fy = DEFAULT_FY_START; fy <= fyEnd; fy++) {
-    for (let q = 1; q <= 5; q++) {
-      const fileName = `LCA_Disclosure_Data_FY${fy}_Q${q}.xlsx`;
-      candidates.push({
-        fiscalYear: fy,
-        quarter: q,
-        url: `${DOL_BASE_URL}/${fileName}`,
-        fileName,
-        localPath: join(DOWNLOAD_DIR, fileName),
-      });
-    }
-  }
-
-  // Probe in parallel to find which files exist
-  console.log('Discovering available DOL files...');
-  const results = await Promise.all(
-    candidates.map(async (c) => {
-      try {
-        const res = await fetch(c.url, { method: 'GET', redirect: 'follow', headers: FETCH_HEADERS });
-        const ct = res.headers.get('content-type') ?? '';
-        res.body?.cancel();
-        if (res.status === 200 && ct.includes(XLSX_CONTENT_TYPE)) return c;
-      } catch {}
-      return null;
-    })
-  );
-
-  return results.filter((r): r is FileInfo => r !== null);
-}
-
-// --- Parallel runner with concurrency limit ---
-
-async function runParallel<T, R>(items: T[], concurrency: number, fn: (item: T) => Promise<R>): Promise<R[]> {
-  const results: R[] = [];
-  let idx = 0;
-
-  async function worker() {
-    while (idx < items.length) {
-      const i = idx++;
-      results[i] = await fn(items[i]);
-    }
-  }
-
-  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => worker()));
-  return results;
-}
+const MAPPINGS_PATH = join(SCRIPT_DIR, '..', 'employer-name-mappings.json');
+const DEFAULT_DOWNLOAD_DIR = '/tmp/lca-seed';
 
 // --- Scan a single XLSX for H-1B1 Singapore employer names ---
 
@@ -135,12 +31,13 @@ interface ScanResult {
   elapsed: number;
 }
 
-async function scanFile(info: FileInfo): Promise<ScanResult> {
+async function scanFile(filePath: string): Promise<ScanResult> {
+  const fileName = filePath.split('/').pop()!;
   const start = Date.now();
   const normToRaw = new Map<string, Set<string>>();
   const normToCount = new Map<string, number>();
 
-  const stream = await getXlsxStream({ filePath: info.localPath, sheet: 0, withHeader: true });
+  const stream = await getXlsxStream({ filePath, sheet: 0, withHeader: true });
 
   await new Promise<void>((resolve, reject) => {
     stream.on('data', (row: any) => {
@@ -160,8 +57,8 @@ async function scanFile(info: FileInfo): Promise<ScanResult> {
   });
 
   const elapsed = (Date.now() - start) / 1000;
-  console.log(`  ${info.fileName}: ${normToRaw.size} unique employers (${elapsed.toFixed(1)}s)`);
-  return { fileName: info.fileName, normToRaw, normToCount, elapsed };
+  console.log(`  ${fileName}: ${normToRaw.size} unique employers (${elapsed.toFixed(1)}s)`);
+  return { fileName, normToRaw, normToCount, elapsed };
 }
 
 // --- Pick a suggested name from raw variations ---
@@ -175,27 +72,36 @@ function pickSuggestedName(rawVariations: Set<string>): string {
 // --- Main ---
 
 async function main() {
-  await mkdir(DOWNLOAD_DIR, { recursive: true });
-  console.log(`Download directory: ${DOWNLOAD_DIR}\n`);
+  const downloadDir = process.argv[2] ?? DEFAULT_DOWNLOAD_DIR;
 
-  // 1. Discover available files
-  const files = await discoverFiles();
-  console.log(`\nFound ${files.length} DOL files.\n`);
-
-  // 2. Download in parallel
-  console.log('Downloading files...');
-  await runParallel(files, DOWNLOAD_CONCURRENCY, downloadFile);
-  console.log(`\nAll ${files.length} files downloaded.\n`);
-
-  // 3. Scan in parallel for H-1B1 Singapore employer names
-  console.log('Scanning files for H-1B1 Singapore employer names...');
-  const scanResults = await runParallel(files, SCAN_CONCURRENCY, scanFile);
-
-  for (const r of scanResults) {
-    console.log(`  ${r.fileName}: ${r.normToRaw.size} unique employers (${r.elapsed.toFixed(1)}s)`);
+  let files: string[];
+  try {
+    files = readdirSync(downloadDir)
+      .filter(f => f.endsWith('.xlsx'))
+      .sort()
+      .map(f => join(downloadDir, f));
+  } catch {
+    console.error(`Could not read directory: ${downloadDir}`);
+    console.error('Run "npm run seed:run" first to download the XLSX files.');
+    process.exit(1);
   }
 
-  // 4. Merge results across all files
+  if (files.length === 0) {
+    console.error(`No XLSX files found in ${downloadDir}`);
+    console.error('Run "npm run seed:run" first to download the XLSX files.');
+    process.exit(1);
+  }
+
+  console.log(`Found ${files.length} XLSX files in ${downloadDir}\n`);
+
+  // Scan files sequentially
+  console.log('Scanning for H-1B1 Singapore employer names...');
+  const scanResults: ScanResult[] = [];
+  for (const file of files) {
+    scanResults.push(await scanFile(file));
+  }
+
+  // Merge results across all files
   const globalNormToRaw = new Map<string, Set<string>>();
   const globalNormToCount = new Map<string, number>();
 
@@ -209,7 +115,7 @@ async function main() {
 
   console.log(`\nTotal unique normalized employer names: ${globalNormToRaw.size}`);
 
-  // 5. Load existing mappings and merge
+  // Load existing mappings and merge
   const existingMappings: Record<string, string[]> = JSON.parse(await readFile(MAPPINGS_PATH, 'utf-8'));
   const existingVariationToCanonical = new Map<string, string>();
   for (const [canonical, variations] of Object.entries(existingMappings)) {
