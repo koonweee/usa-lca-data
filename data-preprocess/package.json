@@ -17,6 +17,7 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "parse5": "7.3.0",
     "uuid": "^9.0.0",
     "xlstream": "^2.5.5",
     "zod": "^4.0.17"

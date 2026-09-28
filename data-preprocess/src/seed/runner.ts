@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createWriteStream } from 'fs';
-import { mkdir, access, readFile, unlink } from 'fs/promises';
+import { mkdir, access, open, unlink, rename } from 'fs/promises';
 import { constants } from 'fs';
 import { join } from 'path';
 import { Readable } from 'stream';
@@ -10,17 +10,10 @@ import { Extract } from '../extract';
 import { DataLoader } from '../load';
 import { DataTransformer } from '../transform';
 
-const DOL_BASE_URL = 'https://www.dol.gov/sites/dolgov/files/ETA/oflc/pdfs';
+import { discoverAvailableQuarters, fetchDol, SeedCandidate, XLSX_CONTENT_TYPE } from './discovery';
 const DEFAULT_FY_START = 2018;
 const DEFAULT_FY_END_OFFSET = 1;
 const DEFAULT_DOWNLOAD_DIR = '/tmp/lca-seed';
-
-interface SeedCandidate {
-  fiscalYear: number;
-  quarter: number;
-  sourceUrl: string;
-  fileName: string;
-}
 
 interface CliOptions {
   fyStart: number;
@@ -153,68 +146,21 @@ function parseCliOptions(args: string[]): CliOptions {
   return options;
 }
 
-function getDOLUrl(fiscalYear: number, quarter: number): string {
-  return `${DOL_BASE_URL}/LCA_Disclosure_Data_FY${fiscalYear}_Q${quarter}.xlsx`;
-}
-
-const XLSX_CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-
-// DOL's Akamai CDN blocks requests with Node's default User-Agent from some IPs.
-const FETCH_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (compatible; LCA-Data-Seed/1.0)',
-  'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/octet-stream,*/*',
-};
-
-async function urlExists(url: string): Promise<boolean> {
-  const response = await fetch(url, { method: 'GET', redirect: 'follow', headers: FETCH_HEADERS });
-  // Cancel response body stream immediately, we only need status and headers.
-  response.body?.cancel();
-  if (response.status !== 200) {
-    return false;
-  }
-  const contentType = response.headers.get('content-type') ?? '';
-  return contentType.includes(XLSX_CONTENT_TYPE);
-}
-
-async function discoverAvailableQuarters(fyStart: number, fyEnd: number): Promise<SeedCandidate[]> {
-  const candidates: SeedCandidate[] = [];
-
-  for (let fiscalYear = fyStart; fiscalYear <= fyEnd; fiscalYear += 1) {
-    for (let quarter = 1; quarter <= 5; quarter += 1) {
-      const sourceUrl = getDOLUrl(fiscalYear, quarter);
-
-      try {
-        const exists = await urlExists(sourceUrl);
-        if (!exists) {
-          continue;
-        }
-
-        candidates.push({
-          fiscalYear,
-          quarter,
-          sourceUrl,
-          fileName: `LCA_Disclosure_Data_FY${fiscalYear}_Q${quarter}.xlsx`,
-        });
-      } catch (error) {
-        console.warn(`Failed to probe ${sourceUrl}: ${(error as Error).message}`);
-      }
-    }
-  }
-
-  return candidates;
-}
-
 // ZIP (and XLSX) files start with "PK" magic bytes (0x50 0x4B)
 async function isValidXlsxFile(filePath: string): Promise<boolean> {
   try {
-    const header = await readFile(filePath).then((buf) => buf.subarray(0, 4));
-    return header.length >= 2 && header[0] === 0x50 && header[1] === 0x4b;
+    const file = await open(filePath, 'r');
+    try {
+      const header = Buffer.alloc(4);
+      const { bytesRead } = await file.read(header, 0, 4, 0);
+      return bytesRead === 4 && header.equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
+    } finally { await file.close(); }
   } catch {
     return false;
   }
 }
 
-async function ensureFileDownloaded(candidate: SeedCandidate, downloadDir: string): Promise<string> {
+export async function ensureFileDownloaded(candidate: SeedCandidate, downloadDir: string): Promise<string> {
   await mkdir(downloadDir, { recursive: true });
   const destination = join(downloadDir, candidate.fileName);
 
@@ -229,20 +175,28 @@ async function ensureFileDownloaded(candidate: SeedCandidate, downloadDir: strin
     // File does not exist, continue and download
   }
 
-  const response = await fetch(candidate.sourceUrl, { method: 'GET', redirect: 'follow', headers: FETCH_HEADERS });
+  const response = await fetchDol(candidate.sourceUrl, fetch, 300_000);
   if (!response.ok || !response.body) {
     throw new Error(`Failed to download ${candidate.sourceUrl}: HTTP ${response.status}`);
   }
 
   const contentType = response.headers.get('content-type') ?? '';
   if (!contentType.includes(XLSX_CONTENT_TYPE)) {
-    response.body.cancel();
+    await response.body.cancel();
     throw new Error(`Unexpected content type for ${candidate.sourceUrl}: ${contentType}`);
   }
 
   const body = Readable.fromWeb(response.body as globalThis.ReadableStream<Uint8Array>);
-  const file = createWriteStream(destination);
-  await pipeline(body, file);
+  const partial = destination + '.part';
+  const file = createWriteStream(partial);
+  try {
+    await pipeline(body, file);
+    if (!(await isValidXlsxFile(partial))) throw new Error(`Invalid XLSX signature: ${candidate.sourceUrl}`);
+  } catch (error) {
+    await unlink(partial).catch(() => undefined);
+    throw error;
+  }
+  await rename(partial, destination);
   return destination;
 }
 
@@ -264,8 +218,7 @@ async function runListAvailable(args: string[]): Promise<number> {
   const discovered = await discoverAvailableQuarters(options.fyStart, options.fyEnd);
 
   if (discovered.length === 0) {
-    console.log('No DOL FY/Q files found for the selected range.');
-    return 0;
+    throw new Error('No DOL disclosure files discovered in the selected range.');
   }
 
   console.log(`Discovered ${discovered.length} DOL files:`);
@@ -320,8 +273,7 @@ async function runSeed(args: string[]): Promise<number> {
   const discovered = await discoverAvailableQuarters(options.fyStart, options.fyEnd);
 
   if (discovered.length === 0) {
-    console.log('No DOL files discovered. Nothing to seed.');
-    return 0;
+    throw new Error('No DOL disclosure files discovered; refusing a successful no-op.');
   }
 
   const loader = new DataLoader();

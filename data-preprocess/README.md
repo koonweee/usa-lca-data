@@ -81,6 +81,18 @@ npm run seed:status
 npm run seed:list-available
 ```
 
+Discovery parses the actual LCA disclosure spreadsheet links on the DOL performance
+page, regardless of their directory. It accepts only HTTPS DOL hosts and FY/Q
+filenames (quarters 1–4), excludes appendices/worksites, deduplicates identical links,
+and rejects conflicting URLs for the same release. Link labels are not authoritative.
+Page failures, missing/changed links, empty selected ranges, and unavailable listed
+spreadsheets fail the command; they are not successful no-ops. Requests have bounded
+timeouts and redirects stay on approved hosts. Already imported releases are skipped.
+Only releases currently linked by DOL are discovered; omitted historical releases
+are not guessed. Downloads validate the spreadsheet signature and the extractor checks
+required columns before processing rows. Ingestion can commit earlier batches before
+a later row fails; a retry relies on case-number deduplication, not an all-file rollback.
+
 ### Data Analysis Tools
 
 ```bash
