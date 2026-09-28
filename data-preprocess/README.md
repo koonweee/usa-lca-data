@@ -196,3 +196,41 @@ tsx src/analyze-empty-columns.ts raw_xlsx/LCA_Disclosure_Data_FY2024_Q4.xlsx
 # Analyze all files together
 tsx src/analyze-empty-columns.ts raw_xlsx/*.xlsx
 ```
+
+## Employer name matching
+
+Employers use a separate `normalizedName` matching key and a readable `name`. Matching
+removes periods and commas, collapses whitespace, and ignores case. Explicit aliases
+in `src/employer-name-mappings.json` resolve to a preferred name before computing the
+key. Unknown employers also deduplicate; their first stored display name is retained.
+Uniqueness remains scoped to **matching key + postal code**, so different locations
+remain separate. Conflicting aliases fail immediately rather than silently overriding
+one another.
+
+### Deploying this change
+
+1. Pause seed/import jobs and take a database backup.
+2. From `graphql-server`, with `DATABASE_URL` pointing at the intended database, run
+   `npx prisma migrate deploy`. The employer migration normalizes existing names,
+   merges duplicates at the same postal code, and reconnects applications and raw
+   disclosure references. It preserves resume submissions and seed coverage records.
+   The migration is transactional and briefly locks the affected tables.
+3. Generate the Prisma client (`npx prisma generate`), build/deploy the updated backend
+   and seed runner, then resume imports. Container builds already generate the client.
+
+Do **not** reset the database or re-seed all quarters for this change. Existing
+application records are updated by the migration, not by `seed:run --force`.
+
+The migration contains a frozen mapping snapshot so it remains reproducible. For
+future mapping changes, run the tests and add a new data migration if existing
+employers need renaming or merging. Changing JSON alone affects future imports and
+does not repair already-stored matching keys. There is no automatic mapping-update
+script.
+
+### Regression tests
+
+`npm run test:run` runs the extraction and normalization tests. To also test the
+actual PostgreSQL migration and importer, set `TEST_DATABASE_URL` to a disposable
+PostgreSQL database before running the same command. The database role must be able
+to create schemas; each test run creates and removes its own isolated schema. Generate
+the updated Prisma client in `graphql-server` before testing or compiling.

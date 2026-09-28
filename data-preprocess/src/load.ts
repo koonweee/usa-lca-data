@@ -97,12 +97,12 @@ export class DataLoader {
     console.log(`SOC Jobs: ${createdSocJobs.count}/${socJobCreates.length} created`);
 
     // Resolve only the employers needed by this batch.
-    const uniqueEmployerValues = new Map<string, { name: string; postalCode: string }>();
+    const uniqueEmployerValues = new Map<string, { normalizedName: string; postalCode: string }>();
     h1b1Only.forEach((input) => {
-      const key = `${input.employer.name}-${input.employer.postalCode}`;
+      const key = JSON.stringify([input.employer.normalizedName, input.employer.postalCode]);
       if (!uniqueEmployerValues.has(key)) {
         uniqueEmployerValues.set(key, {
-          name: input.employer.name,
+          normalizedName: input.employer.normalizedName,
           postalCode: input.employer.postalCode,
         });
       }
@@ -114,16 +114,16 @@ export class DataLoader {
       },
       select: {
         uuid: true,
-        name: true,
+        normalizedName: true,
         postalCode: true,
       },
     });
     const employerUuidMap = new Map<string, string>();
 
-    allEmployers.forEach((employer) => employerUuidMap.set(`${employer.name}-${employer.postalCode}`, employer.uuid));
+    allEmployers.forEach((employer) => employerUuidMap.set(JSON.stringify([employer.normalizedName, employer.postalCode]), employer.uuid));
 
     const lcaDisclosuresWithForeignKeys: Prisma.LCADisclosureCreateManyInput[] = h1b1Only.map((input) => {
-      const employerUuid = employerUuidMap.get(`${input.employer.name}-${input.employer.postalCode}`);
+      const employerUuid = employerUuidMap.get(JSON.stringify([input.employer.normalizedName, input.employer.postalCode]));
       if (!employerUuid) {
         throw new Error(`Could not find employer uuid for employer ${JSON.stringify(input.employer, null, 2)}`);
       }
