@@ -46,9 +46,9 @@ export function DataTablePagination<TData>({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+        <div className="flex min-w-[120px] whitespace-nowrap items-center justify-center text-sm font-medium">
           Page {table.getState().pagination.pageIndex + 1} of{" "}
-          {table.getPageCount()}
+          {Math.max(1, table.getPageCount())}
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -73,7 +73,7 @@ export function DataTablePagination<TData>({
             variant="outline"
             className="h-8 w-8 p-0"
             onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            disabled={table.getRowCount() === 0 || !table.getCanNextPage()}
           >
             <span className="sr-only">Go to next page</span>
             <ChevronRightIcon className="h-4 w-4" />
@@ -82,7 +82,7 @@ export function DataTablePagination<TData>({
             variant="outline"
             className="hidden h-8 w-8 p-0 lg:flex"
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
+            disabled={table.getRowCount() === 0 || !table.getCanNextPage()}
           >
             <span className="sr-only">Go to last page</span>
             <DoubleArrowRightIcon className="h-4 w-4" />

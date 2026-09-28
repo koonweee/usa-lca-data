@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -44,6 +45,9 @@ interface DataTableProps<TData, TValue> {
   };
   toolbar: React.FunctionComponent<{ table: TanstackTable<TData> }>;
   isLoading?: boolean;
+  error?: boolean;
+  onRetry?: () => void;
+  onClear?: () => void;
   defaultHiddenColumnIds?: string[];
 }
 
@@ -53,6 +57,9 @@ export function DataTable<TData, TValue>({
   serverSidePaginationConfig,
   serverSideFilteringConfig,
   isLoading,
+  error,
+  onRetry,
+  onClear,
   toolbar,
   defaultHiddenColumnIds,
 }: DataTableProps<TData, TValue>) {
@@ -64,7 +71,7 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>(initialVisiblity ?? {});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
@@ -113,23 +120,49 @@ export function DataTable<TData, TValue>({
 
   const Toolbar = toolbar;
 
-  const currentPage = table.getState().pagination.pageIndex;
-  const pageSize = table.getState().pagination.pageSize;
-  const dataStartIndex = currentPage * pageSize;
-  const dataEndIndex = dataStartIndex + pageSize;
-
-  // Show loading if isLoading && data is less than start index
-  const showLoading = isLoading && dataStartIndex >= data.length;
+  const showLoading = isLoading && data.length === 0;
+  const state = (
+    <ResultsState error={error} onRetry={onRetry} onClear={onClear} />
+  );
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="px-5 md:px-0">
+    <div className="flex min-h-0 flex-1 flex-col gap-2 xl:gap-3">
+      <div className="hidden shrink-0 xl:block xl:px-0">
         <Toolbar table={table} />
       </div>
-      <div className="md:rounded-md md:border">
+      {error && data.length > 0 && (
+        <div role="alert" className="shrink-0 px-5 text-sm">
+          Couldn’t refresh results.{" "}
+          <Button variant="outline" onClick={onRetry}>
+            Retry
+          </Button>
+        </div>
+      )}
+      <div className="min-h-0 flex-1 xl:rounded-md xl:border">
         {/* Desktop data table */}
-        <div className="md:block hidden">
-          <Table>
+        <div className="desktop-results xl:block hidden">
+          <Table className="table-fixed min-w-[1100px]">
+            <colgroup>
+              {table.getVisibleLeafColumns().map((column) => (
+                <col
+                  key={column.id}
+                  style={{
+                    width: (
+                      {
+                        visaClass: "10%",
+                        caseStatus: "12%",
+                        jobTitle: "16%",
+                        "employer.name": "20%",
+                        "employer.city": "10%",
+                        "employer.state": "5%",
+                        startDate: "17%",
+                        salary: "10%",
+                      } as Record<string, string>
+                    )[column.id],
+                  }}
+                />
+              ))}
+            </colgroup>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
@@ -140,7 +173,7 @@ export function DataTable<TData, TValue>({
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
-                              header.getContext()
+                              header.getContext(),
                             )}
                       </TableHead>
                     );
@@ -149,47 +182,56 @@ export function DataTable<TData, TValue>({
               ))}
             </TableHeader>
             <TableBody>
-              {!showLoading ? (
-                table
-                  .getRowModel()
-                  .rows.slice(dataStartIndex, dataEndIndex)
-                  .map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-              ) : (
+              {!showLoading && data.length > 0 ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : showLoading ? (
                 <NoDataRows
                   isLoading={isLoading}
                   colCount={
                     table.getAllColumns().length -
                     Object.values(columnVisibility).filter(
-                      (isVisible) => !isVisible
+                      (isVisible) => !isVisible,
                     ).length
                   }
                   pageSize={table.getState().pagination.pageSize}
                 />
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={table.getVisibleLeafColumns().length}>
+                    {state}
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>
         </div>
         {/* Mobile data cards */}
-        <div className="md:hidden block">
-          <MobileDataTableInner table={table} />
+        <div className="h-full xl:hidden block">
+          <MobileDataTableInner
+            table={table}
+            isLoading={!!isLoading}
+            error={!!error}
+            onRetry={onRetry}
+            emptyState={state}
+          />
         </div>
       </div>
       {/** Mobile view uses infinite scroll */}
-      <div className="md:block hidden">
+      <div className="shrink-0 xl:block hidden">
         <DataTablePagination table={table} />
       </div>
     </div>
@@ -211,7 +253,7 @@ export function NoDataRows({
       <TableRow key={`skeleton-row-${rowIndex}`}>
         {Array.from({ length: colCount }).map((_, colIndex) => (
           <TableCell key={`skeleton-cell-${colIndex}-row-${rowIndex}`}>
-            <Skeleton className="h-5 w-[100px]" />
+            <Skeleton className="h-5 w-full" />
           </TableCell>
         ))}
       </TableRow>
@@ -222,5 +264,38 @@ export function NoDataRows({
         No results.
       </TableCell>
     </TableRow>
+  );
+}
+
+function ResultsState({
+  error,
+  onRetry,
+  onClear,
+}: {
+  error?: boolean;
+  onRetry?: () => void;
+  onClear?: () => void;
+}) {
+  return (
+    <div
+      role={error ? "alert" : "status"}
+      className="flex min-h-40 flex-col items-center justify-center gap-2 px-5 py-8 text-center"
+    >
+      <p className="font-semibold">
+        {error ? "Couldn’t load applications" : "No matching applications"}
+      </p>
+      <p className="text-sm text-muted-foreground">
+        {error
+          ? "Check your connection and try again."
+          : onClear
+            ? "Try removing a filter."
+            : "No applications are available."}
+      </p>
+      {error ? (
+        <Button onClick={onRetry}>Retry</Button>
+      ) : (
+        onClear && <Button onClick={onClear}>Clear filters</Button>
+      )}
+    </div>
   );
 }

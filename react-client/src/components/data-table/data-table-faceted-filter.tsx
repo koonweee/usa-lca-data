@@ -1,189 +1,54 @@
-import * as React from "react";
-import { CheckIcon, PlusCircledIcon } from "@radix-ui/react-icons";
+import React from "react";
 import { Column } from "@tanstack/react-table";
-
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
-import { PopoverClose } from "@radix-ui/react-popover";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
-
-interface DataTableFacetedFilterProps<TData, TValue> {
+import { FilterUsingBackend } from "@/components/filter-using-backend";
+interface Props<TData, TValue> {
   column?: Column<TData, TValue>;
   title?: string;
-  options: {
-    label: string;
-    value: string;
-    count?: number;
-    icon?: React.ComponentType<{ className?: string }>;
-  }[];
+  options: { label: string; value: string; count?: number }[];
   isLoading?: boolean;
+  error?: boolean;
+  onRetry?: () => void;
   onFilter: () => void;
 }
-
 export function DataTableFacetedFilter<TData, TValue>({
   column,
-  title,
+  title = "Case status",
   options,
   isLoading,
+  error,
+  onRetry,
   onFilter,
-}: DataTableFacetedFilterProps<TData, TValue>) {
-  const columnFilterValue = column?.getFilterValue() as string[];
-  const columnFilterValueSet = new Set(columnFilterValue);
-  const [currentSelectedValues, setCurrentSelectedValues] =
-    React.useState(columnFilterValue);
-
-  React.useEffect(() => {
-    setCurrentSelectedValues(columnFilterValue);
-  }, [columnFilterValue]);
-
-  const selectedValues = new Set(currentSelectedValues);
-
+}: Props<TData, TValue>) {
+  const [search, setSearch] = React.useState("");
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 20,
+  });
+  const labels = new Map(options.map((o) => [o.value, o]));
+  const result = React.useMemo(
+    () =>
+      options
+        .filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
+        .map((o) => o.value),
+    [options, search],
+  );
+  if (!column) return null;
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 border-dashed">
-          <PlusCircledIcon className="mr-2 h-4 w-4" />
-          {title}
-          {columnFilterValueSet?.size > 0 && (
-            <>
-              <Separator orientation="vertical" className="mx-2 h-4" />
-              {isLoading ? (
-                <LoadingSpinner className="mr-2 w-4" />
-              ) : (
-                <>
-                  <Badge
-                    variant="secondary"
-                    className="rounded-sm px-1 font-normal lg:hidden"
-                  >
-                    {columnFilterValueSet.size}
-                  </Badge>
-                  <div className="hidden space-x-1 lg:flex">
-                    {columnFilterValueSet.size > 2 ? (
-                      <Badge
-                        variant="secondary"
-                        className="rounded-sm px-1 font-normal"
-                      >
-                        {columnFilterValueSet.size} selected
-                      </Badge>
-                    ) : (
-                      options
-                        .filter((option) =>
-                          columnFilterValueSet.has(option.value)
-                        )
-                        .map((option) => (
-                          <Badge
-                            variant="secondary"
-                            key={option.value}
-                            className="rounded-sm px-1 font-normal"
-                          >
-                            {option.label}
-                          </Badge>
-                        ))
-                    )}
-                  </div>
-                </>
-              )}
-            </>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0" align="start">
-        <Command>
-          <CommandInput placeholder={title} />
-          {selectedValues.size > 0 && (
-            <>
-              <CommandItem
-                onSelect={() => setCurrentSelectedValues([])}
-                className="justify-center text-center"
-              >
-                Clear filters
-              </CommandItem>
-              <CommandSeparator />
-            </>
-          )}
-
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            {isLoading && (
-              <CommandItem>
-                <div className="flex w-full justify-center items-center">
-                  <LoadingSpinner className="mr-2 w-4" />
-                  Loading...
-                </div>
-              </CommandItem>
-            )}
-            <CommandGroup>
-              {options.map((option) => {
-                const isSelected = selectedValues.has(option.value);
-                return (
-                  <CommandItem
-                    key={option.value}
-                    onSelect={() => {
-                      if (isSelected) {
-                        selectedValues.delete(option.value);
-                      } else {
-                        selectedValues.add(option.value);
-                      }
-                      setCurrentSelectedValues(Array.from(selectedValues));
-                    }}
-                  >
-                    <div
-                      className={cn(
-                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                        isSelected
-                          ? "bg-primary text-primary-foreground"
-                          : "opacity-50 [&_svg]:invisible"
-                      )}
-                    >
-                      <CheckIcon className={cn("h-4 w-4")} />
-                    </div>
-                    {option.icon && (
-                      <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                    )}
-                    <span>{option.label}</span>
-                    {option.count && (
-                      <span className="ml-auto flex h-4 w-fit items-center justify-center font-mono text-xs">
-                        {option.count}
-                      </span>
-                    )}
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          </CommandList>
-          <CommandSeparator />
-          <PopoverClose>
-            <CommandItem
-              onSelect={() => {
-                const filterValues = Array.from(currentSelectedValues);
-                column?.setFilterValue(
-                  filterValues.length ? filterValues : undefined
-                );
-                onFilter();
-              }}
-              className="justify-center text-center"
-            >
-              Filter
-            </CommandItem>
-          </PopoverClose>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <FilterUsingBackend
+      column={column}
+      entity={{
+        title,
+        idAccessorFn: (v) => v,
+        displayAccessorFn: (v) => labels.get(v)?.label ?? v,
+        countAccessorFn: (v) => labels.get(v)?.count ?? 0,
+      }}
+      query={{ result, isQueryLoading: isLoading, error, onRetry }}
+      pagination={{ state: pagination, setState: setPagination }}
+      search={{ str: search, setStr: setSearch }}
+      onFilter={(values) => {
+        column.setFilterValue(values.length ? values : undefined);
+        onFilter();
+      }}
+    />
   );
 }

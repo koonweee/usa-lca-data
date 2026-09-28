@@ -6,17 +6,17 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <>
-      <main>
-        <div className="container px-0 pt-3 md:px-6 md:pt-6">
-          <section>
-            <div className="rounded-[1rem] md:border bg-background md:shadow">
+    <div className="app-shell">
+      <main className="app-main">
+        <div className="app-container container px-0 xl:px-6 xl:pt-6">
+          <section className="app-section">
+            <div className="app-panel rounded-[1rem] xl:border bg-background xl:shadow">
               {children}
             </div>
           </section>
         </div>
       </main>
       <PageFooter />
-    </>
+    </div>
   );
 }

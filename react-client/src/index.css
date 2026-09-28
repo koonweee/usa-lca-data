@@ -74,3 +74,50 @@
     @apply bg-background text-foreground;
   }
 }
+
+:root { --success-text: #15803d; }
+.dark { --success-text: #4ade80; }
+.success-text { color: var(--success-text); }
+.filter-popover { max-height: min(620px, var(--radix-popover-content-available-height)); }
+.filter-sheet { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+.filter-sheet .filter-actions { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+.filter-option:focus-within { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; }
+.desktop-results { height: 100%; overflow: auto; scrollbar-gutter: stable; }
+.desktop-results thead { position: sticky; top: 0; z-index: 1; background: hsl(var(--background)); }
+.desktop-results td { overflow-wrap: anywhere; height: 73px; }
+html, body, #root { height: 100%; overflow: hidden; }
+  .app-shell { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; padding-top: env(safe-area-inset-top); padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+  .app-main, .app-container, .app-section, .app-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; }
+  .app-footer { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+@media (max-width: 1279px) {
+  .app-shell { max-width: 960px; margin-inline: auto; }
+  .app-container { max-width: none; }
+  .app-footer .container { padding: 0; }
+  .disclosures-header h2 { line-height: 1.25; }
+}
+@media (max-width: 1279px) and (max-height: 650px) {
+  .disclosures-header { padding-top: 4px; }
+  .disclosures-header h2 { font-size: 18px; line-height: 1.2; }
+  .disclosures-header p { font-size: 12px; line-height: 16px; padding-top: 2px; padding-bottom: 2px; }
+  .disclosures-help { padding-top: 2px; }
+  .disclosures-page { gap: 4px; }
+}
+
+/* The same bottom sheet stays readable on wider touch viewports. */
+.filter-sheet { max-width: 640px; margin-inline: auto; }
+
+/* Scroll cues overlay the cards without taking space or intercepting touches. */
+.card-scroll-fade { position: absolute; left: 0; right: 10px; height: 24px; pointer-events: none; transition: opacity 120ms ease; }
+.card-scroll-fade-top { top: 0; background: linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background) / 0)); }
+.card-scroll-fade-bottom { bottom: 0; background: linear-gradient(to top, hsl(var(--background)), hsl(var(--background) / 0)); }
+@media (prefers-reduced-motion: reduce) { .card-scroll-fade { transition: none; } }
+
+/* Touch-capable devices need readable fields even at desktop-width breakpoints.
+   Keep browser pinch zoom enabled; prevent focus zoom through field sizing. */
+@media (any-pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  textarea[class], select[class] { font-size: 16px; min-height: 44px; }
+  button[class], [role="combobox"][class], [role="menuitem"][class], [role="menuitemcheckbox"][class],
+  [role="option"][class], .filter-option[class] { min-height: 44px; }
+  button[class] { min-width: 44px; }
+}

@@ -1,3 +1,5 @@
+import { MobileFilters } from "@/features/disclosures/mobile-filters";
+import { useCompactLayout } from "@/hooks/use-compact-layout";
 import { ModeToggle } from "@/components/dark-mode-toggle";
 import { DataTable } from "@/components/data-table/data-table";
 // import { SubmitResumeModal } from "@/components/submit-resume-modal";
@@ -13,22 +15,31 @@ import {
   getVisaFilters,
 } from "@/features/disclosures/lib/filters";
 import {
-  DataCoverageDocument,
-  DataCoverageQuery,
   InputMaybe,
   LcaDisclosureFilters,
   LcaDisclosureOrderByInput,
   PaginatedLcaDisclosuresDocument,
-  PaginatedLcaDisclosuresQuery,
   PaginatedLcaDisclosuresQueryVariables,
   Visaclass,
 } from "@/graphql/generated";
 import { LCADisclosure } from "@/lib/types";
-import { useQuery } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import { ColumnFiltersState, SortingState, Table } from "@tanstack/react-table";
 import React, { useEffect, useMemo } from "react";
 
+const CohortStats = gql`
+  query CertificationCohort($filters: LCADisclosureFilters) {
+    lcaDisclosures {
+      stats(filters: $filters) {
+        totalCount
+        successPercentage
+      }
+    }
+  }
+`;
 export default function LCADisclosuresPage() {
+  const mobile = useCompactLayout();
+  const [paginationMobile, setPaginationMobile] = React.useState(mobile);
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
@@ -43,7 +54,7 @@ export default function LCADisclosuresPage() {
       beginDate: getColumnSortOrder(sorting, ColumnId.StartDate),
       wageRateOfPayFrom: getColumnSortOrder(sorting, ColumnId.Salary),
     }),
-    [sorting]
+    [sorting],
   );
 
   /**
@@ -75,7 +86,7 @@ export default function LCADisclosuresPage() {
       }
 
       return initialFilters;
-    }
+    },
   );
 
   // Update URL when filters change
@@ -100,7 +111,7 @@ export default function LCADisclosuresPage() {
     window.history.replaceState(
       {},
       "",
-      `${window.location.pathname}?${params}`
+      `${window.location.pathname}?${params}`,
     );
   }, [columnFilters]);
 
@@ -112,132 +123,180 @@ export default function LCADisclosuresPage() {
       employerUuid: getEmployerUuidsFilters(columnFilters),
       jobTitle: getJobTitleFilters(columnFilters),
     }),
-    [columnFilters]
+    [columnFilters],
   );
 
-  const queryTake = pagination.pageSize * 3;
-
+  const queryTake = mobile ? 30 : pagination.pageSize;
+  const pageIndex = paginationMobile === mobile ? pagination.pageIndex : 0;
+  const scope = JSON.stringify([filters, sortingInput, mobile, queryTake]);
   const queryVariables: PaginatedLcaDisclosuresQueryVariables = {
-    pagination: {
-      take: queryTake,
-      skip: pagination.pageIndex * queryTake,
-    },
+    pagination: { take: queryTake, skip: pageIndex * queryTake },
     filters,
     sorting: sortingInput,
   };
-
-  const { loading, data } = useQuery(PaginatedLcaDisclosuresDocument, {
-    variables: queryVariables,
+  const { loading, data, error, refetch } = useQuery(
+    PaginatedLcaDisclosuresDocument,
+    {
+      variables: queryVariables,
+      notifyOnNetworkStatusChange: true,
+    },
+  );
+  // Separate cohort query also works with older servers whose status-filtered rate is incorrect.
+  const { data: cohortData, loading: cohortLoading } = useQuery<{
+    lcaDisclosures: {
+      stats: { totalCount: number; successPercentage: number };
+    };
+  }>(CohortStats, {
+    variables: { filters: { ...filters, caseStatus: undefined } },
   });
-  const { loading: coverageLoading, data: coverageData } = useQuery(DataCoverageDocument);
-  const { items, stats } = data?.lcaDisclosures || {};
-
-  const [currentStats, setCurrentStats] = React.useState<
-    PaginatedLcaDisclosuresQuery["lcaDisclosures"]["stats"] | undefined
-  >(undefined);
-
-  React.useEffect(() => {
-    if (
-      !!stats &&
-      (currentStats?.successPercentage !== stats.successPercentage ||
-        currentStats?.totalCount !== stats.totalCount)
-    ) {
-      setCurrentStats(stats);
-    }
-  }, [stats, currentStats]);
-
-  const [loadedData, setLoadedData] = React.useState<LCADisclosure[]>([]);
-  const loadedDataIDsSet = React.useMemo(() => {
-    return new Set(loadedData.map((d) => d.caseNumber));
-  }, [loadedData]);
-
-  React.useEffect(() => {
-    if (items) {
-      const newItems = items.filter((i) => !loadedDataIDsSet.has(i.caseNumber));
-      if (newItems.length > 0) {
-        setLoadedData([...loadedData, ...newItems]);
-      }
-    }
-  }, [items, loadedData, loadedDataIDsSet]);
-
-  /**
-   * Clear loaded data if filters or sorting change
-   */
-  React.useEffect(() => {
-    setLoadedData([]);
-  }, [filters, sortingInput]);
+  const rate = cohortData?.lcaDisclosures.stats;
+  const [chunks, setChunks] = React.useState<{
+    scope: string;
+    pages: Record<number, LCADisclosure[]>;
+    stats?: { totalCount: number; successPercentage: number };
+  }>({ scope: "", pages: {} });
+  useEffect(() => {
+    if (loading || !data) return;
+    setChunks((previous) => ({
+      scope,
+      stats: data.lcaDisclosures.stats,
+      pages: {
+        ...(previous.scope === scope ? previous.pages : {}),
+        [pageIndex]: data.lcaDisclosures.items,
+      },
+    }));
+  }, [data, loading, scope, pageIndex]);
+  const currentStats =
+    data?.lcaDisclosures.stats ??
+    (chunks.scope === scope ? chunks.stats : undefined);
+  const visiblePages = chunks.scope === scope ? { ...chunks.pages } : {};
+  if (!loading && data) visiblePages[pageIndex] = data.lcaDisclosures.items;
+  const loadedData = mobile
+    ? Array.from(
+        new Map(
+          Object.values(visiblePages)
+            .flat()
+            .map((item) => [item.caseNumber, item]),
+        ).values(),
+      )
+    : (data?.lcaDisclosures.items ??
+      (error && chunks.scope === scope ? chunks.pages[pageIndex] : undefined) ??
+      []);
+  const resetResults = () => {
+    setPagination((p) => ({ ...p, pageIndex: 0 }));
+    document.getElementById("scroll-area-viewport")?.scrollTo(0, 0);
+  };
+  useEffect(() => {
+    setPaginationMobile(mobile);
+    resetResults();
+  }, [mobile]);
+  const updateFilters: React.Dispatch<
+    React.SetStateAction<ColumnFiltersState>
+  > = (next) => {
+    setColumnFilters(next);
+    resetResults();
+  };
+  const updateSorting: React.Dispatch<React.SetStateAction<SortingState>> = (
+    next,
+  ) => {
+    setSorting(next);
+    resetResults();
+  };
 
   const toolbarComponent = React.useCallback(
-    (props: { table: Table<LCADisclosure> }) => (
-      <DataTableToolbar table={props.table} queryFilters={filters} />
-    ),
-    [filters]
+    (props: { table: Table<LCADisclosure> }) =>
+      mobile ? null : (
+        <DataTableToolbar table={props.table} queryFilters={filters} />
+      ),
+    [filters, mobile],
   );
 
-  const coverageSummary = React.useMemo(() => {
-    const coverage: DataCoverageQuery['dataCoverage'] | undefined = coverageData?.dataCoverage;
-    if (!coverage?.start || !coverage?.end) {
-      return 'Dataset coverage unavailable (no seeded quarters yet)';
-    }
-
-    return `Dataset coverage: FY${coverage.start.fiscalYear} Q${coverage.start.quarter} to FY${coverage.end.fiscalYear} Q${coverage.end.quarter}`;
-  }, [coverageData]);
-
   return (
-    <div className="h-full flex-1 flex-col gap-5 md:p-8 flex">
-      <div className="flex items-center gap-2 px-5 pt-4 md:px-0 md:pt-0">
+    <div className="disclosures-page flex min-h-0 flex-1 flex-col gap-3 xl:gap-5 xl:p-8">
+      <div className="disclosures-header flex shrink-0 items-center gap-2 px-5 pt-3 xl:px-0 xl:pt-0">
         <div className="w-full">
           <div className="flex justify-between border-b">
             <div>
               <h2 className="text-2xl font-bold tracking-tight">
                 Explore jobs for Singaporeans 🇸🇬 working in the USA 🇺🇸
               </h2>
-              <p className="text-muted-foreground py-1">
-                {loading || currentStats === undefined ? (
-                  <Skeleton className="h-4 w-[60px] inline-block" />
+              <div
+                className="text-muted-foreground flex flex-wrap items-center gap-x-3 py-1 min-h-8"
+                aria-live="polite"
+              >
+                {currentStats ? (
+                  <span>
+                    {currentStats.totalCount.toLocaleString()} applications
+                  </span>
+                ) : error ? (
+                  "Application data unavailable"
                 ) : (
-                  `${currentStats.totalCount}`
+                  <Skeleton>
+                    <span className="invisible">
+                      8,888 applications
+                    </span>
+                  </Skeleton>
                 )}
-                <span>{" visa applications with a "}</span>
-                {loading || currentStats === undefined ? (
-                  <Skeleton className="h-4 w-[30px] inline-block" />
-                ) : (
-                  <span className="dark:text-green-600 text-green-400 font-semibold">{`${Math.round(
-                    currentStats.successPercentage
-                  )}%`}</span>
+                {cohortLoading && !rate && (
+                  <Skeleton className="whitespace-nowrap">
+                    <span className="invisible">· 94% certified</span>
+                  </Skeleton>
                 )}
-                <span>{" success rate"}</span>
-              </p>
-              <p className="text-muted-foreground py-1">
-                {coverageLoading ? (
-                  <Skeleton className="h-4 w-[280px] inline-block" />
-                ) : (
-                  coverageSummary
-                )}
-              </p>
+                {rate &&
+                  rate.totalCount > 0 &&
+                  Number.isFinite(rate.successPercentage) &&
+                  rate.successPercentage >= 0 &&
+                  rate.successPercentage <= 100 && (
+                    <span
+                      className="whitespace-nowrap"
+                      title="Certification rate across all statuses, using the other selected filters"
+                    >
+                      <span aria-hidden="true">· </span>
+                      <span className="success-text font-semibold">
+                        {Math.round(rate.successPercentage)}%
+                      </span>{" "}
+                      certified
+                    </span>
+                  )}
+              </div>
             </div>
-            <div className="hidden md:flex">
+            <div className="hidden xl:flex">
               <ModeToggle />
             </div>
           </div>
-          <div className="flex flex-col md:flex-row gap-4 md:justify-between pt-4">
-            <p className="hidden md:block">
+          <div className="disclosures-help flex flex-col xl:flex-row gap-2 xl:gap-4 xl:justify-between pt-2 xl:pt-4">
+            <p className="hidden min-w-0 flex-1 xl:block">
               The H-1B1 visa is a special visa for Singaporean citizens to work
               in the USA.
               <br />
               Each year, a quota of 5,400 H-1B1 visas are available.
             </p>
-            <div className="flex flex-wrap md:flex-col gap-2 items-center md:items-end">
-              <a
-                href="https://h1b1.notion.site"
-                target="_blank"
-                rel="noopener noreferrer"
+            <div className="flex min-w-0 items-center gap-2 xl:shrink-0 xl:flex-col xl:items-end">
+              <Button
+                asChild
+                variant="outline"
+                className="h-11 min-w-0 flex-1 gap-2 whitespace-normal px-3 text-left leading-tight xl:h-10 xl:flex-none xl:whitespace-nowrap"
               >
-                <Button variant="outline">
-                  🔗 How does the H-1B1 visa work?
-                </Button>
-              </a>
-              {/* <SubmitResumeModal /> */}
+                <a
+                  href="https://h1b1.notion.site"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span aria-hidden="true">🔗</span>
+                  <span>How does the H-1B1 visa work?</span>
+                </a>
+              </Button>
+              {mobile && (
+                <MobileFilters
+                  filters={columnFilters}
+                  sorting={sorting}
+                  onApply={(nextFilters, nextSorting) => {
+                    setColumnFilters(nextFilters);
+                    setSorting(nextSorting);
+                    resetResults();
+                  }}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -248,17 +307,22 @@ export default function LCADisclosuresPage() {
         columns={columns}
         serverSidePaginationConfig={{
           rowCount: currentStats?.totalCount ?? 0,
-          pagination,
+          pagination: { ...pagination, pageIndex, pageSize: queryTake },
           setPagination,
         }}
         toolbar={toolbarComponent}
         serverSideFilteringConfig={{
           columnFilters,
-          setColumnFilters,
+          setColumnFilters: updateFilters,
           sorting,
-          setSorting,
+          setSorting: updateSorting,
         }}
         isLoading={loading}
+        error={!!error}
+        onRetry={() => {
+          void refetch();
+        }}
+        onClear={columnFilters.length ? () => updateFilters([]) : undefined}
         defaultHiddenColumnIds={[ColumnId.CaseNumber]}
       />
     </div>

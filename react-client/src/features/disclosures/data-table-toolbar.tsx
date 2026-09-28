@@ -23,6 +23,9 @@ import { useQuery } from "@apollo/client";
 import React, { useMemo } from "react";
 import { useDebounce } from "use-debounce";
 
+const EMPTY_TITLES: StringValuesAndCount[] = [];
+const EMPTY_EMPLOYERS: Employer[] = [];
+
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   queryFilters: InputMaybe<LcaDisclosureFilters>;
@@ -35,14 +38,16 @@ export function DataTableToolbar<TData>({
   const isFiltered = table.getState().columnFilters.length > 0;
 
   /** Case status and visa type filters */
-  const { loading: isCaseStatusLoading, data: caseStatusData } = useQuery(
-    UniqueCaseStatusesDocument,
-    {
-      variables: {
-        filters: queryFilters,
-      },
-    }
-  );
+  const {
+    loading: isCaseStatusLoading,
+    data: caseStatusData,
+    error: caseStatusError,
+    refetch: retryCaseStatus,
+  } = useQuery(UniqueCaseStatusesDocument, {
+    variables: {
+      filters: { ...queryFilters, caseStatus: undefined },
+    },
+  });
 
   const caseStatusOptions = useMemo(() => {
     return (
@@ -51,7 +56,7 @@ export function DataTableToolbar<TData>({
           value: value.caseStatus,
           label: CASE_STATUS_ENUM_TO_READABLE[value.caseStatus],
           count: value.count,
-        })
+        }),
       ) ?? []
     );
   }, [caseStatusData]);
@@ -97,26 +102,28 @@ export function DataTableToolbar<TData>({
       take: jobTitlePagination.pageSize,
       skip: jobTitlePagination.pageIndex * pageSize,
     },
-    filters: queryFilters,
+    filters: { ...queryFilters, jobTitle: undefined },
     jobTitleSearchStr:
       debouncedJobTitleSearchStr.length > 0
         ? debouncedJobTitleSearchStr
         : undefined,
   };
 
-  const { loading: isJobTitleLoading, data: jobTitleQueryData } = useQuery(
-    PaginatedUniqueJobTitlesDocument,
-    {
-      variables: jobTitleSearchQueryVariables,
-    }
-  );
+  const {
+    loading: isJobTitleLoading,
+    data: jobTitleQueryData,
+    error: jobTitleError,
+    refetch: retryJobTitles,
+  } = useQuery(PaginatedUniqueJobTitlesDocument, {
+    variables: jobTitleSearchQueryVariables,
+  });
 
   const { uniqueColumnValues: jobTitleUniqueColumnValues } =
     jobTitleQueryData || {};
   const { jobTitles } = jobTitleUniqueColumnValues || {};
   const {
     hasNext: jobTitlesHasNext = false,
-    uniqueValues: jobTitleQueryItems = [],
+    uniqueValues: jobTitleQueryItems = EMPTY_TITLES,
   } = jobTitles || {};
 
   /** For employer filters */
@@ -138,35 +145,43 @@ export function DataTableToolbar<TData>({
       take: searchPagination.pageSize,
       skip: searchPagination.pageIndex * pageSize,
     },
-    filters: queryFilters,
+    filters: { ...queryFilters, employerUuid: undefined },
     employerNameSearchStr:
       debouncedSearchStr.length > 0 ? debouncedSearchStr : undefined,
     // searchStr: debouncedSearchStr.length > 0 ? debouncedSearchStr : undefined,
   };
 
-  const { loading: isEmployersQueryLoading, data: employersQueryData } =
-    useQuery(PaginatedUniqueEmployersDocument, {
-      variables: searchQueryVariables,
-    });
+  const {
+    loading: isEmployersQueryLoading,
+    data: employersQueryData,
+    error: employerError,
+    refetch: retryEmployers,
+  } = useQuery(PaginatedUniqueEmployersDocument, {
+    variables: searchQueryVariables,
+  });
 
   const { uniqueColumnValues } = employersQueryData || {};
   const { employers } = uniqueColumnValues || {};
   const {
     hasNext: employersHasNext = false,
-    uniqueValues: employersQueryItems = [],
+    uniqueValues: employersQueryItems = EMPTY_EMPLOYERS,
   } = employers || {};
 
   const resetTableToFirstPage = table.resetPageIndex;
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center gap-2 overflow-auto">
+    <div className="flex items-start justify-between gap-2">
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
         {table.getColumn(ColumnId.CaseStatus) && (
           <DataTableFacetedFilter
             column={table.getColumn(ColumnId.CaseStatus)}
             title="Case status"
             options={caseStatusOptions} // already validated existence
             isLoading={isCaseStatusLoading}
+            error={!!caseStatusError}
+            onRetry={() => {
+              void retryCaseStatus();
+            }}
             onFilter={resetTableToFirstPage}
           />
         )}
@@ -191,7 +206,13 @@ export function DataTableToolbar<TData>({
             }}
             query={{
               result: jobTitleQueryItems,
-              isQueryLoading: isJobTitleLoading,
+              isQueryLoading:
+                isJobTitleLoading ||
+                searchJobTitleStr !== debouncedJobTitleSearchStr,
+              error: !!jobTitleError,
+              onRetry: () => {
+                void retryJobTitles();
+              },
               queryHasNext: jobTitlesHasNext ?? false,
             }}
             pagination={{
@@ -206,7 +227,7 @@ export function DataTableToolbar<TData>({
               table
                 .getColumn(ColumnId.JobTitle)
                 ?.setFilterValue(
-                  selectedData.length > 0 ? selectedData : undefined
+                  selectedData.length > 0 ? selectedData : undefined,
                 );
               resetTableToFirstPage();
             }}
@@ -223,7 +244,12 @@ export function DataTableToolbar<TData>({
             }}
             query={{
               result: employersQueryItems,
-              isQueryLoading: isEmployersQueryLoading,
+              isQueryLoading:
+                isEmployersQueryLoading || searchStr !== debouncedSearchStr,
+              error: !!employerError,
+              onRetry: () => {
+                void retryEmployers();
+              },
               queryHasNext: employersHasNext ?? false,
             }}
             pagination={{
@@ -238,7 +264,7 @@ export function DataTableToolbar<TData>({
               table
                 .getColumn(ColumnId.EmployerName)
                 ?.setFilterValue(
-                  selectedData.length > 0 ? selectedData : undefined
+                  selectedData.length > 0 ? selectedData : undefined,
                 );
               resetTableToFirstPage();
             }}
@@ -251,9 +277,9 @@ export function DataTableToolbar<TData>({
               table.resetColumnFilters();
               resetTableToFirstPage();
             }}
-            className="h-8 px-2 lg:px-3"
+            className="h-11 px-2 md:h-8 lg:px-3"
           >
-            Reset
+            Clear all
             <Cross2Icon className="ml-2 h-4 w-4" />
           </Button>
         )}

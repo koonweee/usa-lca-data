@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev -r dotenv/config src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "TS_NODE_PREFER_TS_EXTS=true node -r ts-node/register --test tests/*.test.ts",
     "setup": "npm i && npx prisma generate",
     "clean": "rm -rf dist",
     "build": "npm run clean && tsc",

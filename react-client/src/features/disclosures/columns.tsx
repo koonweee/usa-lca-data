@@ -79,11 +79,11 @@ function getSortableHeader(column: Column<LCADisclosure>, title: string) {
   const isSorted = column.getIsSorted() !== false;
   const isAsc = column.getIsSorted() === "asc";
   return (
-    <Button variant="ghost" onClick={() => column.toggleSorting(isAsc)}>
+    <Button variant="ghost" className="h-auto min-h-8 max-w-full whitespace-normal px-0 text-left" onClick={() => column.toggleSorting(isAsc)}>
       {title}
-      {isSorted && isAsc && <ArrowUp className="ml-2 h-4 w-4" />}
-      {isSorted && !isAsc && <ArrowDown className="ml-2 h-4 w-4" />}
-      {!isSorted && <ArrowUpDown className="ml-2 h-4 w-4" />}
+      {isSorted && isAsc && <ArrowUp className="ml-2 h-4 w-4 shrink-0" />}
+      {isSorted && !isAsc && <ArrowDown className="ml-2 h-4 w-4 shrink-0" />}
+      {!isSorted && <ArrowUpDown className="ml-2 h-4 w-4 shrink-0" />}
     </Button>
   );
 }

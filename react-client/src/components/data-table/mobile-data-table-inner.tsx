@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -13,42 +14,113 @@ import InfiniteScroll from "react-infinite-scroll-component";
 
 export function MobileDataTableInner<TData>(props: {
   table: Table<TData>;
+  isLoading: boolean;
+  error: boolean;
+  onRetry?: () => void;
+  emptyState: React.ReactNode;
 }): React.ReactNode {
   const { table } = props;
 
   const tableRows = table.getRowModel().rows;
   const nTableRows = tableRows.length;
   const tableHasRows = nTableRows > 0;
+  const scrollAreaRef = React.useRef<HTMLDivElement>(null);
+  const [fades, setFades] = React.useState({ top: false, bottom: false });
+
+  React.useLayoutEffect(() => {
+    const viewport = scrollAreaRef.current?.querySelector<HTMLElement>(
+      "#scroll-area-viewport",
+    );
+    if (!viewport) return;
+    const update = () => {
+      const top = tableHasRows && viewport.scrollTop > 1;
+      const bottom =
+        tableHasRows &&
+        viewport.scrollHeight - viewport.clientHeight - viewport.scrollTop > 1;
+      setFades((previous) =>
+        previous.top === top && previous.bottom === bottom
+          ? previous
+          : { top, bottom },
+      );
+    };
+    update();
+    viewport.addEventListener("scroll", update, { passive: true });
+    const observer = new ResizeObserver(update);
+    observer.observe(viewport);
+    if (viewport.firstElementChild)
+      observer.observe(viewport.firstElementChild);
+    return () => {
+      viewport.removeEventListener("scroll", update);
+      observer.disconnect();
+    };
+  }, [tableHasRows]);
 
   return (
-    <ScrollArea
-      className="h-[65vh] rounded-md overscroll-contain"
-      id="scroll-area"
-    >
-      {tableHasRows ? (
-        <InfiniteScroll
-          dataLength={nTableRows}
-          next={() => {
-            table.nextPage();
-          }}
-          hasMore={table.getCanNextPage()}
-          loader={
-            <div className="flex justify-center items-center w-full h-12">
-              <LoadingSpinner className="mr-2" />
-              Loading...
-            </div>
-          }
-          scrollableTarget={"scroll-area-viewport"}
-          scrollThreshold={0.5}
-        >
-          {table.getRowModel().rows.map((row, index) => (
-            <DataCard key={index} row={row} />
-          ))}
-        </InfiniteScroll>
-      ) : (
-        <LoadingSkeleton />
-      )}
-    </ScrollArea>
+    <div className="relative h-full">
+      <ScrollArea
+        ref={scrollAreaRef}
+        className="h-full rounded-md overscroll-contain"
+        id="scroll-area"
+      >
+        {tableHasRows ? (
+          <InfiniteScroll
+            dataLength={nTableRows}
+            next={() => {
+              if (!props.isLoading && !props.error) table.nextPage();
+            }}
+            hasMore={!props.error && table.getCanNextPage()}
+            loader={
+              <div className="flex justify-center items-center w-full h-12">
+                <LoadingSpinner className="mr-2" />
+                Loading...
+              </div>
+            }
+            scrollableTarget={"scroll-area-viewport"}
+            scrollThreshold={0.5}
+          >
+            {table.getRowModel().rows.map((row) => (
+              <DataCard key={row.id} row={row} />
+            ))}
+            {!props.isLoading && !props.error && table.getCanNextPage() && (
+              <Button
+                variant="ghost"
+                className="h-11 w-full"
+                onClick={() => table.nextPage()}
+              >
+                Load more applications
+              </Button>
+            )}
+            {props.error && (
+              <Button
+                variant="outline"
+                className="h-11 w-full"
+                onClick={props.onRetry}
+              >
+                Retry loading more
+              </Button>
+            )}
+          </InfiniteScroll>
+        ) : props.isLoading ? (
+          <LoadingSkeleton />
+        ) : (
+          props.emptyState
+        )}
+      </ScrollArea>
+      <div
+        aria-hidden="true"
+        className={cn(
+          "card-scroll-fade card-scroll-fade-top",
+          fades.top ? "opacity-100" : "opacity-0",
+        )}
+      />
+      <div
+        aria-hidden="true"
+        className={cn(
+          "card-scroll-fade card-scroll-fade-bottom",
+          fades.bottom ? "opacity-100" : "opacity-0",
+        )}
+      />
+    </div>
   );
 }
 
@@ -95,8 +167,11 @@ export function DataCard<TData>(props: {
       })
       .filter((cell) => !!cell);
     return (
-      <div className="flex flex-row justify-between items-center">
-        <div className="flex flex-row gap-1 items-center">
+      <div
+        key={index}
+        className="flex min-w-0 flex-row justify-between items-center gap-2"
+      >
+        <div className="flex min-w-0 flex-row gap-1 items-center">
           {leftCells.map((cell) => {
             const renderValue = cell!.getValue() as string;
             const columnId = cell!.column.id;
@@ -131,7 +206,7 @@ export function LoadingSkeleton(): JSX.Element {
   return (
     <>
       {Array.from({ length: 10 }).map((_, index) => (
-        <div className="flex flex-col items-center pt-4 gap-4 px-5">
+        <div key={index} className="flex flex-col items-center pt-4 gap-4 px-5">
           <div className="flex flex-col gap-1 w-full">
             <SkeletonCard cardIndex={index} />
           </div>
@@ -144,7 +219,10 @@ export function LoadingSkeleton(): JSX.Element {
 
 const SkeletonCard = ({ cardIndex }: { cardIndex: number }) =>
   [...Array(DATA_CARD_LAYOUT_LEFT.length)].map((_, index) => (
-    <div className="flex flex-row justify-between items-center">
+    <div
+      key={index}
+      className="flex min-w-0 flex-row justify-between items-center gap-2"
+    >
       <Skeleton
         key={`card-${cardIndex}-left-${index}-skeleton`}
         className={cn("h-5", index < 2 ? "w-[70%]" : "w-[30%]")}
@@ -163,7 +241,7 @@ export function FieldRender(props: { id: string; value: string }): JSX.Element {
 
   if (id === "jobTitle") {
     // Header
-    return <div className="text-md font-semibold max-w-[90%]">{value}</div>;
+    return <div className="text-base font-semibold break-words">{value}</div>;
   }
 
   if (id === "caseStatus") {
@@ -193,7 +271,7 @@ export function FieldRender(props: { id: string; value: string }): JSX.Element {
   // }
 
   return (
-    <div className="text-sm w-auto">
+    <div className="text-sm w-auto break-words">
       {value}
       {id === "employer.city" ? ", " : ""}
     </div>

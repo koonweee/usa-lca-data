@@ -1,37 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+import { FilterSurface } from "@/components/filter-surface";
 import { Pagination } from "@/lib/types";
-import { pluralize } from "@/lib/utils";
-import {
-  CheckIcon,
-  PlusCircledIcon,
-  CaretDownIcon,
-  CaretUpIcon,
-} from "@radix-ui/react-icons";
-import {
-  Command,
-  CommandGroup,
-  CommandSeparator,
-  CommandItem,
-  CommandInput,
-  CommandList,
-} from "@/components/ui/command";
-import React, { useMemo } from "react";
-import InfiniteScroll from "react-infinite-scroll-component";
-import { EntriesCommandItems } from "@/components/filter-using-backend/components/entries-command-items";
-import { PopoverClose } from "@radix-ui/react-popover";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { PlusCircledIcon } from "@radix-ui/react-icons";
+import React from "react";
 import { Column } from "@tanstack/react-table";
-
 export interface FilterUsingBackendProps<T, TData, TValue> {
-  column: Column<TData, TValue>;
+  column?: Column<TData, TValue>;
+  /** Controlled content for the combined mobile sheet. */
+  selection?: { value: T[]; onChange: (value: T[]) => void };
   /** Props related to entity T */
   entity: {
     /** What the entity is eg. 'employer' */
@@ -48,6 +25,8 @@ export interface FilterUsingBackendProps<T, TData, TValue> {
   query: {
     /** Data result from current query */
     result: T[];
+    error?: boolean;
+    onRetry?: () => void;
     /** Whether query is running/loading */
     isQueryLoading?: boolean;
     /** Whether query has next page */
@@ -75,277 +54,197 @@ export interface FilterUsingBackendProps<T, TData, TValue> {
 }
 
 export function FilterUsingBackend<T, TData, TValue>(
-  props: FilterUsingBackendProps<T, TData, TValue>
+  props: FilterUsingBackendProps<T, TData, TValue>,
 ) {
+  const { column, entity, query, pagination, search, onFilter } = props;
   const {
-    column,
-    entity: { title, idAccessorFn, displayAccessorFn, countAccessorFn },
-    query: {
-      result: queryResult,
-      isQueryLoading = false,
-      queryHasNext = false,
-    },
-    pagination: {
-      state: { pageIndex, pageSize },
-      setState: setPagination,
-    },
-    search: { str: searchStr, setStr: setSearchStr },
-    onFilter,
-  } = props;
-
-  const columnFilterValue = column.getFilterValue()
-    ? (column.getFilterValue() as T[])
-    : [];
-  const [selectedData, setSelectedData] =
-    React.useState<T[]>(columnFilterValue);
-
-  const [data, setData] = React.useState<T[]>([]);
-  const dataIDsSet = useMemo(
-    () => new Set(data.map(idAccessorFn)),
-    [data, idAccessorFn]
-  );
-
+    title: rawTitle,
+    idAccessorFn: id,
+    displayAccessorFn: label,
+    countAccessorFn: count,
+  } = entity;
+  const title = rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1);
+  const committed = (column?.getFilterValue() as T[] | undefined) ?? [];
+  const [open, setOpen] = React.useState(false);
+  const [localDraft, setLocalDraft] = React.useState<T[]>([]);
+  const draft = props.selection?.value ?? localDraft;
+  const setDraft = (next: React.SetStateAction<T[]>) => {
+    const value = typeof next === "function" ? next(draft) : next;
+    if (props.selection) props.selection.onChange(value);
+    else setLocalDraft(value);
+  };
+  const [pages, setPages] = React.useState<Record<number, T[]>>({});
+  // Replace first-page results in full; deduplicate only when joining pages.
   React.useEffect(() => {
-    // Do nothing if loading
-    if (!isQueryLoading) {
-      // If query is empty and on first page, set data to empty (if not already)
-      if (data.length > 0 && queryResult.length === 0 && pageIndex === 0) {
-        return setData([]);
-      }
-
-      const newQueryResults = queryResult.filter(
-        (e) => !dataIDsSet.has(idAccessorFn(e))
-      );
-      if (newQueryResults.length !== 0) {
-        if (pageIndex === 0) {
-          // If new search results and on first page, set search results to new results
-          // as this is a new search
-          return setData(newQueryResults);
-        }
-        // If new search results and not on first page, append to search results as this
-        // is a paginated search
-        return setData((prev) => [...prev, ...newQueryResults]);
-      }
-    }
+    if (query.isQueryLoading || query.error) return;
+    setPages((previous) =>
+      pagination.state.pageIndex === 0
+        ? { 0: query.result }
+        : { ...previous, [pagination.state.pageIndex]: query.result },
+    );
   }, [
-    queryResult,
-    dataIDsSet,
-    idAccessorFn,
-    pageIndex,
-    isQueryLoading,
-    data.length,
+    query.result,
+    query.isQueryLoading,
+    query.error,
+    pagination.state.pageIndex,
   ]);
-
-  const selectedDataIDsSet = useMemo(
-    () => new Set(selectedData.map(idAccessorFn)),
-    [selectedData, idAccessorFn]
+  const results = Array.from(
+    new Map(
+      Object.values(pages)
+        .flat()
+        .map((item) => [id(item), item]),
+    ).values(),
   );
-  const selectedDataCount = selectedData.length;
-  const loader = <Skeleton className="w-full h-5" />;
-
-  const [truncateSelectedData, setTruncateSelectedData] = React.useState(false);
-
-  const [scrollContainerRef, setScrollContainerRef] =
-    React.useState<HTMLDivElement>();
-
+  const selected = new Set(draft.map(id));
+  const changeSearch = (value: string) => {
+    if (value !== search.str || pagination.state.pageIndex !== 0) setPages({});
+    pagination.setState((p) => ({ ...p, pageIndex: 0 }));
+    search.setStr(value);
+  };
+  const changeOpen = (value: boolean) => {
+    if (value) {
+      setDraft(committed);
+      changeSearch("");
+    }
+    setOpen(value);
+  };
+  const toggle = (item: T) =>
+    setDraft((previous) =>
+      previous.some((x) => id(x) === id(item))
+        ? previous.filter((x) => id(x) !== id(item))
+        : [...previous, item],
+    );
+  const option = (item: T) => (
+    <label
+      key={id(item)}
+      className="filter-option flex min-h-11 cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-base hover:bg-accent xl:min-h-8 xl:text-sm"
+    >
+      <input
+        type="checkbox"
+        className="h-[18px] w-[18px] shrink-0 accent-[hsl(var(--primary))]"
+        checked={selected.has(id(item))}
+        onChange={() => toggle(item)}
+      />
+      <span className="min-w-0 break-words">{label(item)}</span>
+      {count && (
+        <span className="ml-auto shrink-0 pl-2 text-xs tabular-nums text-muted-foreground">
+          {count(item)}
+        </span>
+      )}
+    </label>
+  );
+  const content = (
+    <>
+      <div className="shrink-0 border-b p-3">
+        <input
+          aria-label={`Search ${title}`}
+          placeholder={`Search ${title}`}
+          value={search.str}
+          onChange={(e) => changeSearch(e.target.value)}
+          className="h-11 w-full rounded-md border bg-background px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-ring xl:h-9 xl:text-sm"
+        />
+      </div>
+      <div
+        className={
+          props.selection
+            ? ""
+            : "min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        }
+        aria-busy={query.isQueryLoading}
+      >
+        <p className="px-3 py-2 text-xs text-muted-foreground">
+          {draft.length} selected
+        </p>
+        {draft
+          .filter((item) => !results.some((result) => id(result) === id(item)))
+          .map(option)}
+        {!query.isQueryLoading && !query.error && results.length === 0 && (
+          <div
+            role="status"
+            className="px-3 py-5 text-sm text-muted-foreground"
+          >
+            No matches found.
+            {search.str && (
+              <Button variant="ghost" onClick={() => changeSearch("")}>
+                Clear search
+              </Button>
+            )}
+          </div>
+        )}
+        {!query.isQueryLoading && results.map(option)}
+        {query.isQueryLoading && (
+          <p role="status" className="p-3 text-sm text-muted-foreground">
+            Loading…
+          </p>
+        )}
+        {query.error && (
+          <div role="alert" className="p-3 text-sm">
+            Couldn’t load options.{" "}
+            <Button variant="outline" onClick={query.onRetry}>
+              Retry
+            </Button>
+          </div>
+        )}
+        {query.queryHasNext && !query.isQueryLoading && !query.error && (
+          <Button
+            variant="ghost"
+            className="h-11 w-full"
+            onClick={() =>
+              pagination.setState((p) => ({ ...p, pageIndex: p.pageIndex + 1 }))
+            }
+          >
+            Load more options
+          </Button>
+        )}
+      </div>
+    </>
+  );
+  if (props.selection) return content;
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 border-dashed">
-          <PlusCircledIcon className="mr-2 h-4 w-4" />
+    <FilterSurface
+      title={title}
+      open={open}
+      onOpenChange={changeOpen}
+      trigger={
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-11 max-w-full border-dashed xl:h-8"
+        >
+          <PlusCircledIcon className="mr-2 h-4 w-4 shrink-0" />
           <span className="capitalize">{title}</span>
-          {selectedDataCount > 0 && (
-            <>
-              <Separator orientation="vertical" className="mx-2 h-4" />
-              <Badge
-                variant="secondary"
-                className="rounded-sm px-1 font-normal lg:hidden"
-              >
-                {selectedDataCount}
-              </Badge>
-              <div className="hidden space-x-1 lg:flex">
-                {selectedDataCount > 2 ? (
-                  <Badge
-                    variant="secondary"
-                    className="rounded-sm px-1 font-normal"
-                  >
-                    {selectedDataCount} selected
-                  </Badge>
-                ) : (
-                  selectedData
-                    .filter((data) =>
-                      selectedDataIDsSet.has(idAccessorFn(data))
-                    )
-                    .map((option) => (
-                      <Badge
-                        variant="secondary"
-                        key={idAccessorFn(option)}
-                        className="rounded-sm px-1 font-normal max-w-[200px]"
-                      >
-                        <div className="truncate">
-                          {displayAccessorFn(option)}
-                        </div>
-                      </Badge>
-                    ))
-                )}
-              </div>
-            </>
+          {committed.length > 0 && (
+            <Badge
+              variant="secondary"
+              className="ml-2 rounded-sm px-1 font-normal"
+            >
+              {committed.length}
+            </Badge>
           )}
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0 w-[400px]" align="start">
-        <Command shouldFilter={false}>
-          {selectedData.length > 0 && (
-            <CommandGroup
-              heading={
-                <div className="flex items-center justify-between py-1">
-                  <div className="flex flex-row items-center gap-2">
-                    {selectedData.length} selected employers
-                    <Button
-                      onClick={() => setSelectedData([])}
-                      variant={"ghost"}
-                      className="text-xs h-[none] py-0.5 px-2 font-light"
-                    >
-                      Clear
-                    </Button>
-                  </div>
-                  {selectedData.length > 5 && (
-                    <Button
-                      onClick={() => {
-                        setTruncateSelectedData((prev) => !prev);
-                      }}
-                      variant="link"
-                      className="text-xs font-normal py-0 h-[none] px-0"
-                    >
-                      {truncateSelectedData ? (
-                        <>
-                          Show
-                          <span>
-                            <CaretDownIcon className="ml-1" />
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          Hide
-                          <span>
-                            <CaretUpIcon className="ml-1" />
-                          </span>
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </div>
-              }
-            >
-              <CommandSeparator alwaysRender />
-              {truncateSelectedData ? null : (
-                <>
-                  {selectedData.map((entry) => (
-                    <CommandItem
-                      key={idAccessorFn(entry)}
-                      onSelect={() => {
-                        setSelectedData((prev) =>
-                          prev.filter(
-                            (d) => idAccessorFn(d) !== idAccessorFn(entry)
-                          )
-                        );
-                      }}
-                      value={idAccessorFn(entry)}
-                    >
-                      <div className="mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary bg-primary text-primary-foreground">
-                        <CheckIcon className="h-4 w-4" />
-                      </div>
-                      <span>{displayAccessorFn(entry)}</span>
-                      {countAccessorFn && (
-                        <span className="ml-auto flex h-4 w-fit items-center justify-center font-mono text-xs">
-                          {countAccessorFn(entry)}
-                        </span>
-                      )}
-                    </CommandItem>
-                  ))}
-                  <CommandSeparator alwaysRender />
-                </>
-              )}
-            </CommandGroup>
-          )}
-          <CommandInput
-            placeholder={`Select ${pluralize(0, title)}`}
-            onValueChange={(str) => {
-              // Reset pagination to first page
-              setPagination({
-                pageIndex: 0,
-                pageSize,
-              });
-              setSearchStr(str);
-            }}
-            value={searchStr}
-          />
-          <CommandList
-            style={{
-              maxHeight: Math.ceil(pageSize * 17.5),
-              overscrollBehavior: "contain",
-            }}
-            ref={(ref) => {
-              setScrollContainerRef(ref ?? undefined);
+      }
+      footer={
+        <>
+          <Button
+            variant="outline"
+            className="h-11 flex-1 xl:h-9"
+            onClick={() => setDraft([])}
+          >
+            Clear
+          </Button>
+          <Button
+            className="h-11 flex-1 xl:h-9"
+            onClick={() => {
+              onFilter(draft);
+              setOpen(false);
             }}
           >
-            <CommandGroup
-              heading={
-                <div className="flex flex-row items-center justify-between capitalize">
-                  {pluralize(0, title)}
-                  {isQueryLoading && <LoadingSpinner className="w-3 h-3" />}
-                </div>
-              }
-            >
-              {scrollContainerRef && data.length > 0 && (
-                <InfiniteScroll
-                  dataLength={data.length - selectedData.length}
-                  next={() => {
-                    setPagination((prev) => ({
-                      ...prev,
-                      pageIndex: prev.pageIndex + 1,
-                    }));
-                  }}
-                  hasMore={queryHasNext}
-                  loader={loader}
-                  scrollableTarget={scrollContainerRef.id}
-                  scrollThreshold={0.9}
-                >
-                  <EntriesCommandItems<T>
-                    // Selected employers are shown above the search results
-                    dataToDisplay={data.filter(
-                      (e) => !selectedDataIDsSet.has(idAccessorFn(e))
-                    )}
-                    idAccessorFn={idAccessorFn}
-                    countAccessorFn={countAccessorFn}
-                    displayAccessorFn={displayAccessorFn}
-                    setSelectedData={setSelectedData}
-                  />
-                </InfiniteScroll>
-              )}
-              {isQueryLoading && (
-                <CommandItem>
-                  <div className="flex w-full justify-center items-center">
-                    <LoadingSpinner className="mr-2 w-4" />
-                    Loading...
-                  </div>
-                </CommandItem>
-              )}
-            </CommandGroup>
-          </CommandList>
-          <CommandSeparator alwaysRender />
-          <PopoverClose>
-            <CommandItem
-              onSelect={() => {
-                onFilter(selectedData);
-              }}
-              className="justify-center text-center"
-            >
-              Filter
-            </CommandItem>
-          </PopoverClose>
-        </Command>
-      </PopoverContent>
-    </Popover>
+            Apply{draft.length > 0 ? ` (${draft.length})` : ""}
+          </Button>
+        </>
+      }
+    >
+      {content}
+    </FilterSurface>
   );
 }

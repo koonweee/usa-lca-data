@@ -224,15 +224,17 @@ export const LCADisclosuresType = objectType({
           caseStatus: ["Certified"],
         })
     
-        const [totalCount, certifiedCount] = await Promise.all([
+        const cohortWhere = constructPrismaWhereFromFilters({ ...filters, caseStatus: undefined });
+        const [totalCount, certifiedCount, cohortCount] = await Promise.all([
           context.prisma.lCADisclosure.count({ where }),
           context.prisma.lCADisclosure.count({
             where: certifiedWhere,
           }),
+          context.prisma.lCADisclosure.count({ where: cohortWhere }),
         ]);
     
-        const successPercentage = totalCount > 0 
-          ? (certifiedCount / totalCount) * 100 
+        const successPercentage = cohortCount > 0
+          ? (certifiedCount / cohortCount) * 100
           : 0;
     
         return {
