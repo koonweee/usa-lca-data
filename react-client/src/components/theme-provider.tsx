@@ -26,32 +26,35 @@ export function ThemeProvider({
   storageKey = "vite-ui-theme",
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-  )
+  // The server and first browser render use the same value for hydration.
+  const [theme, setTheme] = useState<Theme>(defaultTheme)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem(storageKey)
+      if (saved === "light" || saved === "dark" || saved === "system") setTheme(saved)
+    } catch { /* The theme still works when storage is unavailable. */ }
+    setReady(true)
+  }, [storageKey])
+
+  useEffect(() => {
+    if (!ready) return
     const root = window.document.documentElement
-
-    root.classList.remove("light", "dark")
-
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light"
-
-      root.classList.add(systemTheme)
-      return
+    const media = window.matchMedia("(prefers-color-scheme: dark)")
+    const apply = () => {
+      root.classList.remove("light", "dark")
+      root.classList.add(theme === "system" ? (media.matches ? "dark" : "light") : theme)
     }
-
-    root.classList.add(theme)
-  }, [theme])
+    apply()
+    media.addEventListener("change", apply)
+    return () => media.removeEventListener("change", apply)
+  }, [theme, ready])
 
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme)
+      try { localStorage.setItem(storageKey, theme) } catch { /* Optional preference. */ }
       setTheme(theme)
     },
   }

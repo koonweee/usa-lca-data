@@ -217,9 +217,9 @@ export default function LCADisclosuresPage() {
         <div className="w-full">
           <div className="flex justify-between border-b">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight">
+              <h1 className="text-2xl font-bold tracking-tight">
                 Explore jobs for Singaporeans 🇸🇬 working in the USA 🇺🇸
-              </h2>
+              </h1>
               <div
                 className="text-muted-foreground flex flex-wrap items-center gap-x-3 py-1 min-h-8"
                 aria-live="polite"
@@ -278,9 +278,7 @@ export default function LCADisclosuresPage() {
                 className="h-11 min-w-0 flex-1 gap-2 whitespace-normal px-3 text-left leading-tight xl:h-10 xl:flex-none xl:whitespace-nowrap"
               >
                 <a
-                  href="https://h1b1.notion.site"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/how"
                 >
                   <span aria-hidden="true">🔗</span>
                   <span>How does the H-1B1 visa work?</span>
