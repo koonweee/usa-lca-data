@@ -234,3 +234,38 @@ actual PostgreSQL migration and importer, set `TEST_DATABASE_URL` to a disposabl
 PostgreSQL database before running the same command. The database role must be able
 to create schemas; each test run creates and removes its own isolated schema. Generate
 the updated Prisma client in `graphql-server` before testing or compiling.
+
+## Job titles, locations, and postal codes
+
+Job titles retain their readable spelling and punctuation. `normalizedJobTitle`
+ignores only casing and whitespace. The API groups title filter options by this key,
+uses the most frequent cleaned spelling as the label, and applies the same key to
+row filtering, statistics, and employer facets. Existing URLs containing old spellings
+continue to work. Seniority, C/C++/C#, and other punctuation differences remain distinct.
+
+Employer cities have a separate `normalizedCity` key. The backfill chooses an existing
+readable spelling within each state; new imports reuse that spelling when available.
+State codes are trimmed and uppercased. This does not equate city aliases, expand state
+names, or combine cities across states. New cities retain the cleaned source spelling.
+
+Postal codes retain every digit, including source-formatted leading zeroes. Five-digit
+ZIPs remain distinct from ZIP+4s; nine-digit or space-separated ZIP+4s become `12345-6789`.
+Incomplete or unrecognized values are preserved, marked `postalCodeValid: false`, and
+reported in import warnings. This flag validates US ZIP **format**, not whether the ZIP
+exists. No missing zeroes are guessed. The API exposes the flag for inspection.
+
+Optional worksite city/state/postal columns are now retained on future imports, with
+matching and validation fields. Missing historical locations stay missing; no full
+re-seed is required or performed. Raw disclosure source values remain unchanged.
+
+Deploy migration `20260928010000_normalize_disclosure_fields` before starting the new API
+and importer. It backfills existing titles and locations, merges only employer records
+whose full postal codes become equal after formatting, and reconnects their references.
+Applications, resume submissions and seed history are preserved. Pause imports during
+rollout; old importers cannot populate the new required city key. Rollback of an image
+does not undo this data migration. Use the documented deployment procedure above.
+
+The opt-in PostgreSQL field integration suite additionally requires the backend to be
+built first (`npm run build` in `graphql-server`) and a disposable test database role
+with CREATE DATABASE permission. It creates/removes a dedicated database and exercises
+the actual GraphQL resolvers as well as migration and import behavior.

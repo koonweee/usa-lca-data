@@ -105,6 +105,16 @@ describe('Extract', () => {
       expect(result.NAICS_CODE).toBe('541511');
     });
 
+    it('preserves source-formatted leading ZIP zeroes', () => {
+      const row = new Array(26).fill('Test');
+      row[0] = 'I-test'; row[1] = 'Certified'; row[2] = 'H-1B1 Singapore';
+      row[3] = '2026-01-01'; row[4] = '2026-01-02'; row[8] = '2026-02-01';
+      row[20] = 2110;
+      const formatted = [...row]; formatted[20] = '02110';
+      const result = (Extract as any).rowToRawLCADisclosure(row, formatted, mockColumnMapping);
+      expect(result.EMPLOYER_POSTAL_CODE).toBe('02110');
+    });
+
     it('should preserve undefined values for optional fields', () => {
       const rowWithUndefined = new Array(26).fill(undefined);
       rowWithUndefined[0] = 'I-200-12345678-123456'; // CASE_NUMBER

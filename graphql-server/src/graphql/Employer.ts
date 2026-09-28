@@ -19,6 +19,8 @@ export const EmployerType = objectType({
     t.field(Employer.naicsCode);
     t.field(Employer.name);
     t.field(Employer.postalCode);
+    t.field(Employer.postalCodeValid);
+    t.field(Employer.normalizedCity);
     t.field(Employer.state);
     t.field(Employer.uuid);
   },

@@ -22,6 +22,10 @@ export const COLUMN_NAMES_TO_EXTRACT: Record<keyof RawLCADisclosure, null> =  {
   PREVAILING_WAGE: null,
   PW_UNIT_OF_PAY: null,
   
+  WORKSITE_CITY: null,
+  WORKSITE_STATE: null,
+  WORKSITE_POSTAL_CODE: null,
+
   /** Employer details */
   EMPLOYER_NAME: null,
   TRADE_NAME_DBA: null,

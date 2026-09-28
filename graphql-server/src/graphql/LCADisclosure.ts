@@ -41,6 +41,8 @@ export const LCADisclosureType = objectType({
     t.field(LCADisclosure.decisionDate);
     t.field(LCADisclosure.beginDate);
     t.field(LCADisclosure.worksitePostalCode);
+    t.field(LCADisclosure.worksitePostalCodeValid);
+    t.field(LCADisclosure.normalizedWorksiteCity);
     t.field(LCADisclosure.wageRateOfPayFrom);
     t.field(LCADisclosure.wageRateOfPayTo);
     t.field(LCADisclosure.prevailingWageRateOfPay);
@@ -310,39 +312,6 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
         return { uniqueValues: uniqueStatusesAndCounts };
       },
     });
-    t.nonNull.field("jobTitles", {
-      type: "UniqueJobTitles",
-
-      description: "Unique job titles in the result set for a given filter",
-      args: {
-        filters: arg({
-          type: "LCADisclosureFilters",
-          description: "Filter options",
-        }),
-      },
-      resolve: (_parent, args, context, _info) => {
-        const { filters } = args;
-        const where = constructPrismaWhereFromFilters(filters ?? {});
-
-        const uniqueJobTitlesAndCounts = context.prisma.lCADisclosure
-          .groupBy({
-            where,
-            by: ["jobTitle"],
-            _count: { jobTitle: true },
-            orderBy: { jobTitle: "asc" },
-          })
-          .then((result) => {
-            return result
-              .filter((r) => r.jobTitle !== null)
-              .map((r) => ({
-                value: r.jobTitle as string,
-                count: r._count.jobTitle,
-              }));
-          });
-
-        return { uniqueValues: uniqueJobTitlesAndCounts };
-      },
-    });
     t.nonNull.field("employers", {
       type: "UniqueEmployers",
       description: "Unique employers in the result set for a given filter",
@@ -437,7 +406,7 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
 
         const searchStrWhereClase =
           jobTitleSearchStr && jobTitleSearchStr.length > 0
-            ? Prisma.sql`to_tsvector("public"."LCADisclosure"."jobTitle") @@ phraseto_tsquery(${jobTitleSearchStr})`
+            ? Prisma.sql`to_tsvector("public"."LCADisclosure"."normalizedJobTitle") @@ phraseto_tsquery(${jobTitleSearchStr})`
             : undefined;
 
         const whereExists = filtersWhereClauses || searchStrWhereClase;
@@ -454,11 +423,21 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
         const uniqueJobTitlesAndCounts = context.prisma.$queryRaw<
           { jobTitle: string; count: BigInt }[]
         >`
-          SELECT "public"."LCADisclosure"."jobTitle", count(*) as count
-          FROM "public"."LCADisclosure"
-          ${whereTemplate}
-          GROUP BY "public"."LCADisclosure"."jobTitle"
-          ORDER BY count desc, "public"."LCADisclosure"."jobTitle" ASC
+          WITH spellings AS (
+            SELECT "normalizedJobTitle", "jobTitle", count(*) AS spelling_count
+            FROM "public"."LCADisclosure"
+            ${whereTemplate}
+            GROUP BY "normalizedJobTitle", "jobTitle"
+          ), titles AS (
+            SELECT "normalizedJobTitle",
+              (array_agg("jobTitle" ORDER BY spelling_count DESC, "jobTitle" COLLATE "C"))[1] AS "jobTitle",
+              sum(spelling_count)::bigint AS count
+            FROM spellings
+            WHERE "normalizedJobTitle" IS NOT NULL AND "normalizedJobTitle" <> ''
+            GROUP BY "normalizedJobTitle"
+          )
+          SELECT "jobTitle", count FROM titles
+          ORDER BY count DESC, "normalizedJobTitle" COLLATE "C"
           ${take ? Prisma.sql`LIMIT ${take + 1}` : Prisma.empty}
           ${skip ? Prisma.sql`OFFSET ${skip}` : Prisma.empty}
         `;
@@ -495,6 +474,9 @@ export const lcaDisclosureQuery = extendType({
   },
 });
 
+// Keep in sync with data-preprocess textMatchingKey and the backfill migration.
+const normalizeJobTitleFilter = (value: string) => value.replace(/\s+/g, ' ').trim().toLowerCase();
+
 function constructPrismaWhereFromFilters(
   filters: NexusGenInputs["LCADisclosureFilters"]
 ): Prisma.LCADisclosureWhereInput {
@@ -517,7 +499,7 @@ function constructPrismaWhereFromFilters(
   }
 
   if (jobTitle && jobTitle.length > 0) {
-    where.jobTitle = { in: jobTitle };
+    where.normalizedJobTitle = { in: jobTitle.map(normalizeJobTitleFilter) };
   }
 
   return where;
@@ -584,7 +566,7 @@ function constructTemplateStringWhereFromFilters(
     }
     ${
       jobTitleExists
-        ? Prisma.sql`"jobTitle" IN (${Prisma.join(jobTitle)})`
+        ? Prisma.sql`"normalizedJobTitle" IN (${Prisma.join(jobTitle.map(normalizeJobTitleFilter))})`
         : Prisma.empty
     }
   `;

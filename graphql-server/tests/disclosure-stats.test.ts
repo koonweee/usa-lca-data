@@ -18,24 +18,28 @@ const rows = [
     visaClass: "H_1B1_Singapore",
     employerUuid: "a",
     jobTitle: "Engineer",
+    normalizedJobTitle: "engineer",
   })),
   ...Array.from({ length: 4 }, () => ({
     caseStatus: "Certified___Withdrawn",
     visaClass: "H_1B1_Singapore",
     employerUuid: "a",
     jobTitle: "Engineer",
+    normalizedJobTitle: "engineer",
   })),
   ...Array.from({ length: 2 }, () => ({
     caseStatus: "Denied",
     visaClass: "H_1B1_Singapore",
     employerUuid: "a",
     jobTitle: "Engineer",
+    normalizedJobTitle: "engineer",
   })),
   {
     caseStatus: "Denied",
     visaClass: "H_1B1_Singapore",
     employerUuid: "b",
     jobTitle: "Designer",
+    normalizedJobTitle: "designer",
   },
 ];
 const contextValue = {

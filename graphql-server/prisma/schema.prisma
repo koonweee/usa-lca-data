@@ -26,12 +26,15 @@ model ResumeSubmission {
 model LCADisclosure {
   caseNumber                  String     @id
   jobTitle                    String?
+  normalizedJobTitle          String?
   socCode                     String
   fullTimePosition            Boolean
   receivedDate                DateTime   @db.Date
   decisionDate                DateTime   @db.Date
   beginDate                   DateTime   @db.Date
   worksitePostalCode          String?
+  worksitePostalCodeValid     Boolean?
+  normalizedWorksiteCity      String?
   wageRateOfPayFrom           BigInt?
   wageRateOfPayTo             BigInt?
   prevailingWageRateOfPay     BigInt?
@@ -44,6 +47,8 @@ model LCADisclosure {
   visaClass                   visaclass
   employer                    Employer   @relation(fields: [employerUuid], references: [uuid])
   socJob                      SOCJob     @relation(fields: [socCode], references: [code])
+
+  @@index([normalizedJobTitle])
 }
 
 model SOCJob {
@@ -54,6 +59,8 @@ model SOCJob {
 
 model Employer {
   normalizedName String
+  normalizedCity String
+  postalCodeValid Boolean @default(false)
   naicsCode      String
   name           String
   city           String

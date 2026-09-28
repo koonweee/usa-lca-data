@@ -16,11 +16,12 @@ export class Extract {
     const columnMapping: Partial<ColumnMapping> = {};
     const requiredColumns = Object.keys(COLUMN_NAMES_TO_EXTRACT) as Array<keyof RawLCADisclosure>;
     const missingColumns: string[] = [];
+    const optionalWorksiteColumns = new Set(['WORKSITE_CITY', 'WORKSITE_STATE', 'WORKSITE_POSTAL_CODE']);
 
     for (const column of requiredColumns) {
       const columnIndex = headers.indexOf(column);
       if (columnIndex === -1) {
-        missingColumns.push(column);
+        if (!optionalWorksiteColumns.has(column)) missingColumns.push(column);
       } else {
         columnMapping[column] = columnIndex;
       }
@@ -41,7 +42,8 @@ export class Extract {
     const disclosure: any = {};
     
     for (const [field, columnIndex] of Object.entries(columnMapping)) {
-      const row = field.endsWith('DATE') ? formattedRow : rawRow
+      // Source formatting may contain a leading ZIP zero that the numeric cell lacks.
+      const row = field.endsWith('DATE') || field.endsWith('POSTAL_CODE') ? formattedRow : rawRow
       const value = row[columnIndex];
       disclosure[field] = value?.toString() ?? undefined;
     }

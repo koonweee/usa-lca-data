@@ -59,6 +59,7 @@ describe.skipIf(!testUrl)('employer migration and ingestion (PostgreSQL)', () =>
     await db.$executeRaw`INSERT INTO "ResumeSubmission" (name, email, "linkedinUrl") VALUES ('Keep Me', 'keep@example.test', 'https://example.test/profile')`;
     await db.$executeRaw`INSERT INTO "SeededQuarter" ("fiscalYear", quarter, "sourceUrl", "lastSeededAt", "lastRunId", status) VALUES (2026, 1, 'https://example.test/data', CURRENT_TIMESTAMP, 'existing-run', 'INGESTED')`;
     executeFile('graphql-server/prisma/migrations/20260928000000_normalize_employers/migration.sql');
+    executeFile('graphql-server/prisma/migrations/20260928010000_normalize_disclosure_fields/migration.sql');
     loader = new DataLoader();
     await loader.connect();
   }, 60000);
@@ -99,7 +100,7 @@ describe.skipIf(!testUrl)('employer migration and ingestion (PostgreSQL)', () =>
 
   it('enforces matching key plus postal code in the database', async () => {
     await expect(db.employer.create({ data: {
-      name: 'Another display name', normalizedName: 'google llc', postalCode: '94043', naicsCode: '123', city: 'Test',
+      name: 'Another display name', normalizedCity: 'test', normalizedName: 'google llc', postalCode: '94043', naicsCode: '123', city: 'Test',
     } })).rejects.toMatchObject({ code: 'P2002' });
   });
 

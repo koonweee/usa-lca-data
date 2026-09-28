@@ -2,6 +2,7 @@ import { Prisma } from '../../graphql-server/node_modules/@prisma/client';
 import { RawLCARecord } from './extract';
 import { employerMatchingKey, resolveEmployerName } from './employer-normalize';
 import { PrismaCreateInputs } from './types';
+import { cleanText, textMatchingKey, normalizeState, normalizePostalCode, isValidUSPostalCode } from './field-normalize';
 
 /**
  * Data extracted from XLSX are strings. Parse them as needed for DB entity insertion.
@@ -119,9 +120,11 @@ export class DataTransformer {
       naicsCode: NAICS_CODE,
       name: resolveEmployerName(EMPLOYER_NAME),
       normalizedName: employerMatchingKey(EMPLOYER_NAME),
-      city: EMPLOYER_CITY,
-      state: EMPLOYER_STATE,
-      postalCode: EMPLOYER_POSTAL_CODE,
+      city: cleanText(EMPLOYER_CITY),
+      normalizedCity: textMatchingKey(EMPLOYER_CITY),
+      state: normalizeState(EMPLOYER_STATE),
+      postalCode: normalizePostalCode(EMPLOYER_POSTAL_CODE),
+      postalCodeValid: isValidUSPostalCode(normalizePostalCode(EMPLOYER_POSTAL_CODE)),
     }
 
     const socJob: PrismaCreateInputs['socJob'] = {
@@ -129,9 +132,18 @@ export class DataTransformer {
       title: SOC_TITLE
     }
 
+    const jobTitle = cleanText(JOB_TITLE ?? '') || cleanText(SOC_TITLE);
+    const worksiteCity = record.WORKSITE_CITY == null ? null : cleanText(record.WORKSITE_CITY);
+    const worksitePostalCode = record.WORKSITE_POSTAL_CODE == null ? null : normalizePostalCode(record.WORKSITE_POSTAL_CODE);
     const lcaDisclosure: PrismaCreateInputs['lcaDisclosure'] = {
       caseNumber: CASE_NUMBER,
-      jobTitle: JOB_TITLE ?? SOC_TITLE,  
+      jobTitle,
+      normalizedJobTitle: textMatchingKey(jobTitle) || null,
+      worksiteCity,
+      normalizedWorksiteCity: worksiteCity == null ? null : textMatchingKey(worksiteCity) || null,
+      worksiteState: normalizeState(record.WORKSITE_STATE),
+      worksitePostalCode,
+      worksitePostalCodeValid: worksitePostalCode == null ? null : isValidUSPostalCode(worksitePostalCode),
       fullTimePosition: true,
       receivedDate: DataTransformer.parseDate(RECEIVED_DATE, 'RECEIVED_DATE'),
       decisionDate: DataTransformer.parseDate(decisionDateRaw, 'DECISION_DATE'),

@@ -22,6 +22,11 @@ export const RawLCADisclosureSchema = z.object({
   PREVAILING_WAGE: z.string().optional(),
   PW_UNIT_OF_PAY: z.string().optional(),
   
+  /** Optional worksite columns are absent in some older source files. */
+  WORKSITE_CITY: z.string().optional(),
+  WORKSITE_STATE: z.string().optional(),
+  WORKSITE_POSTAL_CODE: z.string().optional(),
+
   /** Employer details */
   EMPLOYER_NAME: z.string(),
   TRADE_NAME_DBA: z.string().optional(),

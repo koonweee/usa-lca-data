@@ -74,6 +74,26 @@ export class DataLoader {
       };
     }
 
+    // Reuse the backfilled city spelling within its state, including across batches.
+    const cityKeys = new Map<string, { normalizedCity: string; state: string | null }>();
+    for (const { employer } of h1b1Only) {
+      const city = { normalizedCity: employer.normalizedCity, state: employer.state ?? null };
+      cityKeys.set(JSON.stringify([city.normalizedCity, city.state]), city);
+    }
+    const existingCities = await this.prisma.employer.findMany({
+      where: { OR: [...cityKeys.values()] },
+      select: { normalizedCity: true, state: true, city: true },
+      orderBy: { uuid: 'asc' },
+    });
+    const cityNames = new Map(existingCities.map(city => [JSON.stringify([city.normalizedCity, city.state]), city.city]));
+    for (const { employer } of h1b1Only) {
+      const key = JSON.stringify([employer.normalizedCity, employer.state ?? null]);
+      if (!cityNames.has(key)) cityNames.set(key, employer.city);
+      employer.city = cityNames.get(key)!;
+    }
+    const invalidPostalCodes = h1b1Only.filter(({ employer }) => !employer.postalCodeValid).length;
+    if (invalidPostalCodes) console.warn(`${invalidPostalCodes} employer postal codes have invalid/incomplete US ZIP formatting; original digits preserved`);
+
     /** Aggregate employer and socJob creates, since LCADisclosure depends on them */
     const employerCreates: Prisma.EmployerCreateInput[] = [];
     const socJobCreates: Prisma.SOCJobCreateInput[] = [];
