@@ -53,6 +53,7 @@ model SOCJob {
 }
 
 model Employer {
+  normalizedName String
   naicsCode      String
   name           String
   city           String
@@ -61,7 +62,7 @@ model Employer {
   uuid           String          @id @default(uuid()) @db.Uuid
   lcaDisclosures LCADisclosure[]
 
-  @@unique([name, postalCode])
+  @@unique([normalizedName, postalCode])
 }
 
 model RawDisclosureData {

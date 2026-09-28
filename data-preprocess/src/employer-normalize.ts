@@ -1,28 +1,34 @@
 import mappings from './employer-name-mappings.json';
 
-/** Trim, collapse whitespace, lowercase, remove periods, remove commas. */
+/** Remove punctuation before collapsing whitespace so "Google , LLC" also matches. */
 export function normalizeEmployerName(name: string): string {
-  return name
-    .trim()
-    .replace(/\s+/g, ' ')
-    .toLowerCase()
-    .replace(/\./g, '')
-    .replace(/,/g, '');
+  return name.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim();
 }
 
-// Build a lookup from each normalized variation to its canonical name
-const variationToCanonical = new Map<string, string>();
-for (const [canonical, variations] of Object.entries(mappings)) {
-  for (const variation of variations) {
-    variationToCanonical.set(variation, canonical);
+/** Reject ambiguous aliases instead of silently letting the last entry win. */
+export function buildEmployerLookup(entries: Record<string, string[]>): Map<string, string> {
+  const lookup = new Map<string, string>();
+  for (const [canonical, variations] of Object.entries(entries)) {
+    for (const variation of [canonical, ...variations]) {
+      const key = normalizeEmployerName(variation);
+      const existing = lookup.get(key);
+      if (existing !== undefined && existing !== canonical) {
+        throw new Error(`Employer alias "${key}" belongs to both "${existing}" and "${canonical}"`);
+      }
+      lookup.set(key, canonical);
+    }
   }
+  return lookup;
 }
 
-/**
- * Normalize the input, check against manual mappings, return canonical name
- * if found, otherwise return the normalized form.
- */
+const variationToCanonical = buildEmployerLookup(mappings);
+
+/** Preferred display name when known; preserve readable casing for new employers. */
 export function resolveEmployerName(name: string): string {
-  const normalized = normalizeEmployerName(name);
-  return variationToCanonical.get(normalized) ?? name;
+  return variationToCanonical.get(normalizeEmployerName(name)) ?? name.trim();
+}
+
+/** Stable identity for both known aliases and employers absent from the mappings. */
+export function employerMatchingKey(name: string): string {
+  return normalizeEmployerName(resolveEmployerName(name));
 }
