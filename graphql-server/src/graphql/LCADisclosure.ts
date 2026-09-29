@@ -1,3 +1,4 @@
+import { paginationBounds } from "../protection";
 import { $Enums, Employer, Prisma } from "@prisma/client";
 import { Sql } from "@prisma/client/runtime/library";
 import {
@@ -163,7 +164,7 @@ export const LCADisclosuresType = objectType({
       },
       resolve: async (parent, args, context, info) => {
         const { filters, pagination, sorting } = args;
-        const { skip, take } = pagination ?? {};
+        const { skip, take } = paginationBounds(pagination);
 
         const where = constructPrismaWhereFromFilters(filters ?? {});
 
@@ -285,7 +286,7 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
       },
       resolve: async (_parent, args, context, _info) => {
         const { filters, pagination, employerNameSearchStr } = args;
-        const { skip, take } = pagination ?? {};
+        const { skip, take } = paginationBounds(pagination);
 
         const filtersWhereClauses = constructTemplateStringWhereFromFilters(
           filters ?? {}
@@ -354,7 +355,7 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
       },
       resolve: async (_parent, args, context, _info) => {
         const { filters, pagination, jobTitleSearchStr } = args;
-        const { skip, take } = pagination ?? {};
+        const { skip, take } = paginationBounds(pagination);
 
         const filtersWhereClauses = constructTemplateStringWhereFromFilters(
           filters ?? {}

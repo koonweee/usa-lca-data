@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LCADisclosureStatsType = exports.lcaDisclosureQuery = exports.PaginatedLCADisclosuresUniqueColumnValuesType = exports.LCADisclosuresType = exports.paginationInput = exports.lcaDisclosureFiltersInput = exports.EmployerAndCountType = exports.UniqueEmployersType = exports.StringValuesAndCountType = exports.UniqueJobTitlesType = exports.caseStatusAndCountType = exports.UniqueCaseStatusesType = exports.SortOrder = exports.LCADisclosureOrderByInput = exports.LCADisclosureType = exports.CASE_STATUS_ENUM_TO_READABLE = exports.VISA_CLASS_ENUM_TO_READABLE = exports.visaClassType = exports.caseStatusType = exports.payUnitType = void 0;
+const protection_1 = require("../protection");
 const client_1 = require("@prisma/client");
 const nexus_1 = require("nexus");
 const nexus_prisma_1 = require("nexus-prisma");
@@ -151,7 +152,7 @@ exports.LCADisclosuresType = (0, nexus_1.objectType)({
             },
             resolve: (parent, args, context, info) => __awaiter(this, void 0, void 0, function* () {
                 const { filters, pagination, sorting } = args;
-                const { skip, take } = pagination !== null && pagination !== void 0 ? pagination : {};
+                const { skip, take } = (0, protection_1.paginationBounds)(pagination);
                 const where = constructPrismaWhereFromFilters(filters !== null && filters !== void 0 ? filters : {});
                 const { beginDate, wageRateOfPayFrom } = sorting !== null && sorting !== void 0 ? sorting : {};
                 const orderBy = [];
@@ -255,7 +256,7 @@ exports.PaginatedLCADisclosuresUniqueColumnValuesType = (0, nexus_1.objectType)(
             },
             resolve: (_parent, args, context, _info) => __awaiter(this, void 0, void 0, function* () {
                 const { filters, pagination, employerNameSearchStr } = args;
-                const { skip, take } = pagination !== null && pagination !== void 0 ? pagination : {};
+                const { skip, take } = (0, protection_1.paginationBounds)(pagination);
                 const filtersWhereClauses = constructTemplateStringWhereFromFilters(filters !== null && filters !== void 0 ? filters : {});
                 const searchPattern = literalSubstringPattern(employerNameSearchStr);
                 const searchStrWhereClase = searchPattern
@@ -305,7 +306,7 @@ exports.PaginatedLCADisclosuresUniqueColumnValuesType = (0, nexus_1.objectType)(
             },
             resolve: (_parent, args, context, _info) => __awaiter(this, void 0, void 0, function* () {
                 const { filters, pagination, jobTitleSearchStr } = args;
-                const { skip, take } = pagination !== null && pagination !== void 0 ? pagination : {};
+                const { skip, take } = (0, protection_1.paginationBounds)(pagination);
                 const filtersWhereClauses = constructTemplateStringWhereFromFilters(filters !== null && filters !== void 0 ? filters : {});
                 const searchPattern = literalSubstringPattern(normalizeJobTitleFilter(jobTitleSearchStr !== null && jobTitleSearchStr !== void 0 ? jobTitleSearchStr : ""));
                 const searchStrWhereClase = searchPattern

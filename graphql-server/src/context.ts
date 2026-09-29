@@ -1,12 +1,8 @@
 import { PrismaClient } from "@prisma/client";
-import fs from "fs";
+import { limitedDatabaseUrl } from "./protection";
 export const prisma = new PrismaClient({
-  // log: ["query", "info", "warn", "error"],
+  datasources: { db: { url: limitedDatabaseUrl(process.env.DATABASE_URL!) } },
   log: [
-    {
-      emit: "event",
-      level: "query",
-    },
     {
       emit: "event",
       level: "info",
@@ -29,12 +25,6 @@ export interface Context {
 export const context: Context = {
   prisma,
 };
-
-prisma.$on("query", async (e) => {
-  console.log(
-    `Query: ${e.query}\nParams: ${e.params}\nDuration: ${e.duration}ms\n`
-  );
-});
 
 prisma.$on("error", async (e) => {
   console.error(`${e.message}`);

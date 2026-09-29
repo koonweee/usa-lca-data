@@ -11,13 +11,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.context = exports.prisma = void 0;
 const client_1 = require("@prisma/client");
+const protection_1 = require("./protection");
 exports.prisma = new client_1.PrismaClient({
-    // log: ["query", "info", "warn", "error"],
+    datasources: { db: { url: (0, protection_1.limitedDatabaseUrl)(process.env.DATABASE_URL) } },
     log: [
-        {
-            emit: "event",
-            level: "query",
-        },
         {
             emit: "event",
             level: "info",
@@ -35,9 +32,6 @@ exports.prisma = new client_1.PrismaClient({
 exports.context = {
     prisma: exports.prisma,
 };
-exports.prisma.$on("query", (e) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(`Query: ${e.query}\nParams: ${e.params}\nDuration: ${e.duration}ms\n`);
-}));
 exports.prisma.$on("error", (e) => __awaiter(void 0, void 0, void 0, function* () {
     console.error(`${e.message}`);
 }));
