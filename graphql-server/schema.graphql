@@ -29,7 +29,9 @@ type Employer {
   count: Int!
   naicsCode: String!
   name: String!
+  normalizedCity: String!
   postalCode: String!
+  postalCodeValid: Boolean!
   state: String
   uuid: ID!
 }
@@ -48,6 +50,7 @@ type LCADisclosure {
   employer: Employer!
   fullTimePosition: Boolean!
   jobTitle: String
+  normalizedWorksiteCity: String
   prevailingWageRateOfPay: BigInt
   prevailingWageRateOfPayUnit: payunit
   receivedDate: DateTime!
@@ -59,6 +62,7 @@ type LCADisclosure {
   wageRateOfPayUnit: payunit
   worksiteCity: String
   worksitePostalCode: String
+  worksitePostalCodeValid: Boolean
   worksiteState: String
 }
 
@@ -96,16 +100,6 @@ type LCADisclosures {
   ): LCADisclosureStats!
 }
 
-type Mutation {
-  createResumeSubmission(email: String!, linkedinUrl: String!, name: String!, s3key: String, targetJobs: String!): ResumeSubmission!
-  getPresignedUrl(fileName: String!): PresignedUrl!
-}
-
-type PaginatedEmployer {
-  hasNext: Boolean!
-  items: [Employer!]!
-}
-
 type PaginatedLCADisclosuresUniqueColumnValues {
   """Unique case statuses in the result set for a given filter"""
   caseStatuses(
@@ -136,12 +130,6 @@ type PaginatedLCADisclosuresUniqueColumnValues {
     """Pagination options"""
     pagination: PaginationInput
   ): UniqueJobTitles!
-
-  """Unique visa classes in the result set for a given filter"""
-  visaClasses(
-    """Filter options"""
-    filters: LCADisclosureFilters
-  ): UniqueVisaClasses!
 }
 
 input PaginationInput {
@@ -149,38 +137,10 @@ input PaginationInput {
   take: Int
 }
 
-type PresignedUrl {
-  s3key: String!
-  url: String!
-}
-
 type Query {
   dataCoverage: DataCoverage!
-  employers(
-    caseStatuses: [casestatus!]
-    searchStr: String
-
-    """Number of records to skip"""
-    skip: Int = 0
-
-    """Number of records to take (max 500)"""
-    take: Int = 50
-    visaClasses: [visaclass!]
-  ): PaginatedEmployer!
   lcaDisclosures: LCADisclosures!
-  resumeSubmissions: [ResumeSubmission!]!
-  socJobs: [SOCJob!]!
   uniqueColumnValues: PaginatedLCADisclosuresUniqueColumnValues!
-}
-
-type ResumeSubmission {
-  createdAt: DateTime!
-  email: String!
-  id: String!
-  linkedinUrl: String!
-  name: String!
-  s3key: String
-  targetJobs: String!
 }
 
 type SOCJob {
@@ -210,15 +170,6 @@ type UniqueEmployers {
 type UniqueJobTitles {
   hasNext: Boolean
   uniqueValues: [StringValuesAndCount!]!
-}
-
-type UniqueVisaClasses {
-  uniqueValues: [VisaClassAndCount!]!
-}
-
-type VisaClassAndCount {
-  count: Int!
-  visaClass: visaclass!
 }
 
 enum casestatus {

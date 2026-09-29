@@ -86,7 +86,9 @@ export interface NexusGenObjects {
     count: number; // Int!
     naicsCode: string; // String!
     name: string; // String!
+    normalizedCity: string; // String!
     postalCode: string; // String!
+    postalCodeValid: boolean; // Boolean!
     state?: string | null; // String
     uuid: string; // ID!
   }
@@ -102,6 +104,7 @@ export interface NexusGenObjects {
     decisionDate: NexusGenScalars['DateTime']; // DateTime!
     fullTimePosition: boolean; // Boolean!
     jobTitle?: string | null; // String
+    normalizedWorksiteCity?: string | null; // String
     prevailingWageRateOfPay?: NexusGenScalars['BigInt'] | null; // BigInt
     prevailingWageRateOfPayUnit?: NexusGenEnums['payunit'] | null; // payunit
     receivedDate: NexusGenScalars['DateTime']; // DateTime!
@@ -112,6 +115,7 @@ export interface NexusGenObjects {
     wageRateOfPayUnit?: NexusGenEnums['payunit'] | null; // payunit
     worksiteCity?: string | null; // String
     worksitePostalCode?: string | null; // String
+    worksitePostalCodeValid?: boolean | null; // Boolean
     worksiteState?: string | null; // String
   }
   LCADisclosureStats: { // root type
@@ -119,26 +123,8 @@ export interface NexusGenObjects {
     totalCount: number; // Int!
   }
   LCADisclosures: {};
-  Mutation: {};
-  PaginatedEmployer: { // root type
-    hasNext: boolean; // Boolean!
-    items: NexusGenRootTypes['Employer'][]; // [Employer!]!
-  }
   PaginatedLCADisclosuresUniqueColumnValues: {};
-  PresignedUrl: { // root type
-    s3key: string; // String!
-    url: string; // String!
-  }
   Query: {};
-  ResumeSubmission: { // root type
-    createdAt: NexusGenScalars['DateTime']; // DateTime!
-    email: string; // String!
-    id: string; // String!
-    linkedinUrl: string; // String!
-    name: string; // String!
-    s3key?: string | null; // String
-    targetJobs: string; // String!
-  }
   SOCJob: { // root type
     code: string; // ID!
     title: string; // String!
@@ -157,13 +143,6 @@ export interface NexusGenObjects {
   UniqueJobTitles: { // root type
     hasNext?: boolean | null; // Boolean
     uniqueValues: NexusGenRootTypes['StringValuesAndCount'][]; // [StringValuesAndCount!]!
-  }
-  UniqueVisaClasses: { // root type
-    uniqueValues: NexusGenRootTypes['VisaClassAndCount'][]; // [VisaClassAndCount!]!
-  }
-  VisaClassAndCount: { // root type
-    count: number; // Int!
-    visaClass: NexusGenEnums['visaclass']; // visaclass!
   }
 }
 
@@ -193,7 +172,9 @@ export interface NexusGenFieldTypes {
     count: number; // Int!
     naicsCode: string; // String!
     name: string; // String!
+    normalizedCity: string; // String!
     postalCode: string; // String!
+    postalCodeValid: boolean; // Boolean!
     state: string | null; // String
     uuid: string; // ID!
   }
@@ -210,6 +191,7 @@ export interface NexusGenFieldTypes {
     employer: NexusGenRootTypes['Employer']; // Employer!
     fullTimePosition: boolean; // Boolean!
     jobTitle: string | null; // String
+    normalizedWorksiteCity: string | null; // String
     prevailingWageRateOfPay: NexusGenScalars['BigInt'] | null; // BigInt
     prevailingWageRateOfPayUnit: NexusGenEnums['payunit'] | null; // payunit
     receivedDate: NexusGenScalars['DateTime']; // DateTime!
@@ -221,6 +203,7 @@ export interface NexusGenFieldTypes {
     wageRateOfPayUnit: NexusGenEnums['payunit'] | null; // payunit
     worksiteCity: string | null; // String
     worksitePostalCode: string | null; // String
+    worksitePostalCodeValid: boolean | null; // Boolean
     worksiteState: string | null; // String
   }
   LCADisclosureStats: { // field return type
@@ -231,40 +214,15 @@ export interface NexusGenFieldTypes {
     items: NexusGenRootTypes['LCADisclosure'][]; // [LCADisclosure!]!
     stats: NexusGenRootTypes['LCADisclosureStats']; // LCADisclosureStats!
   }
-  Mutation: { // field return type
-    createResumeSubmission: NexusGenRootTypes['ResumeSubmission']; // ResumeSubmission!
-    getPresignedUrl: NexusGenRootTypes['PresignedUrl']; // PresignedUrl!
-  }
-  PaginatedEmployer: { // field return type
-    hasNext: boolean; // Boolean!
-    items: NexusGenRootTypes['Employer'][]; // [Employer!]!
-  }
   PaginatedLCADisclosuresUniqueColumnValues: { // field return type
     caseStatuses: NexusGenRootTypes['UniqueCaseStatuses']; // UniqueCaseStatuses!
     employers: NexusGenRootTypes['UniqueEmployers']; // UniqueEmployers!
     jobTitles: NexusGenRootTypes['UniqueJobTitles']; // UniqueJobTitles!
-    visaClasses: NexusGenRootTypes['UniqueVisaClasses']; // UniqueVisaClasses!
-  }
-  PresignedUrl: { // field return type
-    s3key: string; // String!
-    url: string; // String!
   }
   Query: { // field return type
     dataCoverage: NexusGenRootTypes['DataCoverage']; // DataCoverage!
-    employers: NexusGenRootTypes['PaginatedEmployer']; // PaginatedEmployer!
     lcaDisclosures: NexusGenRootTypes['LCADisclosures']; // LCADisclosures!
-    resumeSubmissions: NexusGenRootTypes['ResumeSubmission'][]; // [ResumeSubmission!]!
-    socJobs: NexusGenRootTypes['SOCJob'][]; // [SOCJob!]!
     uniqueColumnValues: NexusGenRootTypes['PaginatedLCADisclosuresUniqueColumnValues']; // PaginatedLCADisclosuresUniqueColumnValues!
-  }
-  ResumeSubmission: { // field return type
-    createdAt: NexusGenScalars['DateTime']; // DateTime!
-    email: string; // String!
-    id: string; // String!
-    linkedinUrl: string; // String!
-    name: string; // String!
-    s3key: string | null; // String
-    targetJobs: string; // String!
   }
   SOCJob: { // field return type
     code: string; // ID!
@@ -285,13 +243,6 @@ export interface NexusGenFieldTypes {
     hasNext: boolean | null; // Boolean
     uniqueValues: NexusGenRootTypes['StringValuesAndCount'][]; // [StringValuesAndCount!]!
   }
-  UniqueVisaClasses: { // field return type
-    uniqueValues: NexusGenRootTypes['VisaClassAndCount'][]; // [VisaClassAndCount!]!
-  }
-  VisaClassAndCount: { // field return type
-    count: number; // Int!
-    visaClass: NexusGenEnums['visaclass']; // visaclass!
-  }
 }
 
 export interface NexusGenFieldTypeNames {
@@ -310,7 +261,9 @@ export interface NexusGenFieldTypeNames {
     count: 'Int'
     naicsCode: 'String'
     name: 'String'
+    normalizedCity: 'String'
     postalCode: 'String'
+    postalCodeValid: 'Boolean'
     state: 'String'
     uuid: 'ID'
   }
@@ -327,6 +280,7 @@ export interface NexusGenFieldTypeNames {
     employer: 'Employer'
     fullTimePosition: 'Boolean'
     jobTitle: 'String'
+    normalizedWorksiteCity: 'String'
     prevailingWageRateOfPay: 'BigInt'
     prevailingWageRateOfPayUnit: 'payunit'
     receivedDate: 'DateTime'
@@ -338,6 +292,7 @@ export interface NexusGenFieldTypeNames {
     wageRateOfPayUnit: 'payunit'
     worksiteCity: 'String'
     worksitePostalCode: 'String'
+    worksitePostalCodeValid: 'Boolean'
     worksiteState: 'String'
   }
   LCADisclosureStats: { // field return type name
@@ -348,40 +303,15 @@ export interface NexusGenFieldTypeNames {
     items: 'LCADisclosure'
     stats: 'LCADisclosureStats'
   }
-  Mutation: { // field return type name
-    createResumeSubmission: 'ResumeSubmission'
-    getPresignedUrl: 'PresignedUrl'
-  }
-  PaginatedEmployer: { // field return type name
-    hasNext: 'Boolean'
-    items: 'Employer'
-  }
   PaginatedLCADisclosuresUniqueColumnValues: { // field return type name
     caseStatuses: 'UniqueCaseStatuses'
     employers: 'UniqueEmployers'
     jobTitles: 'UniqueJobTitles'
-    visaClasses: 'UniqueVisaClasses'
-  }
-  PresignedUrl: { // field return type name
-    s3key: 'String'
-    url: 'String'
   }
   Query: { // field return type name
     dataCoverage: 'DataCoverage'
-    employers: 'PaginatedEmployer'
     lcaDisclosures: 'LCADisclosures'
-    resumeSubmissions: 'ResumeSubmission'
-    socJobs: 'SOCJob'
     uniqueColumnValues: 'PaginatedLCADisclosuresUniqueColumnValues'
-  }
-  ResumeSubmission: { // field return type name
-    createdAt: 'DateTime'
-    email: 'String'
-    id: 'String'
-    linkedinUrl: 'String'
-    name: 'String'
-    s3key: 'String'
-    targetJobs: 'String'
   }
   SOCJob: { // field return type name
     code: 'ID'
@@ -402,13 +332,6 @@ export interface NexusGenFieldTypeNames {
     hasNext: 'Boolean'
     uniqueValues: 'StringValuesAndCount'
   }
-  UniqueVisaClasses: { // field return type name
-    uniqueValues: 'VisaClassAndCount'
-  }
-  VisaClassAndCount: { // field return type name
-    count: 'Int'
-    visaClass: 'visaclass'
-  }
 }
 
 export interface NexusGenArgTypes {
@@ -420,18 +343,6 @@ export interface NexusGenArgTypes {
     }
     stats: { // args
       filters?: NexusGenInputs['LCADisclosureFilters'] | null; // LCADisclosureFilters
-    }
-  }
-  Mutation: {
-    createResumeSubmission: { // args
-      email: string; // String!
-      linkedinUrl: string; // String!
-      name: string; // String!
-      s3key?: string | null; // String
-      targetJobs: string; // String!
-    }
-    getPresignedUrl: { // args
-      fileName: string; // String!
     }
   }
   PaginatedLCADisclosuresUniqueColumnValues: {
@@ -447,18 +358,6 @@ export interface NexusGenArgTypes {
       filters?: NexusGenInputs['LCADisclosureFilters'] | null; // LCADisclosureFilters
       jobTitleSearchStr?: string | null; // String
       pagination?: NexusGenInputs['PaginationInput'] | null; // PaginationInput
-    }
-    visaClasses: { // args
-      filters?: NexusGenInputs['LCADisclosureFilters'] | null; // LCADisclosureFilters
-    }
-  }
-  Query: {
-    employers: { // args
-      caseStatuses?: NexusGenEnums['casestatus'][] | null; // [casestatus!]
-      searchStr?: string | null; // String
-      skip?: number | null; // Int
-      take: number | null; // Int
-      visaClasses?: NexusGenEnums['visaclass'][] | null; // [visaclass!]
     }
   }
 }

@@ -1,3 +1,4 @@
+import type { Employer } from "@/lib/types";
 import { useMemo, useState } from "react";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { ColumnFiltersState, SortingState } from "@tanstack/react-table";
@@ -14,7 +15,6 @@ import {
 } from "./lib/filters";
 import { CASE_STATUS_ENUM_TO_READABLE } from "@/queries/formatters/lca-disclosure";
 import {
-  Employer,
   StringValuesAndCount,
   Casestatus,
   Visaclass,

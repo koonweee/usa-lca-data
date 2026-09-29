@@ -72,21 +72,6 @@ export const SortOrder = enumType({
   members: ["asc", "desc"],
 });
 
-export const UniqueVisaClassesType = objectType({
-  name: "UniqueVisaClasses",
-  definition(t) {
-    t.nonNull.list.nonNull.field("uniqueValues", { type: "VisaClassAndCount" });
-  },
-});
-
-export const VisaClassAndCountType = objectType({
-  name: "VisaClassAndCount",
-  definition(t) {
-    t.nonNull.field("visaClass", { type: "visaclass" });
-    t.nonNull.int("count");
-  },
-});
-
 export const UniqueCaseStatusesType = objectType({
   name: "UniqueCaseStatuses",
   definition(t) {
@@ -251,36 +236,6 @@ export const LCADisclosuresType = objectType({
 export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
   name: "PaginatedLCADisclosuresUniqueColumnValues",
   definition(t) {
-    t.nonNull.field("visaClasses", {
-      type: "UniqueVisaClasses",
-      description: "Unique visa classes in the result set for a given filter",
-      args: {
-        filters: arg({
-          type: "LCADisclosureFilters",
-          description: "Filter options",
-        }),
-      },
-      resolve: async (_parent, args, context, _info) => {
-        const { filters } = args;
-        const where = constructPrismaWhereFromFilters(filters ?? {});
-
-        const uniqueClassesAndCounts = context.prisma.lCADisclosure
-          .groupBy({
-            where,
-            by: ["visaClass"],
-            _count: { visaClass: true },
-            orderBy: { visaClass: "asc" },
-          })
-          .then((result) => {
-            return result.map((r) => ({
-              visaClass: r.visaClass,
-              count: r._count.visaClass,
-            }));
-          });
-
-        return { uniqueValues: uniqueClassesAndCounts };
-      },
-    });
     t.nonNull.field("caseStatuses", {
       type: "UniqueCaseStatuses",
 
@@ -336,9 +291,10 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
           filters ?? {}
         );
 
+        const searchPattern = literalSubstringPattern(employerNameSearchStr);
         const searchStrWhereClase =
-          employerNameSearchStr && employerNameSearchStr.length > 0
-            ? Prisma.sql`to_tsvector("public"."Employer"."name") @@ phraseto_tsquery(${employerNameSearchStr})`
+          searchPattern
+            ? Prisma.sql`"public"."Employer"."name" ILIKE ${searchPattern} ESCAPE ${"\\"}`
             : undefined;
 
         const whereExists = filtersWhereClauses || searchStrWhereClase;
@@ -404,9 +360,12 @@ export const PaginatedLCADisclosuresUniqueColumnValuesType = objectType({
           filters ?? {}
         );
 
+        const searchPattern = literalSubstringPattern(
+          normalizeJobTitleFilter(jobTitleSearchStr ?? "")
+        );
         const searchStrWhereClase =
-          jobTitleSearchStr && jobTitleSearchStr.length > 0
-            ? Prisma.sql`to_tsvector("public"."LCADisclosure"."normalizedJobTitle") @@ phraseto_tsquery(${jobTitleSearchStr})`
+          searchPattern
+            ? Prisma.sql`"public"."LCADisclosure"."normalizedJobTitle" ILIKE ${searchPattern} ESCAPE ${"\\"}`
             : undefined;
 
         const whereExists = filtersWhereClauses || searchStrWhereClase;
@@ -476,6 +435,13 @@ export const lcaDisclosureQuery = extendType({
 
 // Keep in sync with data-preprocess textMatchingKey and the backfill migration.
 const normalizeJobTitleFilter = (value: string) => value.replace(/\s+/g, ' ').trim().toLowerCase();
+
+// Treat user input literally: SQL LIKE wildcards must not broaden a search.
+// Blank input keeps the unfiltered dropdown, and GIN trigram indexes support ILIKE.
+function literalSubstringPattern(value: string | null | undefined): string | undefined {
+  const term = value?.trim();
+  return term ? `%${term.replace(/[\\%_]/g, "\\$&")}%` : undefined;
+}
 
 function constructPrismaWhereFromFilters(
   filters: NexusGenInputs["LCADisclosureFilters"]

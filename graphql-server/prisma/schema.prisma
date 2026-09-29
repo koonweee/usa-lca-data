@@ -49,6 +49,7 @@ model LCADisclosure {
   socJob                      SOCJob     @relation(fields: [socCode], references: [code])
 
   @@index([normalizedJobTitle])
+  @@index([normalizedJobTitle(ops: raw("gin_trgm_ops"))], type: Gin, map: "LCADisclosure_normalizedJobTitle_trgm_idx")
 }
 
 model SOCJob {
@@ -70,6 +71,7 @@ model Employer {
   lcaDisclosures LCADisclosure[]
 
   @@unique([normalizedName, postalCode])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "Employer_name_trgm_idx")
 }
 
 model RawDisclosureData {

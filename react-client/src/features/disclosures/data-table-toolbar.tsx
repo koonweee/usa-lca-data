@@ -1,3 +1,4 @@
+import type { Employer } from "@/lib/types";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Table } from "@tanstack/react-table";
 
@@ -8,7 +9,6 @@ import { DataTableViewOptions } from "@/components/data-table/data-table-view-op
 import { FilterUsingBackend } from "@/components/filter-using-backend";
 import { ColumnId } from "@/features/disclosures/columns";
 import {
-  Employer,
   InputMaybe,
   LcaDisclosureFilters,
   PaginatedUniqueEmployersDocument,
@@ -60,27 +60,6 @@ export function DataTableToolbar<TData>({
       ) ?? []
     );
   }, [caseStatusData]);
-
-  // const { loading: isVisaClassLoading, data: visaClassData } = useQuery(
-  //   UniqueVisaClassesDocument,
-  //   {
-  //     variables: {
-  //       filters: queryFilters,
-  //     },
-  //   }
-  // );
-
-  // const visaClassOptions = useMemo(() => {
-  //   return (
-  //     visaClassData?.uniqueColumnValues?.visaClasses?.uniqueValues.map(
-  //       (value) => ({
-  //         value: value.visaClass,
-  //         label: VISA_CLASS_ENUM_TO_READABLE[value.visaClass],
-  //         count: value.count,
-  //       })
-  //     ) ?? []
-  //   );
-  // }, [visaClassData]);
 
   const pageSize = 20;
   /** Job title filters */
@@ -148,7 +127,6 @@ export function DataTableToolbar<TData>({
     filters: { ...queryFilters, employerUuid: undefined },
     employerNameSearchStr:
       debouncedSearchStr.length > 0 ? debouncedSearchStr : undefined,
-    // searchStr: debouncedSearchStr.length > 0 ? debouncedSearchStr : undefined,
   };
 
   const {

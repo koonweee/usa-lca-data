@@ -44,8 +44,8 @@ bun install
 # Start PostgreSQL database in Docker
 bun run db:up
 
-# For brand new/empty database, run Prisma migrations
-npx prisma db push
+# For brand new/empty database, apply migrations (includes pg_trgm and indexes)
+npx prisma migrate deploy
 
 # Alternative: Use migrate dev for development
 # npx prisma migrate dev
@@ -65,7 +65,7 @@ cd react-client
 # Install dependencies
 bun install
 
-# Generate GraphQL types from server schema (server must be running)
+# Generate GraphQL types from the checked-in server schema
 bun run codegen
 
 # Start frontend development server (http://localhost:5173)
@@ -104,7 +104,7 @@ bun run dev               # Start Vite dev server
 bun run build             # Build for production (includes TypeScript check)
 bun run lint              # Run ESLint
 bun run preview           # Preview production build
-bun run codegen           # Generate GraphQL types from server schema
+bun run codegen           # Generate GraphQL types from local server schema
 ```
 
 ## Development Workflow
@@ -121,7 +121,40 @@ bun run codegen           # Generate GraphQL types from server schema
 - **Database**: PostgreSQL with Prisma ORM, UUID primary keys, full-text search
 - **Backend**: Apollo Server with Nexus GraphQL, custom scalars (BigInt, DateTime)
 - **Frontend**: React with TanStack Table, Apollo Client, infinite scroll, dark mode
-- **Integrations**: AWS S3 for resume uploads, GraphQL Codegen for type safety
+- **Type safety**: GraphQL Codegen generates frontend types from the local server schema
+
+### Employer and job-title search
+
+The desktop and mobile dropdowns use case-insensitive literal substring matching:
+`open` matches OpenAI and `soft` matches Software Engineer. Job-title search also
+collapses whitespace to match stored normalized titles. `%`, `_`, and backslashes
+are literal input, not SQL wildcards. Blank searches return the usual options.
+Active filters, counts, ordering, and pagination are preserved; selecting a title
+still applies an exact normalized-title filter.
+
+Migration `20260929000000_trigram_facet_search` enables PostgreSQL `pg_trgm` and adds
+GIN indexes on `Employer.name` and `LCADisclosure.normalizedJobTitle`. Apply it with
+`npx prisma migrate deploy` before deploying the API build. The migration role must
+be allowed to install the extension. Ordinary index creation briefly blocks writes
+to those tables; schedule rollout accordingly. Short searches still work, but
+one- and two-character patterns generally cannot benefit from trigram lookup.
+The existing title B-tree index remains for exact filters. Reverting the API build
+does not require dropping these additive indexes or the extension.
+
+Run `npm test` in `graphql-server` for the standard suite. To exercise all migrations
+and the actual facet SQL in PostgreSQL 15, start a disposable container and set
+`TEST_POSTGRES_CONTAINER`; the integration test creates and drops its own database:
+
+```bash
+docker run --detach --rm --name lca-search-tests --network none -e POSTGRES_PASSWORD=local-test-only postgres:15.19-trixie
+docker exec lca-search-tests pg_isready -U postgres
+# After pg_isready succeeds, run from graphql-server:
+TEST_POSTGRES_CONTAINER=lca-search-tests npm test
+docker stop lca-search-tests
+```
+
+The [API usage audit](docs/api-usage-audit.md) distinguishes active frontend calls,
+dormant components/documents, and fields with no frontend callers.
 
 ## Troubleshooting
 

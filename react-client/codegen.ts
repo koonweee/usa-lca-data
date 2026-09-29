@@ -2,8 +2,8 @@ import type { CodegenConfig } from '@graphql-codegen/cli';
 import { BigIntResolver, DateTimeResolver } from 'graphql-scalars';
 
 const config: CodegenConfig = {
-  // GraphQL server for codegen to infer types and their fields from
-  schema: "http://localhost:4000",
+  // Use the generated server schema so codegen needs no running API.
+  schema: "../graphql-server/schema.graphql",
   // TypeScript files in which to look for GraphQL operations (queries/mutations/fragments) to generate types for
   documents: ['src/**/*.graphql'],
   // Output directory for generated (type) files

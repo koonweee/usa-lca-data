@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LCADisclosureStatsType = exports.lcaDisclosureQuery = exports.PaginatedLCADisclosuresUniqueColumnValuesType = exports.LCADisclosuresType = exports.paginationInput = exports.lcaDisclosureFiltersInput = exports.EmployerAndCountType = exports.UniqueEmployersType = exports.StringValuesAndCountType = exports.UniqueJobTitlesType = exports.caseStatusAndCountType = exports.UniqueCaseStatusesType = exports.VisaClassAndCountType = exports.UniqueVisaClassesType = exports.SortOrder = exports.LCADisclosureOrderByInput = exports.LCADisclosureType = exports.CASE_STATUS_ENUM_TO_READABLE = exports.VISA_CLASS_ENUM_TO_READABLE = exports.visaClassType = exports.caseStatusType = exports.payUnitType = void 0;
+exports.LCADisclosureStatsType = exports.lcaDisclosureQuery = exports.PaginatedLCADisclosuresUniqueColumnValuesType = exports.LCADisclosuresType = exports.paginationInput = exports.lcaDisclosureFiltersInput = exports.EmployerAndCountType = exports.UniqueEmployersType = exports.StringValuesAndCountType = exports.UniqueJobTitlesType = exports.caseStatusAndCountType = exports.UniqueCaseStatusesType = exports.SortOrder = exports.LCADisclosureOrderByInput = exports.LCADisclosureType = exports.CASE_STATUS_ENUM_TO_READABLE = exports.VISA_CLASS_ENUM_TO_READABLE = exports.visaClassType = exports.caseStatusType = exports.payUnitType = void 0;
 const client_1 = require("@prisma/client");
 const nexus_1 = require("nexus");
 const nexus_prisma_1 = require("nexus-prisma");
@@ -40,6 +40,8 @@ exports.LCADisclosureType = (0, nexus_1.objectType)({
         t.field(nexus_prisma_1.LCADisclosure.decisionDate);
         t.field(nexus_prisma_1.LCADisclosure.beginDate);
         t.field(nexus_prisma_1.LCADisclosure.worksitePostalCode);
+        t.field(nexus_prisma_1.LCADisclosure.worksitePostalCodeValid);
+        t.field(nexus_prisma_1.LCADisclosure.normalizedWorksiteCity);
         t.field(nexus_prisma_1.LCADisclosure.wageRateOfPayFrom);
         t.field(nexus_prisma_1.LCADisclosure.wageRateOfPayTo);
         t.field(nexus_prisma_1.LCADisclosure.prevailingWageRateOfPay);
@@ -65,19 +67,6 @@ exports.LCADisclosureOrderByInput = (0, nexus_1.inputObjectType)({
 exports.SortOrder = (0, nexus_1.enumType)({
     name: "SortOrder",
     members: ["asc", "desc"],
-});
-exports.UniqueVisaClassesType = (0, nexus_1.objectType)({
-    name: "UniqueVisaClasses",
-    definition(t) {
-        t.nonNull.list.nonNull.field("uniqueValues", { type: "VisaClassAndCount" });
-    },
-});
-exports.VisaClassAndCountType = (0, nexus_1.objectType)({
-    name: "VisaClassAndCount",
-    definition(t) {
-        t.nonNull.field("visaClass", { type: "visaclass" });
-        t.nonNull.int("count");
-    },
 });
 exports.UniqueCaseStatusesType = (0, nexus_1.objectType)({
     name: "UniqueCaseStatuses",
@@ -198,14 +187,16 @@ exports.LCADisclosuresType = (0, nexus_1.objectType)({
                 const { filters } = args;
                 const where = constructPrismaWhereFromFilters(filters !== null && filters !== void 0 ? filters : {});
                 const certifiedWhere = constructPrismaWhereFromFilters(Object.assign(Object.assign({}, filters), { caseStatus: ["Certified"] }));
-                const [totalCount, certifiedCount] = yield Promise.all([
+                const cohortWhere = constructPrismaWhereFromFilters(Object.assign(Object.assign({}, filters), { caseStatus: undefined }));
+                const [totalCount, certifiedCount, cohortCount] = yield Promise.all([
                     context.prisma.lCADisclosure.count({ where }),
                     context.prisma.lCADisclosure.count({
                         where: certifiedWhere,
                     }),
+                    context.prisma.lCADisclosure.count({ where: cohortWhere }),
                 ]);
-                const successPercentage = totalCount > 0
-                    ? (certifiedCount / totalCount) * 100
+                const successPercentage = cohortCount > 0
+                    ? (certifiedCount / cohortCount) * 100
                     : 0;
                 return {
                     totalCount,
@@ -218,34 +209,6 @@ exports.LCADisclosuresType = (0, nexus_1.objectType)({
 exports.PaginatedLCADisclosuresUniqueColumnValuesType = (0, nexus_1.objectType)({
     name: "PaginatedLCADisclosuresUniqueColumnValues",
     definition(t) {
-        t.nonNull.field("visaClasses", {
-            type: "UniqueVisaClasses",
-            description: "Unique visa classes in the result set for a given filter",
-            args: {
-                filters: (0, nexus_1.arg)({
-                    type: "LCADisclosureFilters",
-                    description: "Filter options",
-                }),
-            },
-            resolve: (_parent, args, context, _info) => __awaiter(this, void 0, void 0, function* () {
-                const { filters } = args;
-                const where = constructPrismaWhereFromFilters(filters !== null && filters !== void 0 ? filters : {});
-                const uniqueClassesAndCounts = context.prisma.lCADisclosure
-                    .groupBy({
-                    where,
-                    by: ["visaClass"],
-                    _count: { visaClass: true },
-                    orderBy: { visaClass: "asc" },
-                })
-                    .then((result) => {
-                    return result.map((r) => ({
-                        visaClass: r.visaClass,
-                        count: r._count.visaClass,
-                    }));
-                });
-                return { uniqueValues: uniqueClassesAndCounts };
-            }),
-        });
         t.nonNull.field("caseStatuses", {
             type: "UniqueCaseStatuses",
             description: "Unique case statuses in the result set for a given filter",
@@ -274,36 +237,6 @@ exports.PaginatedLCADisclosuresUniqueColumnValuesType = (0, nexus_1.objectType)(
                 return { uniqueValues: uniqueStatusesAndCounts };
             },
         });
-        t.nonNull.field("jobTitles", {
-            type: "UniqueJobTitles",
-            description: "Unique job titles in the result set for a given filter",
-            args: {
-                filters: (0, nexus_1.arg)({
-                    type: "LCADisclosureFilters",
-                    description: "Filter options",
-                }),
-            },
-            resolve: (_parent, args, context, _info) => {
-                const { filters } = args;
-                const where = constructPrismaWhereFromFilters(filters !== null && filters !== void 0 ? filters : {});
-                const uniqueJobTitlesAndCounts = context.prisma.lCADisclosure
-                    .groupBy({
-                    where,
-                    by: ["jobTitle"],
-                    _count: { jobTitle: true },
-                    orderBy: { jobTitle: "asc" },
-                })
-                    .then((result) => {
-                    return result
-                        .filter((r) => r.jobTitle !== null)
-                        .map((r) => ({
-                        value: r.jobTitle,
-                        count: r._count.jobTitle,
-                    }));
-                });
-                return { uniqueValues: uniqueJobTitlesAndCounts };
-            },
-        });
         t.nonNull.field("employers", {
             type: "UniqueEmployers",
             description: "Unique employers in the result set for a given filter",
@@ -324,8 +257,9 @@ exports.PaginatedLCADisclosuresUniqueColumnValuesType = (0, nexus_1.objectType)(
                 const { filters, pagination, employerNameSearchStr } = args;
                 const { skip, take } = pagination !== null && pagination !== void 0 ? pagination : {};
                 const filtersWhereClauses = constructTemplateStringWhereFromFilters(filters !== null && filters !== void 0 ? filters : {});
-                const searchStrWhereClase = employerNameSearchStr && employerNameSearchStr.length > 0
-                    ? client_1.Prisma.sql `to_tsvector("public"."Employer"."name") @@ phraseto_tsquery(${employerNameSearchStr})`
+                const searchPattern = literalSubstringPattern(employerNameSearchStr);
+                const searchStrWhereClase = searchPattern
+                    ? client_1.Prisma.sql `"public"."Employer"."name" ILIKE ${searchPattern} ESCAPE ${"\\"}`
                     : undefined;
                 const whereExists = filtersWhereClauses || searchStrWhereClase;
                 const whereTemplate = whereExists
@@ -373,19 +307,30 @@ exports.PaginatedLCADisclosuresUniqueColumnValuesType = (0, nexus_1.objectType)(
                 const { filters, pagination, jobTitleSearchStr } = args;
                 const { skip, take } = pagination !== null && pagination !== void 0 ? pagination : {};
                 const filtersWhereClauses = constructTemplateStringWhereFromFilters(filters !== null && filters !== void 0 ? filters : {});
-                const searchStrWhereClase = jobTitleSearchStr && jobTitleSearchStr.length > 0
-                    ? client_1.Prisma.sql `to_tsvector("public"."LCADisclosure"."jobTitle") @@ phraseto_tsquery(${jobTitleSearchStr})`
+                const searchPattern = literalSubstringPattern(normalizeJobTitleFilter(jobTitleSearchStr !== null && jobTitleSearchStr !== void 0 ? jobTitleSearchStr : ""));
+                const searchStrWhereClase = searchPattern
+                    ? client_1.Prisma.sql `"public"."LCADisclosure"."normalizedJobTitle" ILIKE ${searchPattern} ESCAPE ${"\\"}`
                     : undefined;
                 const whereExists = filtersWhereClauses || searchStrWhereClase;
                 const whereTemplate = whereExists
                     ? client_1.Prisma.sql `WHERE ${client_1.Prisma.join([filtersWhereClauses, searchStrWhereClase].filter((clause) => !!clause), "AND ")}`
                     : client_1.Prisma.empty;
                 const uniqueJobTitlesAndCounts = context.prisma.$queryRaw `
-          SELECT "public"."LCADisclosure"."jobTitle", count(*) as count
-          FROM "public"."LCADisclosure"
-          ${whereTemplate}
-          GROUP BY "public"."LCADisclosure"."jobTitle"
-          ORDER BY count desc, "public"."LCADisclosure"."jobTitle" ASC
+          WITH spellings AS (
+            SELECT "normalizedJobTitle", "jobTitle", count(*) AS spelling_count
+            FROM "public"."LCADisclosure"
+            ${whereTemplate}
+            GROUP BY "normalizedJobTitle", "jobTitle"
+          ), titles AS (
+            SELECT "normalizedJobTitle",
+              (array_agg("jobTitle" ORDER BY spelling_count DESC, "jobTitle" COLLATE "C"))[1] AS "jobTitle",
+              sum(spelling_count)::bigint AS count
+            FROM spellings
+            WHERE "normalizedJobTitle" IS NOT NULL AND "normalizedJobTitle" <> ''
+            GROUP BY "normalizedJobTitle"
+          )
+          SELECT "jobTitle", count FROM titles
+          ORDER BY count DESC, "normalizedJobTitle" COLLATE "C"
           ${take ? client_1.Prisma.sql `LIMIT ${take + 1}` : client_1.Prisma.empty}
           ${skip ? client_1.Prisma.sql `OFFSET ${skip}` : client_1.Prisma.empty}
         `;
@@ -419,6 +364,14 @@ exports.lcaDisclosureQuery = (0, nexus_1.extendType)({
         });
     },
 });
+// Keep in sync with data-preprocess textMatchingKey and the backfill migration.
+const normalizeJobTitleFilter = (value) => value.replace(/\s+/g, ' ').trim().toLowerCase();
+// Treat user input literally: SQL LIKE wildcards must not broaden a search.
+// Blank input keeps the unfiltered dropdown, and GIN trigram indexes support ILIKE.
+function literalSubstringPattern(value) {
+    const term = value === null || value === void 0 ? void 0 : value.trim();
+    return term ? `%${term.replace(/[\\%_]/g, "\\$&")}%` : undefined;
+}
 function constructPrismaWhereFromFilters(filters) {
     // Build where clause from filters
     const { employerUuid, caseStatus, jobTitle } = filters !== null && filters !== void 0 ? filters : {};
@@ -434,7 +387,7 @@ function constructPrismaWhereFromFilters(filters) {
         where.employerUuid = { in: employerUuid };
     }
     if (jobTitle && jobTitle.length > 0) {
-        where.jobTitle = { in: jobTitle };
+        where.normalizedJobTitle = { in: jobTitle.map(normalizeJobTitleFilter) };
     }
     return where;
 }
@@ -469,7 +422,7 @@ function constructTemplateStringWhereFromFilters(filters) {
         ? client_1.Prisma.sql `AND`
         : client_1.Prisma.empty}
     ${jobTitleExists
-        ? client_1.Prisma.sql `"jobTitle" IN (${client_1.Prisma.join(jobTitle)})`
+        ? client_1.Prisma.sql `"normalizedJobTitle" IN (${client_1.Prisma.join(jobTitle.map(normalizeJobTitleFilter))})`
         : client_1.Prisma.empty}
   `;
     return template;
